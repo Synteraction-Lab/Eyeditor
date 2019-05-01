@@ -1,9 +1,13 @@
+import { quill } from './quill.js'
+
 // global variables
 var voice;
-var rate = 0.7;
-var utterThis = new SpeechSynthesisUtterance('');
+const RATE = 0.6;
+var synthUtterance = new SpeechSynthesisUtterance('');
 let synth = window.speechSynthesis;
-// var voiceSelect = document.querySelector('select');
+var timeoutResumeInfinity
+var TTSRelativeReadIndex=0;
+var TTSAbsoluteReadIndex;
 
 /* Speech synthesizer setup */
 export function setup() {
@@ -21,53 +25,22 @@ export function setup() {
         )
     }
 
-    // function populateVoiceList() {
-    //     voices = synth.getVoices();
-        
-    //     for(i = 0; i < voices.length ; i++) {
-    //         var option = document.createElement('option');
-    //         option.textContent = voices[i].name + ' (' + voices[i].lang + ')';
-            
-    //         if(voices[i].default) {
-    //             option.textContent += ' -- DEFAULT';
-    //         }
-            
-    //         option.setAttribute('data-lang', voices[i].lang);
-    //         option.setAttribute('data-name', voices[i].name);
-    //         voiceSelect.appendChild(option);
-    //     }
-    // }
-
-    // if (speechSynthesis.onvoiceschanged !== undefined) {
-    //     speechSynthesis.onvoiceschanged = populateVoiceList;
-    // }
-
-    
-
     let s = setSpeech();
-    // s.then((voices) => console.log(voices));  
     s.then((voices) => {
         // voice = voices.filter(x => x.default)[0]
-        voice = voices.filter(x => x.name === 'Google US English')[0]
-        // voice = voices[5]
-        console.log(voice)
+        // voice = voices.filter(x => x.name === 'Google US English')[0]
+        // console.log(voices)
+        // voice = voices[7]
+        voice = voices[32]
     });  
 }
 
-export function speak(text) {
-    // utterThis = new SpeechSynthesisUtterance('');
-    // var selectedOption = voiceSelect.selectedOptions[0].getAttribute('data-name');
-    // for(i = 0; i < voices.length ; i++) {
-    //     if(voices[i].name === selectedOption) {
-    //         utterThis.voice = voices[i];
-    //     }
-    // }
+export function speak(text, rate) {
+    synthUtterance.voice = voice;
+    synthUtterance.rate = rate || RATE;
+    synthUtterance.text = text;
     
-    utterThis.voice = voice;
-    utterThis.rate = rate;
-    utterThis.text = text;
-
-    synth.speak(utterThis);
+    synth.speak(synthUtterance);
 }
 
 export function isPaused() {
@@ -79,9 +52,41 @@ export function isSpeaking() {
 }
 
 export function pause() {
+    console.log('TTS has stopped reading.')
     synth.cancel()
 }
 
-utterThis.onerror = function(event) {
+function resumeInfinity() {
+    synth.resume();
+    timeoutResumeInfinity = setTimeout(resumeInfinity, 1000);
+}
+
+/* utterance event handlers */
+synthUtterance.onstart = function(event) {
+    resumeInfinity();
+};
+
+synthUtterance.onend = function(event) {
+    clearTimeout(timeoutResumeInfinity);
+};
+
+synthUtterance.onboundary = function(event) {
+    TTSRelativeReadIndex = event.charIndex
+};
+
+synthUtterance.onerror = function(event) {
     console.log('An error has occurred with the speech synthesis: ' + event.error);
+}
+
+export const getTTSAbsoluteReadIndex = () => {
+    return TTSAbsoluteReadIndex || 0;
+}
+
+export function getTTSRelativeReadIndex() {
+    return TTSRelativeReadIndex;
+}
+
+export const read = (index) => {
+    TTSAbsoluteReadIndex = index
+    speak(quill.getText(index))
 }

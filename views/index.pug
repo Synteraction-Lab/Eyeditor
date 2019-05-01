@@ -1,35 +1,19 @@
 extends layout
 
 block content
-  //- h1= title
-  //- p Welcome to #{title}
-  a.buttonfile(id='btn1', style='background-color:#7E8BC6') Task 1
-  a.buttonfile(id='btn2', style='background-color:#7E8BC6') Task 2
-  a.buttonfile.buttongroup(id='iw', style='background-color:#FA8867') Ins W
-  a.buttonfile.buttongroup(id='ip', style='background-color:#FA8867') Ins P
-  a.buttonfile.buttongroup(id='dw', style='background-color:#872002') Del W
-  a.buttonfile.buttongroup(id='dp', style='background-color:#872002') Del P
-  a.buttonfile.buttongroup(id='rw', style='background-color:#F73A03') Chg W
-  a.buttonfile.buttongroup(id='rp', style='background-color:#F73A03') Chg P
-  a.buttonfile.buttongroup(id='nr', style='background-color:#3AACE8')
-    i.material-icons cached
-  a.buttonfile.buttongroup(id='nb', style='background-color:#3AACE8')
-    i.material-icons fast_rewind
-  a.buttonfile.buttongroup(id='ns', style='background-color:#3AACE8')
-    i.material-icons stop
-  
+  a.buttonfile(id='btn1', style='background-color:#7E8BC6') Display + Audio
+  a.buttonfile(id='btn2', style='background-color:#7E8BC6') Display (Ad hoc) + Audio
+  a.buttonfile(id='btn3', style='background-color:#7E8BC6') Display
   div#editor
 
   br
-  a.buttonfile(id='errbtn1', style='background-color:#B6530A') Sorry, didn't get that!
-  a.buttonfile(id='errbtn2', style='background-color:#B6530A') Sorry, could you repeat that again?
-  a.buttonfile(id='errbtn3', style='background-color:#B6530A') Couldn't find a match for the word you mentioned!
-
-  input#switch(type='checkbox')
-  label(for='switch')
+  input#mic(type='checkbox')
+  label(for='mic')
 
   br
-  a.buttonfile(id='btn3', style='background-color:#C43922') Training
+  div.transcript#static Recognized:
+  div.transcript#currentTranscript
 
-  //- br
-  //- select
+  br
+  br
+  a.buttonfile(id='stopTTS', style='background-color:#999292') Stop Reading

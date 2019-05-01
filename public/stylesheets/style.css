@@ -90,7 +90,7 @@ label:after {
 }
 
 input:checked + label {
-  background: #bada55;
+  background: #5bf396;
 }
 
 input:checked + label:after {
@@ -101,3 +101,22 @@ input:checked + label:after {
 label:active:after {
   width: 130px;
 }
+
+div.transcript {
+  display: inline-block;
+  margin-right: 3px;
+  font-size: 14px;
+  font-style: italic;
+  color:black;
+}
+
+#currentTranscript {
+  color:blueviolet;
+  font-size: 14px;
+  font-weight: 500; 
+}
+
+/* #transcriptFinal {
+  color: #f7ffd9;
+  font-weight: 400; 
+} */
