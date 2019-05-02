@@ -1,10 +1,12 @@
 var currentText;
+var lastUtterance;
 
 export const pushTextToBlade = (text, utterance) => {
     if (!text) text = getCurrentText()
     else setCurrentText(text)
 
-    utterance = utterance || ''
+    if (!utterance) utterance = getLastUtterance()
+    else setLastUtterance(utterance)
 
     var xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function() {
@@ -28,6 +30,9 @@ const setCurrentText = (text) => {
     currentText = text
 }
 
-const getCurrentText = () => {
-    return currentText
+const setLastUtterance = (utterance) => {
+    lastUtterance = utterance
 }
+
+const getCurrentText = () => currentText
+const getLastUtterance = () => lastUtterance
