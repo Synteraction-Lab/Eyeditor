@@ -64,6 +64,20 @@ export const replaceText = (updateParam) => {
     })
 }
 
+export const insertText = (updateParam) => {
+    quill.focus()
+    return new Promise(function(resolve) {
+        quill.updateContents(new Delta()
+            .retain(updateParam.startIndex)
+            .insert(updateParam.updateText + ' ')
+            .retain(quill.getSelection().index));
+
+        Promise.all([updateCompleted()]).then(function() {
+            resolve();
+        })
+    })
+}
+
 export const undo = () => {
     quill.focus()
     // quill.enable()

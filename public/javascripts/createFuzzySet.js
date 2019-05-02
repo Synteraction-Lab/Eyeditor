@@ -1,7 +1,7 @@
 const options = 
             {
                 keyword: {
-                    threshold: 0.4,     // the lower, the stricter
+                    threshold: 0.3,     // the lower, the stricter
                     keys: [
                         {
                             name: 'id',

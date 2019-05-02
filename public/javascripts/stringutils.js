@@ -104,7 +104,7 @@ export const getSentence = (text, indexObj) => {
     return text.substring(indexObj.start, indexObj.end)
 }
 
-export const findLeftContext = function(text, queryString) {    
+export const findLeftContext = (text, queryString) => {    
     if (queryString.length == 0) {
         return {matchText: "", matchIndex: -1}
     }
@@ -125,7 +125,7 @@ export const findLeftContext = function(text, queryString) {
     return findLeftContext(text, queryString.substring(0, queryString.lastIndexOf(' ')));
 }
 
-export const findRightContext = function(text, queryString) {
+export const findRightContext = (text, queryString) => {
     let regex = new RegExp('\\b' + queryString.trim() + '\\b', 'gi');
     let index = -1, match;
 
@@ -143,4 +143,12 @@ export const findRightContext = function(text, queryString) {
         return {matchText: "", matchIndex: -1}
     
     return findRightContext(text, queryString.substring(queryString.indexOf(' ')+1, queryString.length));
+}
+
+export const stripLeftContext = (queryString, leftContext) => {
+    return queryString.substr(leftContext.length + 1)
+}
+
+export const stripRightContext = (queryString, rightContext) => {
+    return queryString.substr(0, queryString.length - rightContext.length - 1)
 }
