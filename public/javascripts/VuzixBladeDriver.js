@@ -14,7 +14,7 @@ export const pushTextToBlade = (text, utterance) => {
             console.log('response from Blade Server', this.responseText);
         }
     }
-    xhr.open("POST", "http://172.25.99.186:8080/displays/9/", true)
+    xhr.open("POST", "http://172.25.97.225:8080/displays/9/", true)
     
     // Request Header Configuration
     xhr.setRequestHeader("Content-Type", "application/json")
