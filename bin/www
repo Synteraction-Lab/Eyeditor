@@ -7,7 +7,7 @@
 var app = require('../app');
 var debug = require('debug')('areditalk:server');
 var http = require('http');
-
+var socket = require('socket.io');
 /**
  * Get port from environment and store in Express.
  */
@@ -88,3 +88,19 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
+
+/* socket setup */
+var io = socket(server)
+
+io.on('connection', (socket) => {
+  console.log('Listening to sockets:', Object.keys(io.sockets.sockets));
+
+  socket.on('disconnect', () => {
+    console.log('Lost socket connection in', socket.id);
+  });
+
+  socket.on('bladeData', (data) => {  
+    io.sockets.emit('bladeData', data);
+  })
+
+})

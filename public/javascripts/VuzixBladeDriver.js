@@ -1,5 +1,7 @@
 var currentText;
 var lastUtterance;
+var socket = io.connect('http://localhost:3000');
+var dataObject;
 
 export const pushTextToBlade = (text, utterance) => {
     if (!text) text = getCurrentText()
@@ -19,11 +21,16 @@ export const pushTextToBlade = (text, utterance) => {
     // Request Header Configuration
     xhr.setRequestHeader("Content-Type", "application/json")
 
-    xhr.send(JSON.stringify({
+    dataObject = {
         "heading": "",
         "subheading": text,
         "content": utterance
-    }));
+    };
+
+    xhr.send(JSON.stringify(dataObject));
+
+    // push to Blade Clone
+    socket.emit('bladeData', dataObject)
 }
 
 const setCurrentText = (text) => {

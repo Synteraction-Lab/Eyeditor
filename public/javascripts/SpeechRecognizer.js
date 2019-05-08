@@ -1,6 +1,5 @@
 import * as tts from './tts.js'
 import * as parser from './utteranceparser.js'
-import { pushTextToBlade } from './VuzixBladeDriver.js';
 
 /* Speech recognizer setup */
 var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
