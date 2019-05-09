@@ -1,4 +1,4 @@
-import { speakFeedback } from './feedback.js';
+import { speakFeedback } from './audiofeedback.js';
 
 const TYPE_ERROR_FEEDBACK = 'ERROR'
 

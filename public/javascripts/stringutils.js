@@ -100,7 +100,7 @@ export const getSentenceIndices = (text, index) => {    // absolute indices
     })
 }
 
-export const getSentence = (text, indexObj) => {
+export const getSentenceSnippetBetweenIndices = (text, indexObj) => {
     return text.substring(indexObj.start, indexObj.end)
 }
 

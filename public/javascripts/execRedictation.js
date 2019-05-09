@@ -1,7 +1,7 @@
 import { findLeftContext, findRightContext, getIndexOfLastPunctuation, stripLeftContext, stripRightContext } from './stringutils.js';
 import { insertText, replaceText, refreshText } from './TextEditor.js'
 import { quill } from './quill.js'
-import { speakFeedback } from './feedback.js'
+import { speakFeedback } from './audiofeedback.js'
 import * as tts from './tts.js'
 import { getBargeinIndex } from './utteranceparser.js'
 
@@ -36,7 +36,7 @@ export const handleRedictation = (utterance, workingText) => {
     }
 
     else if ( leftContext.matchIndex >= 0 ) {
-        let regexNextWordString = `(?<=\\b${leftContext.matchText}\\b)[;,:]*\\s(\\b\\w+\\b)`
+        let regexNextWordString = `(?<=\\b${leftContext.matchText}\\b)[;,:]*\\s(\\b\\w+\\b)`    // Regex Used:  (?<=\brecovers\b)[;,:]*\s(\b\w+\b)
         let regexNextWord = new RegExp(regexNextWordString, 'gi')
 
         let match = regexNextWord.exec(workingText.text)
@@ -68,7 +68,7 @@ export const handleRedictation = (utterance, workingText) => {
     }
 
     else if ( rightContext.matchIndex >= 0 ) {
-        let regexPrevWordString = `(\\b\\w+\\b)(?=[;,:]*\\s\\b${rightContext.matchText}\\b)`
+        let regexPrevWordString = `(\\b\\w+\\b)(?=[;,:]*\\s\\b${rightContext.matchText}\\b)`    // Regex Used:  (\b\w+\b)(?=[;,:]*\s\brecovers\b)
         let regexPrevWord = new RegExp(regexPrevWordString, 'gi')
 
         let match = regexPrevWord.exec(workingText.text)

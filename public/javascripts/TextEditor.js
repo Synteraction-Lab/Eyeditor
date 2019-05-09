@@ -1,8 +1,9 @@
 import { quill, Delta } from './quill.js'
 import * as tts from './tts.js'
 import { formatText } from './stringutils.js';
-import { pushTextToBlade } from './VuzixBladeDriver.js'
-import { speakFeedback } from './feedback.js'
+import { renderBladeDisplay, renderBladeDisplayBlank } from './VuzixBladeDriver.js'
+import { speakFeedback } from './audiofeedback.js'
+import { getFeedbackConfiguration } from './main.js';
 
 var clickedAt;
 
@@ -24,9 +25,22 @@ editor.addEventListener('dblclick', (e) => {
     tts.read(clickedAt)
 })
 
-export const refreshText = (text) => {
+export const refreshText = (text, isTextLoad) => {
+    isTextLoad = isTextLoad || false
+    
     quill.setText( formatText(text) )
-    pushTextToBlade(quill.getText())
+    
+    let feedbackConfig = getFeedbackConfiguration()
+    switch(feedbackConfig) {
+        case 'DEFAULT':
+        case 'DISP_ALWAYS_ON':
+            if (isTextLoad) renderBladeDisplay(quill.getText(), 'forceClear')
+                else        renderBladeDisplay(quill.getText())
+            break;
+        case 'DISP_ON_DEMAND':
+            if (isTextLoad) renderBladeDisplayBlank()
+            break;
+    }
 }
 
 const updateCompleted = () => {
@@ -82,6 +96,9 @@ export const undo = () => {
     quill.focus()
     // quill.enable()
     return new Promise(function(resolve) {
+        console.log('quill.history', quill.history)
+        console.log('quill.history.stack.undo', quill.history.stack.undo)
+        
         if (quill.history.stack.undo.length == 1) {
             speakFeedback('There is nothing more to undo.', 'ERROR')
             resolve()
@@ -100,6 +117,9 @@ export const redo = () => {
     quill.focus()
     // quill.enable()
     return new Promise(function(resolve) {
+        console.log('quill.history', quill.history)
+        console.log('quill.history.stack.redo', quill.history.stack.redo)
+
         if (quill.history.stack.redo.length == 0) {
             speakFeedback('There is nothing more to redo.', 'ERROR')
             resolve()

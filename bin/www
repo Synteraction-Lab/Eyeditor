@@ -100,6 +100,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('bladeData', (data) => {  
+    // console.log('Data received in socket (server) ::', data)
     io.sockets.emit('bladeData', data);
   })
 

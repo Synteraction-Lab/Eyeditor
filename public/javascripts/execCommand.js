@@ -2,7 +2,7 @@ import * as editor from './TextEditor.js'
 import { quill } from './quill.js'
 import * as stringutils from './stringutils.js'
 import { handleError } from './error.js';
-import { speakFeedback } from './feedback.js';
+import { speakFeedback } from './audiofeedback.js';
 import * as tts from './tts.js';
 import { getBargeinIndex } from './utteranceparser.js';
 
@@ -32,13 +32,13 @@ export const handleCommand = (keyword, arg, workingText) => {
                 break;
             
             case 'undo':
-                editor.undo()
+                editor.undo().then(editor.refreshText( quill.getText() ))
                 speakFeedback('Undone.', 'SUCCESS')
                 tts.read(stringutils.getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
                 break;
 
             case 'redo':
-                editor.redo()
+                editor.redo().then(editor.refreshText( quill.getText() ))
                 speakFeedback('Redone.', 'SUCCESS')
                 tts.read(stringutils.getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
                 break;

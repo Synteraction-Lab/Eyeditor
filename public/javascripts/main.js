@@ -4,7 +4,7 @@ import { recognition } from './SpeechRecognizer.js';
 import * as editor from './TextEditor.js'
 import { generateFuzzySetForCommands } from './createFuzzySet.js';
 
-var outputConfiguration; //1: d+a ('da'), 2: d(adhoc)+a ('d-a'), 3: d ('d')
+var feedbackConfiguration = 'DEFAULT';
 
 /* configure TTS */
 tts.setup()
@@ -12,20 +12,26 @@ tts.setup()
 /* create the fuzzy set for command keywords */
 generateFuzzySetForCommands()
 
+const initLoad = (text) => {
+    let isLoading = true
+    mic.checked = false
+    editor.refreshText(text, isLoading)
+}
+
 /* Task Button Handlers */
 btn1.addEventListener('click', function(e) {
-    outputConfiguration = 'da'
-    editor.refreshText(data[0].trig)
+    feedbackConfiguration = 'DEFAULT'
+    initLoad(data[0].trig)
 })
 
 btn2.addEventListener('click', function(e) {
-    outputConfiguration = 'd-a'
-    editor.refreshText(data[1].trig)
+    feedbackConfiguration = 'DISP_ON_DEMAND'
+    initLoad(data[1].trig)
 })
 
 btn3.addEventListener('click', function(e) {
-    outputConfiguration = 'd'
-    editor.refreshText(data[2].trig)
+    feedbackConfiguration = 'DISP_ALWAYS_ON'
+    initLoad(data[2].trig)
 })
 
 mic.addEventListener('click', (e) => {
@@ -41,4 +47,5 @@ stopTTS.addEventListener('click', function(e) {
     tts.pause()
 })
 
-export const getOutputConfig = () => outputConfiguration
+export const getFeedbackConfiguration = () => feedbackConfiguration
+
