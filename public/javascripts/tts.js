@@ -6,8 +6,8 @@ const RATE = 0.6;
 var synthUtterance = new SpeechSynthesisUtterance('');
 let synth = window.speechSynthesis;
 var timeoutResumeInfinity
-var TTSRelativeReadIndex=0;
-var TTSAbsoluteReadIndex;
+var TTSRelativeReadIndex
+var TTSAbsoluteReadIndex
 
 /* Speech synthesizer setup */
 export function setup() {
@@ -83,7 +83,7 @@ export const getTTSAbsoluteReadIndex = () => {
 }
 
 export function getTTSRelativeReadIndex() {
-    return TTSRelativeReadIndex;
+    return TTSRelativeReadIndex || 0;
 }
 
 export const read = (index) => {

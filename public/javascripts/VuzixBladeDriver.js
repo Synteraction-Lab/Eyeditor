@@ -14,6 +14,7 @@ var lastUtterance;
 var socket = io.connect('http://localhost:3000');
 var dataObject;
 var timer = new Timer()
+var isDisplayOn = false;
 
 const pushTextToBlade = (text, utterance) => {
     var xhr = new XMLHttpRequest()
@@ -33,8 +34,8 @@ const pushTextToBlade = (text, utterance) => {
     dataObject = {
         "html":true,
         "heading": null,
-        "subheading": text,
-        "content": utterance
+        "subheading": text || null,
+        "content": utterance || null
     };
 
     xhr.send(JSON.stringify(dataObject));
@@ -57,6 +58,8 @@ const getLastUtterance = () => lastUtterance
 export const renderBladeDisplayBlank = () => pushTextToBlade(null, null)
 
 export const renderBladeDisplay = (text, utterance) => {
+    let saveReceivedText = text
+
     if (!text) text = getCurrentText()
     else setCurrentText(text)
 
@@ -72,11 +75,18 @@ export const renderBladeDisplay = (text, utterance) => {
             break;
 
         case 'DISP_ON_DEMAND':
-            pushTextToBlade(text, utterance)
-            if (!timer.isRunning())
+            if (saveReceivedText) {
+                pushTextToBlade(text, utterance)
                 timer.start({countdown: true, startValues: {seconds: MAX_DISPLAY_ON_TIME}});
-            else timer.reset()
-
+                isDisplayOn = true
+            }
+            else if (isDisplayOn) {
+                pushTextToBlade(text, utterance)
+                timer.reset()
+            }
+            else
+                pushTextToBlade(null, utterance)
+            
             break;
     }
 }
@@ -87,6 +97,7 @@ timer.addEventListener('secondsUpdated', function (e) {
 
 timer.addEventListener('targetAchieved', function (e) {
     renderBladeDisplayBlank();
+    isDisplayOn = false
     timer.stop()
     console.log('Timer Stopped.');
 });

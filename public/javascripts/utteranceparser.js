@@ -22,7 +22,7 @@ export const handleUtterance = (utterance) => {
 }
 
 export const getBargeinIndex = () => {
-    return bargeinIndex
+    return bargeinIndex || 0
 }
 
 export const extractWorkingText = (index) => {
