@@ -5,8 +5,9 @@ import { handleCommand } from './execCommand.js';
 
 const LEFT_KEY_CODE = 33
 const RIGHT_KEY_CODE = 34
-const UNDO_KEY_CODE = 116
-const REDO_KEY_CODE = 27
+const UNDO_KEY_CODE_1 = 116
+const UNDO_KEY_CODE_2 = 27
+const REDO_KEY_CODE = 66
 const READ_RESTART_INDEX = 0
 const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 10 chars of current sent., TTS reads the prev. sentence.
 const CUT_KEY_INPUT_DELAY = 3 // 0.1 seconds = 100ms
@@ -57,10 +58,12 @@ const classifyControllerEvent = () => {
             if (interruptIndex == 0) controllerEvent = 'READ_FROM_BEGINNING'
                 else controllerEvent = 'READ_NEXT'
             break;
-        case UNDO_KEY_CODE:
+        case UNDO_KEY_CODE_1:
+        case UNDO_KEY_CODE_2:
+            if (accControllerPresses < 3)   handleCommand('undo')
+            break;
         case REDO_KEY_CODE:
-            if (accControllerPresses > 2)   handleCommand('redo')
-                else                        handleCommand('undo')
+            if (accControllerPresses < 3 && !quill.hasFocus())   handleCommand('redo')
             break;
     }
 

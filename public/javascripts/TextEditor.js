@@ -93,43 +93,21 @@ export const insertText = (updateParam) => {
 }
 
 export const undo = () => {
-    quill.focus()
-    // quill.enable()
-    return new Promise(function(resolve) {
-        console.log('quill.history', quill.history)
-        console.log('quill.history.stack.undo', quill.history.stack.undo)
-        
-        if (quill.history.stack.undo.length == 1) {
-            speakFeedback('There is nothing more to undo.', 'ERROR')
-            resolve()
-        } else {
-            quill.history.undo();
-
-            Promise.all([updateCompleted()]).then(function() {
-                // quill.disable();
-                resolve();
-            })
-        }
-    })
+    if (quill.history.stack.undo.length == 1)
+        speakFeedback('There is nothing more to undo.', 'ERROR')
+    else {
+        quill.enable()
+        quill.history.undo()
+        quill.disable()
+    }
 }
 
 export const redo = () => {
-    quill.focus()
-    // quill.enable()
-    return new Promise(function(resolve) {
-        console.log('quill.history', quill.history)
-        console.log('quill.history.stack.redo', quill.history.stack.redo)
-
-        if (quill.history.stack.redo.length == 0) {
-            speakFeedback('There is nothing more to redo.', 'ERROR')
-            resolve()
-        } else {
-            quill.history.redo();
-
-            Promise.all([updateCompleted()]).then(function() {
-                // quill.disable();
-                resolve();
-            })
-        }
-    })
+    if (quill.history.stack.redo.length == 0)
+        speakFeedback('There is nothing more to redo.', 'ERROR')
+    else {
+        quill.enable()
+        quill.history.redo()
+        quill.disable()
+    }
 }

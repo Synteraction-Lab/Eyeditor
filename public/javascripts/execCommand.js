@@ -32,13 +32,13 @@ export const handleCommand = (keyword, arg, workingText) => {
                 break;
             
             case 'undo':
-                editor.undo().then(editor.refreshText( quill.getText() ))
+                editor.undo()
                 speakFeedback('Undone.', 'SUCCESS')
                 tts.read(stringutils.getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
                 break;
 
             case 'redo':
-                editor.redo().then(editor.refreshText( quill.getText() ))
+                editor.redo()
                 speakFeedback('Redone.', 'SUCCESS')
                 tts.read(stringutils.getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
                 break;
