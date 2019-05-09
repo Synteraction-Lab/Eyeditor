@@ -1,6 +1,13 @@
 import { getFeedbackConfiguration } from './main.js'
 
 const MAX_DISPLAY_ON_TIME = 7 // in seconds
+const bladeURLObject = {
+    ip: '172.25.105.13',
+    port: '8080',
+    route: 'displays',
+    endpoint: '10'
+}
+const bladeURL = `http://${bladeURLObject.ip}:${bladeURLObject.port}/${bladeURLObject.route}/${bladeURLObject.endpoint}/`
 
 var currentText;
 var lastUtterance;
@@ -15,7 +22,8 @@ const pushTextToBlade = (text, utterance) => {
             console.log('response from Blade Server', this.responseText);
         }
     }
-    xhr.open("POST", "http://172.25.96.238:8080/displays/10/", true)
+    
+    xhr.open("POST", bladeURL, true)
     
     // Request Header Configuration
     xhr.setRequestHeader("Content-Type", "application/json")

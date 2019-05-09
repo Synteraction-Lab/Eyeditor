@@ -53,8 +53,6 @@ export const extractWorkingText = (index) => {
 }
 
 const parseUtterance = (utterance, workingText) => {
-    renderBladeDisplay(null, utterance)
-    
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
     if (keyword) {
