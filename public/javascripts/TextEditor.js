@@ -1,9 +1,8 @@
 import { quill, Delta } from './quill.js'
 import * as tts from './tts.js'
 import { formatText } from './stringutils.js';
-import { renderBladeDisplay, renderBladeDisplayBlank } from './VuzixBladeDriver.js'
-import { speakFeedback } from './audiofeedback.js'
-import { getFeedbackConfiguration } from './main.js';
+import { speakFeedback } from './AudioFeedbackHandler.js'
+import { feedbackOnTextLoad, feedbackOnTextRefresh } from './FeedbackHandler.js';
 
 var clickedAt;
 
@@ -26,21 +25,11 @@ editor.addEventListener('dblclick', (e) => {
 })
 
 export const refreshText = (text, isTextLoad) => {
-    isTextLoad = isTextLoad || false
-    
     quill.setText( formatText(text) )
-    
-    let feedbackConfig = getFeedbackConfiguration()
-    switch(feedbackConfig) {
-        case 'DEFAULT':
-        case 'DISP_ALWAYS_ON':
-            if (isTextLoad) renderBladeDisplay(quill.getText(), 'forceClear')
-                else        renderBladeDisplay(quill.getText())
-            break;
-        case 'DISP_ON_DEMAND':
-            if (isTextLoad) renderBladeDisplayBlank()
-            break;
-    }
+
+    isTextLoad = isTextLoad || false
+    if (isTextLoad) feedbackOnTextLoad()
+        else feedbackOnTextRefresh()
 }
 
 const updateCompleted = () => {

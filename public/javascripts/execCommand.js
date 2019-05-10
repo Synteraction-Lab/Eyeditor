@@ -1,32 +1,33 @@
 import * as editor from './TextEditor.js'
 import { quill } from './quill.js'
-import * as stringutils from './stringutils.js'
+import { findinText } from './stringutils.js'
 import { handleError } from './error.js';
-import { speakFeedback } from './audiofeedback.js';
-import * as tts from './tts.js';
-import { getBargeinIndex } from './utteranceparser.js';
+import { speakFeedback, readTextOnFailedUpdate, readTextOnUpdate } from './AudioFeedbackHandler.js';
+import { setUpdateParameter } from './utteranceparser.js';
 
 export const handleCommand = (keyword, arg, workingText) => {
+    let updateParameter;
     try {
         switch ( keyword ) {
             case 'delete': 
                 if (arg.length == 0)
                     throw 'INSUFFICIENT_NO_OF_ARGS'
                 
-                let findResult = stringutils.findinText(arg, workingText.text)
+                let findResult = findinText(arg, workingText.text)
 
                 if (findResult) {
-                    var updateParameter = {
+                    updateParameter = {
                         startIndex: workingText.startIndex + findResult.startIndex,
                         length: findResult.length
                     }
+
+                    setUpdateParameter(updateParameter);
             
                     editor.deleteText( updateParameter )
                     .then(editor.refreshText( quill.getText() ))   // re-format existing text to purge out any formatting anomalies due to prev. operations
                     
                     speakFeedback('Deleted', 'SUCCESS')
-
-                    tts.read(stringutils.getIndexOfLastPunctuation( quill.getText(), updateParameter.startIndex ) + 2)
+                    readTextOnUpdate()
                 }
                 else throw 'PHRASE_NOT_FOUND'
                 break;
@@ -34,13 +35,13 @@ export const handleCommand = (keyword, arg, workingText) => {
             case 'undo':
                 editor.undo()
                 speakFeedback('Undone.', 'SUCCESS')
-                tts.read(stringutils.getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
+                readTextOnFailedUpdate()
                 break;
 
             case 'redo':
                 editor.redo()
                 speakFeedback('Redone.', 'SUCCESS')
-                tts.read(stringutils.getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
+                readTextOnFailedUpdate()
                 break;
         }
     }
@@ -55,7 +56,7 @@ export const handleCommand = (keyword, arg, workingText) => {
                 break
         }
         
-        tts.read(stringutils.getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
+        readTextOnFailedUpdate()
     }
 }
 

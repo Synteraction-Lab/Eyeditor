@@ -35,7 +35,7 @@ export function setup() {
     });  
 }
 
-export function speak(text, rate) {
+export function speak(text, rate) { // speak() reads just passed argument at a given speaking rate. low-level method used by read().
     synthUtterance.voice = voice;
     synthUtterance.rate = rate || RATE;
     synthUtterance.text = text;
@@ -86,7 +86,7 @@ export function getTTSRelativeReadIndex() {
     return TTSRelativeReadIndex || 0;
 }
 
-export const read = (index) => {
+export const read = (index) => {    // read() reads from the quill from a given index. high-level method, calls low-level speak()
     TTSAbsoluteReadIndex = index
     speak(quill.getText(index))
 }

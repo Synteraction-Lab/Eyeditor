@@ -1,6 +1,6 @@
 import * as tts from './tts.js'
 import * as parser from './utteranceparser.js'
-import { renderBladeDisplay } from './VuzixBladeDriver.js';
+import { feedbackOnUserUtterance } from './FeedbackHandler.js'
 
 /* Speech recognizer setup */
 var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
@@ -18,7 +18,7 @@ recognition.onresult = function(event) {
     var hypothesis = event.results[last][0].transcript.trim();
 
     currentTranscript.innerHTML = hypothesis
-    renderBladeDisplay(null, hypothesis)
+    feedbackOnUserUtterance(hypothesis)
 
     tts.pause()
 

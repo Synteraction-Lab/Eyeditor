@@ -2,22 +2,27 @@ import * as tts from './tts.js'
 import { quill } from './quill.js'
 import * as fuzzy from './createFuzzySet.js'
 import { handleCommand } from './execCommand.js'
-import { renderBladeDisplay } from './VuzixBladeDriver.js';
 import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices } from './stringutils.js'
 import { handleRedictation } from './execRedictation.js';
-import { handleFeedback } from './FeedbackHandler.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, feedbackOnCommandExecution } from './FeedbackHandler.js';
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 30 // in chars
 const cropSelectionToBargeinIndex = true // either crop or full sentence.
 
 var bargeinIndex;
 var workingText;
+var updateParameter;
+
+export const getUpdateParameter = () => updateParameter;
+export const setUpdateParameter = (updateObject) => {
+    updateParameter = Object.assign({}, updateObject);
+}
 
 export const handleUtterance = (utterance) => {
     bargeinIndex = tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex();
     workingText = extractWorkingText(bargeinIndex);
     
-    handleFeedback()
+    feedbackOfWorkingTextOnUserUtterance(workingText.text)
     parseUtterance(utterance, workingText)
 }
 
@@ -53,6 +58,8 @@ export const extractWorkingText = (index) => {
 }
 
 const parseUtterance = (utterance, workingText) => {
+    updateParameter = null
+    
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
     if (keyword) {
@@ -61,14 +68,17 @@ const parseUtterance = (utterance, workingText) => {
         let fuzzyArgument = fuzzy.matchFuzzyForArgument(restOfTheUtterance, workingText.text)
         let passArgument = fuzzyArgument || restOfTheUtterance
 
-        renderBladeDisplay(null, keyword + ' ' + passArgument)
+        feedbackOnUserUtterance(keyword + ' ' + passArgument)
+
         handleCommand(keyword, passArgument, workingText)
-        handleFeedback()
+        if (getUpdateParameter())
+            feedbackOnCommandExecution(getSentenceSnippetBetweenIndices(quill.getText(), getSentenceIndices(quill.getText(), updateParameter.startIndex)))
     } 
     
     else {
         handleRedictation(utterance, workingText)
-        handleFeedback()
+        if (getUpdateParameter())
+            feedbackOnCommandExecution(getSentenceSnippetBetweenIndices(quill.getText(), getSentenceIndices(quill.getText(), updateParameter.startIndex)))
     }
 }
 
