@@ -7,7 +7,6 @@ import { feedbackOnTextLoad, feedbackOnTextRefresh } from './FeedbackHandler.js'
 var clickedAt;
 
 editor.addEventListener('click', (e) => {
-    // if (tts.isSpeaking()) tts.pause();
     tts.pause()
 
     clickedAt = quill.getSelection().index
