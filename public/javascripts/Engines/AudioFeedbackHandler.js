@@ -1,8 +1,8 @@
-import * as tts from './Services/tts.js'
-import { quill } from './Services/quill.js'
-import { getUpdateParameter, getBargeinIndex } from './utteranceparser.js'
-import { getIndexOfLastPunctuation } from './Utils/stringutils.js'
-import { getFeedbackConfiguration } from './main.js';
+import * as tts from '../Services/tts.js'
+import { quill } from '../Services/quill.js'
+import { getUpdateParameter, getBargeinIndex } from './UtteranceParser.js'
+import { getIndexOfLastPunctuation } from '../Utils/stringutils.js'
+import { getFeedbackConfiguration } from '../main.js';
 
 const feedbackRate = {
     'ERROR': 1.0,

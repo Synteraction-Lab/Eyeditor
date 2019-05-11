@@ -1,8 +1,8 @@
-import { findLeftContext, findRightContext, stripLeftContext, stripRightContext } from './Utils/stringutils.js';
+import { findLeftContext, findRightContext, stripLeftContext, stripRightContext } from '../Utils/stringutils.js';
 import { insertText, replaceText, refreshText } from './TextEditor.js'
-import { quill } from './Services/quill.js'
+import { quill } from '../Services/quill.js'
 import { speakFeedback, readTextOnUpdate, readTextOnFailedUpdate } from './AudioFeedbackHandler.js'
-import { setUpdateParameter } from './utteranceparser.js'
+import { setUpdateParameter } from './UtteranceParser.js'
 
 
 export const handleRedictation = (utterance, workingText) => {

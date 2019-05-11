@@ -1,9 +1,9 @@
-import * as tts from './Services/tts.js'
-import { quill } from './Services/quill.js'
-import * as fuzzy from './Utils/createFuzzySet.js'
-import { handleCommand } from './execCommand.js'
-import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices } from './Utils/stringutils.js'
-import { handleRedictation } from './execRedictation.js';
+import * as tts from '../Services/tts.js'
+import { quill } from '../Services/quill.js'
+import * as fuzzy from '../Utils/fuzzymatcher.js'
+import { handleCommand } from './Commanding.js'
+import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices } from '../Utils/stringutils.js'
+import { handleRedictation } from './Redictation.js';
 import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, feedbackOnCommandExecution } from './FeedbackHandler.js';
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 30 // in chars

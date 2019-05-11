@@ -1,6 +1,6 @@
 import * as tts from './tts.js'
-import * as parser from './utteranceparser.js'
-import { feedbackOnUserUtterance } from './FeedbackHandler.js'
+import * as parser from '../Engines/UtteranceParser.js'
+import { feedbackOnUserUtterance } from '../Engines/FeedbackHandler.js'
 
 /* Speech recognizer setup */
 var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;

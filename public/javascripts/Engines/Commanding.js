@@ -1,9 +1,9 @@
 import * as editor from './TextEditor.js'
-import { quill } from './Services/quill.js'
-import { findinText } from './Utils/stringutils.js'
-import { handleError } from './error.js';
+import { quill } from '../Services/quill.js'
+import { findinText } from '../Utils/stringutils.js'
+import { handleError } from '../error.js';
 import { speakFeedback, readTextOnFailedUpdate, readTextOnUpdate } from './AudioFeedbackHandler.js';
-import { setUpdateParameter } from './utteranceparser.js';
+import { setUpdateParameter } from './UtteranceParser.js';
 
 export const handleCommand = (keyword, arg, workingText) => {
     let updateParameter;

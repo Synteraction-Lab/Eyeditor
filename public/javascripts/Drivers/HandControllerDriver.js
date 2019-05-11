@@ -1,7 +1,7 @@
-import * as tts from './tts.js'
-import { getSentenceIndices } from './stringutils.js';
-import { quill } from './quill.js';
-import { handleCommand } from './execCommand.js';
+import * as tts from '../Services/tts.js'
+import { getSentenceIndices } from '../Utils/stringutils.js';
+import { quill } from '../Services/quill.js';
+import { handleCommand } from '../Engines/Commanding.js';
 
 const LEFT_KEY_CODE = 33
 const RIGHT_KEY_CODE = 34

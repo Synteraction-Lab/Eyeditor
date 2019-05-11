@@ -1,9 +1,9 @@
 import { data } from './data.js'
-import * as tts from './tts.js'
-import { recognition } from './SpeechRecognizer.js';
-import * as editor from './TextEditor.js'
-import { generateFuzzySetForCommands } from './createFuzzySet.js';
-import { quill } from './quill.js'
+import * as tts from './Services/tts.js'
+import { recognition } from './Services/speechrecognizer.js';
+import * as editor from './Engines/TextEditor.js'
+import { generateFuzzySetForCommands } from './Utils/fuzzymatcher.js';
+import { quill } from './Services/quill.js'
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;
