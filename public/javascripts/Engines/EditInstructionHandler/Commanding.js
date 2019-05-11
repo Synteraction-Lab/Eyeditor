@@ -33,8 +33,8 @@ export const handleCommand = (keyword, arg, workingText) => {
                 let indexOfUndo = editor.undo()
                 updateParameter = {startIndex: indexOfUndo}
                 
-                if (indexOfUndo)    provideSuccessFeedback('Undone', updateParameter)
-                    else            provideFailureFeedback('There is nothing more to undo.')
+                if (indexOfUndo >= 0)   provideSuccessFeedback('Undone', updateParameter)
+                    else                provideFailureFeedback('There is nothing more to undo.')
                     
                 break;
 
@@ -42,8 +42,8 @@ export const handleCommand = (keyword, arg, workingText) => {
                 let indexOfRedo = editor.redo()
                 updateParameter = {startIndex: indexOfRedo}
                 
-                if (indexOfRedo)    provideSuccessFeedback('Redone', updateParameter)
-                    else            provideFailureFeedback('There is nothing more to redo.')
+                if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter)
+                    else                provideFailureFeedback('There is nothing more to redo.')
                     
                 break;
         }

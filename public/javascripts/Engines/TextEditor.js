@@ -80,7 +80,11 @@ export const insertText = (updateParam) => {
 
 export const undo = () => {
     if (quill.history.stack.undo.length > 1) {
-        let indexOfUndo = quill.history.stack.undo[quill.history.stack.undo.length-1].undo.ops[0].retain
+        let lastUndoStackEntryDelta = quill.history.stack.undo[quill.history.stack.undo.length-1].undo.ops[0]
+        let indexOfUndo
+        
+        if (lastUndoStackEntryDelta)
+            indexOfUndo = lastUndoStackEntryDelta.retain || 0
         
         quill.enable()
         quill.history.undo()
@@ -92,8 +96,12 @@ export const undo = () => {
 
 export const redo = () => {
     if (quill.history.stack.redo.length > 0) {
-        let indexOfRedo = quill.history.stack.redo[quill.history.stack.redo.length-1].undo.ops[0].retain
-        
+        let lastRedoStackEntryDelta = quill.history.stack.redo[quill.history.stack.redo.length-1].undo.ops[0]
+        let indexOfRedo
+
+        if (lastRedoStackEntryDelta)
+            indexOfRedo = lastRedoStackEntryDelta.retain || 0
+
         quill.enable()
         quill.history.redo()
         quill.disable()
