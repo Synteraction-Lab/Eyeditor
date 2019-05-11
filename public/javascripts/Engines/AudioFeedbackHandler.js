@@ -1,7 +1,7 @@
-import * as tts from './tts.js'
-import { quill } from './quill.js'
+import * as tts from './Services/tts.js'
+import { quill } from './Services/quill.js'
 import { getUpdateParameter, getBargeinIndex } from './utteranceparser.js'
-import { getIndexOfLastPunctuation } from './stringutils.js'
+import { getIndexOfLastPunctuation } from './Utils/stringutils.js'
 import { getFeedbackConfiguration } from './main.js';
 
 const feedbackRate = {

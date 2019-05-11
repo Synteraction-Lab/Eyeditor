@@ -1,8 +1,8 @@
-import * as tts from './tts.js'
-import { quill } from './quill.js'
-import * as fuzzy from './createFuzzySet.js'
+import * as tts from './Services/tts.js'
+import { quill } from './Services/quill.js'
+import * as fuzzy from './Utils/createFuzzySet.js'
 import { handleCommand } from './execCommand.js'
-import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices } from './stringutils.js'
+import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices } from './Utils/stringutils.js'
 import { handleRedictation } from './execRedictation.js';
 import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, feedbackOnCommandExecution } from './FeedbackHandler.js';
 

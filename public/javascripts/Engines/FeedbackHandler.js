@@ -1,9 +1,9 @@
 import { getFeedbackConfiguration, getLoadedText } from './main.js'
-import { pushTextToBlade } from './VuzixBladeDriver.js'
-import { quill } from './quill.js'
-import { getColorCodedTextHTML } from './stringdiff.js';
+import { pushTextToBlade } from './Drivers/VuzixBladeDriver.js'
+import { quill } from './Services/quill.js'
+import { getColorCodedTextHTML } from './Utils/stringdiff.js';
 import { getUpdateParameter } from './utteranceparser.js'
-import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition } from './stringutils.js'
+import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition } from './Utils/stringutils.js'
 
 const MAX_DISPLAY_ON_TIME = 7 // in seconds
 

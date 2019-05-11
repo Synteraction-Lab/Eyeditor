@@ -1,6 +1,6 @@
-import { quill, Delta } from './quill.js'
-import * as tts from './tts.js'
-import { formatText } from './stringutils.js';
+import { quill, Delta } from './Services/quill.js'
+import * as tts from './Services/tts.js'
+import { formatText } from './Utils/stringutils.js';
 import { speakFeedback } from './AudioFeedbackHandler.js'
 import { feedbackOnTextLoad, feedbackOnTextRefresh } from './FeedbackHandler.js';
 

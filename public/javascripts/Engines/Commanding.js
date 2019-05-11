@@ -1,6 +1,6 @@
 import * as editor from './TextEditor.js'
-import { quill } from './quill.js'
-import { findinText } from './stringutils.js'
+import { quill } from './Services/quill.js'
+import { findinText } from './Utils/stringutils.js'
 import { handleError } from './error.js';
 import { speakFeedback, readTextOnFailedUpdate, readTextOnUpdate } from './AudioFeedbackHandler.js';
 import { setUpdateParameter } from './utteranceparser.js';
