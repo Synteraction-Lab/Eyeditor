@@ -33,15 +33,23 @@ export const handleCommand = (keyword, arg, workingText) => {
                 break;
             
             case 'undo':
-                editor.undo()
+                let indexOfUndo = editor.undo()
+                updateParameter = {startIndex: indexOfUndo}
+                setUpdateParameter(updateParameter);
+                
+                editor.refreshText(quill.getText())
                 speakFeedback('Undone.', 'SUCCESS')
-                readTextOnFailedUpdate()
+                readTextOnUpdate()
                 break;
 
             case 'redo':
-                editor.redo()
+                let indexOfRedo = editor.redo()
+                updateParameter = {startIndex: indexOfRedo}
+                setUpdateParameter(updateParameter);
+                
+                editor.refreshText(quill.getText())
                 speakFeedback('Redone.', 'SUCCESS')
-                readTextOnFailedUpdate()
+                readTextOnUpdate()
                 break;
         }
     }

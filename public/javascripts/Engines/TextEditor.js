@@ -84,9 +84,11 @@ export const undo = () => {
     if (quill.history.stack.undo.length == 1)
         speakFeedback('There is nothing more to undo.', 'ERROR')
     else {
+        let indexOfUndo = quill.history.stack.undo[quill.history.stack.undo.length-1].undo.ops[0].retain
         quill.enable()
         quill.history.undo()
         quill.disable()
+        return indexOfUndo;
     }
 }
 
@@ -94,8 +96,10 @@ export const redo = () => {
     if (quill.history.stack.redo.length == 0)
         speakFeedback('There is nothing more to redo.', 'ERROR')
     else {
+        let indexOfRedo = quill.history.stack.redo[quill.history.stack.redo.length-1].undo.ops[0].retain
         quill.enable()
         quill.history.redo()
         quill.disable()
+        return indexOfRedo;
     }
 }
