@@ -152,3 +152,27 @@ export const stripLeftContext = (queryString, leftContext) => {
 export const stripRightContext = (queryString, rightContext) => {
     return queryString.substr(0, queryString.length - rightContext.length - 1)
 }
+
+const generateSentencesList = (text) => {
+    let splitRegex = /\b.*?\b[.!?]/g
+    let sentences = text.match(splitRegex)
+    return sentences;
+}
+
+const generateSentenceDelimiterIndicesList = (text) => {
+    let delimiterRegex = /[.!?]/g
+    let delimiterIndicesList = []
+
+    while (delimiterRegex.exec(text) !== null)
+        delimiterIndicesList.push(delimiterRegex.lastIndex)
+    
+    console.log('delimiterIndicesList', delimiterIndicesList)
+    return delimiterIndicesList;
+}
+
+export const getSentenceIndexGivenCharIndexPosition = (text, charIndex) =>  // charIndex is absolute
+    generateSentenceDelimiterIndicesList(text).filter(delimiterIndex => charIndex > delimiterIndex).length;
+
+export const getSentenceGivenSentenceIndex = (text, sentenceIndex) =>
+    generateSentencesList(text)[sentenceIndex];
+

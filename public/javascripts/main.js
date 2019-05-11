@@ -3,8 +3,10 @@ import * as tts from './tts.js'
 import { recognition } from './SpeechRecognizer.js';
 import * as editor from './TextEditor.js'
 import { generateFuzzySetForCommands } from './createFuzzySet.js';
+import { quill } from './quill.js'
 
 var feedbackConfiguration = 'DEFAULT';
+var loadedText;
 
 /* configure TTS */
 tts.setup()
@@ -16,7 +18,10 @@ const initLoad = (text) => {
     let isLoading = true
     mic.checked = false
     editor.refreshText(text, isLoading)
+    loadedText = quill.getText()
 }
+
+export const getLoadedText = () => loadedText;
 
 /* Task Button Handlers */
 btn1.addEventListener('click', function(e) {
