@@ -1,22 +1,16 @@
 import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js'
 import * as fuzzy from '../Utils/fuzzymatcher.js'
-import { handleCommand } from './Commanding.js'
+import { handleCommand } from './EditInstructionHandler/Commanding.js'
 import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices } from '../Utils/stringutils.js'
-import { handleRedictation } from './Redictation.js';
-import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, feedbackOnCommandExecution } from './FeedbackHandler.js';
+import { handleRedictation } from './EditInstructionHandler/Redictation.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance } from './FeedbackHandler.js';
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 30 // in chars
 const cropSelectionToBargeinIndex = true // either crop or full sentence.
 
 var bargeinIndex;
 var workingText;
-var updateParameter;
-
-export const getUpdateParameter = () => updateParameter;
-export const setUpdateParameter = (updateObject) => {
-    updateParameter = Object.assign({}, updateObject);
-}
 
 export const handleUtterance = (utterance) => {
     bargeinIndex = tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex();
@@ -58,8 +52,6 @@ export const extractWorkingText = (index) => {
 }
 
 const parseUtterance = (utterance, workingText) => {
-    updateParameter = null
-    
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
     if (keyword) {
@@ -71,15 +63,8 @@ const parseUtterance = (utterance, workingText) => {
         feedbackOnUserUtterance(keyword + ' ' + passArgument)
 
         handleCommand(keyword, passArgument, workingText)
-        if (getUpdateParameter())
-            feedbackOnCommandExecution(getSentenceSnippetBetweenIndices(quill.getText(), getSentenceIndices(quill.getText(), updateParameter.startIndex)))
     } 
     
-    else {
+    else
         handleRedictation(utterance, workingText)
-        if (getUpdateParameter())
-            feedbackOnCommandExecution(getSentenceSnippetBetweenIndices(quill.getText(), getSentenceIndices(quill.getText(), updateParameter.startIndex)))
-    }
 }
-
-// export const getWorkingText = () => workingText;

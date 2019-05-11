@@ -2,7 +2,6 @@ import { getFeedbackConfiguration, getLoadedText } from '../main.js'
 import { pushTextToBlade } from '../Drivers/VuzixBladeDriver.js'
 import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
-import { getUpdateParameter } from './UtteranceParser.js'
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition } from '../Utils/stringutils.js'
 
 const MAX_DISPLAY_ON_TIME = 7 // in seconds
@@ -82,17 +81,6 @@ export const feedbackOnTextLoad = () => {
     }
 }
 
-export const feedbackOnTextRefresh = () => {
-    switch(getFeedbackConfiguration()) {
-        case 'DEFAULT':
-        case 'DISP_ALWAYS_ON':
-            renderBladeDisplay(getColorCodedTextHTML( getLoadedText(), quill.getText() ))
-            break;
-        case 'DISP_ON_DEMAND':
-            break;
-    }
-}
-
 export const feedbackOnUserUtterance = (utterance) => {
     renderBladeDisplay(null, utterance)
 }
@@ -108,13 +96,14 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText) => {
     }
 }
 
-export const feedbackOnCommandExecution = (updatedSentence) => {
+export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
         case 'DISP_ALWAYS_ON':
+            renderBladeDisplay(getColorCodedTextHTML( getLoadedText(), quill.getText() ))
             break;
         case 'DISP_ON_DEMAND':
-            renderBladeDisplay(getColorCodedTextHTML( getSentenceGivenSentenceIndex( getLoadedText(), getSentenceIndexGivenCharIndexPosition(getLoadedText(), getUpdateParameter().startIndex) ), updatedSentence ))
+            renderBladeDisplay(getColorCodedTextHTML( getSentenceGivenSentenceIndex( getLoadedText(), getSentenceIndexGivenCharIndexPosition(getLoadedText(), updateParameter.startIndex) ), updatedSentence ))
             break;
     }
 }

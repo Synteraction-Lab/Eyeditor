@@ -1,6 +1,6 @@
 import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js'
-import { getUpdateParameter, getBargeinIndex } from './UtteranceParser.js'
+import { getBargeinIndex } from './UtteranceParser.js'
 import { getIndexOfLastPunctuation } from '../Utils/stringutils.js'
 import { getFeedbackConfiguration } from '../main.js';
 
@@ -13,9 +13,9 @@ export const speakFeedback = (feedback, type) => {
     tts.speak( feedback, feedbackRate[type] )
 }
 
-export const readTextOnUpdate = () => {
+export const readTextOnUpdate = (updateParameter) => {
     if (getFeedbackConfiguration() !== 'DISP_ALWAYS_ON')
-        tts.read(getIndexOfLastPunctuation( quill.getText(), getUpdateParameter().startIndex ) + 2)
+        tts.read(getIndexOfLastPunctuation( quill.getText(), updateParameter.startIndex ) + 2)
 }
 
 export const readTextOnFailedUpdate = () => {

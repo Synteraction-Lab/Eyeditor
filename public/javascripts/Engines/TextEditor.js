@@ -1,8 +1,7 @@
 import { quill, Delta } from '../Services/quill.js'
 import * as tts from '../Services/tts.js'
 import { formatText } from '../Utils/stringutils.js';
-import { speakFeedback } from './AudioFeedbackHandler.js'
-import { feedbackOnTextLoad, feedbackOnTextRefresh } from './FeedbackHandler.js';
+import { feedbackOnTextLoad } from './FeedbackHandler.js';
 
 var clickedAt;
 
@@ -28,7 +27,6 @@ export const refreshText = (text, isTextLoad) => {
 
     isTextLoad = isTextLoad || false
     if (isTextLoad) feedbackOnTextLoad()
-        else feedbackOnTextRefresh()
 }
 
 const updateCompleted = () => {
@@ -81,25 +79,25 @@ export const insertText = (updateParam) => {
 }
 
 export const undo = () => {
-    if (quill.history.stack.undo.length == 1)
-        speakFeedback('There is nothing more to undo.', 'ERROR')
-    else {
+    if (quill.history.stack.undo.length > 1) {
         let indexOfUndo = quill.history.stack.undo[quill.history.stack.undo.length-1].undo.ops[0].retain
+        
         quill.enable()
         quill.history.undo()
         quill.disable()
+        
         return indexOfUndo;
     }
 }
 
 export const redo = () => {
-    if (quill.history.stack.redo.length == 0)
-        speakFeedback('There is nothing more to redo.', 'ERROR')
-    else {
+    if (quill.history.stack.redo.length > 0) {
         let indexOfRedo = quill.history.stack.redo[quill.history.stack.redo.length-1].undo.ops[0].retain
+        
         quill.enable()
         quill.history.redo()
         quill.disable()
+        
         return indexOfRedo;
     }
 }

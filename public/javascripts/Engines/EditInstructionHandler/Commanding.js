@@ -1,12 +1,12 @@
-import * as editor from './TextEditor.js'
-import { quill } from '../Services/quill.js'
-import { findinText } from '../Utils/stringutils.js'
-import { handleError } from '../error.js';
-import { speakFeedback, readTextOnFailedUpdate, readTextOnUpdate } from './AudioFeedbackHandler.js';
-import { setUpdateParameter } from './UtteranceParser.js';
+import * as editor from '../TextEditor.js'
+import { quill } from '../../Services/quill.js'
+import { findinText } from '../../Utils/stringutils.js'
+import { handleError } from '../../error.js';
+import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 
 export const handleCommand = (keyword, arg, workingText) => {
     let updateParameter;
+
     try {
         switch ( keyword ) {
             case 'delete': 
@@ -21,13 +21,10 @@ export const handleCommand = (keyword, arg, workingText) => {
                         length: findResult.length
                     }
 
-                    setUpdateParameter(updateParameter);
-            
                     editor.deleteText( updateParameter )
                     .then(editor.refreshText( quill.getText() ))   // re-format existing text to purge out any formatting anomalies due to prev. operations
                     
-                    speakFeedback('Deleted', 'SUCCESS')
-                    readTextOnUpdate()
+                    provideSuccessFeedback('Deleted', updateParameter)
                 }
                 else throw 'PHRASE_NOT_FOUND'
                 break;
@@ -35,21 +32,19 @@ export const handleCommand = (keyword, arg, workingText) => {
             case 'undo':
                 let indexOfUndo = editor.undo()
                 updateParameter = {startIndex: indexOfUndo}
-                setUpdateParameter(updateParameter);
                 
-                editor.refreshText(quill.getText())
-                speakFeedback('Undone.', 'SUCCESS')
-                readTextOnUpdate()
+                if (indexOfUndo)    provideSuccessFeedback('Undone', updateParameter)
+                    else            provideFailureFeedback('There is nothing more to undo.')
+                    
                 break;
 
             case 'redo':
                 let indexOfRedo = editor.redo()
                 updateParameter = {startIndex: indexOfRedo}
-                setUpdateParameter(updateParameter);
                 
-                editor.refreshText(quill.getText())
-                speakFeedback('Redone.', 'SUCCESS')
-                readTextOnUpdate()
+                if (indexOfRedo)    provideSuccessFeedback('Redone', updateParameter)
+                    else            provideFailureFeedback('There is nothing more to redo.')
+                    
                 break;
         }
     }
@@ -63,9 +58,7 @@ export const handleCommand = (keyword, arg, workingText) => {
                 handleError(err)
                 break
         }
-        
-        readTextOnFailedUpdate()
+
+        provideFailureFeedback()
     }
 }
-
-

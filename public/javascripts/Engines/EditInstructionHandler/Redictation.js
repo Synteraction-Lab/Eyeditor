@@ -1,8 +1,7 @@
-import { findLeftContext, findRightContext, stripLeftContext, stripRightContext } from '../Utils/stringutils.js';
-import { insertText, replaceText, refreshText } from './TextEditor.js'
-import { quill } from '../Services/quill.js'
-import { speakFeedback, readTextOnUpdate, readTextOnFailedUpdate } from './AudioFeedbackHandler.js'
-import { setUpdateParameter } from './UtteranceParser.js'
+import { findLeftContext, findRightContext, stripLeftContext, stripRightContext } from '../../Utils/stringutils.js';
+import { insertText, replaceText, refreshText } from '../TextEditor.js'
+import { quill } from '../../Services/quill.js'
+import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 
 
 export const handleRedictation = (utterance, workingText) => {
@@ -15,10 +14,8 @@ export const handleRedictation = (utterance, workingText) => {
     else    
         leftContext = findLeftContext(workingText.text, utterance)
 
-    if (leftContext.matchText === utterance || rightContext.matchText === utterance) {
-        speakFeedback('Nothing to update.', 'ERROR')
-        readTextOnFailedUpdate()
-    }
+    if (leftContext.matchText === utterance || rightContext.matchText === utterance)
+        provideFailureFeedback('Nothing to update.')
 
     else if ( leftContext.matchIndex >= 0 && rightContext.matchIndex >= 0 ) {
         updateParameter = {
@@ -26,13 +23,11 @@ export const handleRedictation = (utterance, workingText) => {
             length: rightContext.matchIndex + rightContext.matchText.length - leftContext.matchIndex,
             updateText: utterance
         }
-        setUpdateParameter(updateParameter)
 
         replaceText( updateParameter )
         .then(refreshText( quill.getText() ))
         
-        speakFeedback('Text Updated', 'SUCCESS')
-        readTextOnUpdate()
+        provideSuccessFeedback('Text Updated', updateParameter)
     }
 
     else if ( leftContext.matchIndex >= 0 ) {
@@ -47,7 +42,6 @@ export const handleRedictation = (utterance, workingText) => {
                 length: match[1].length,
                 updateText: stripLeftContext(utterance, leftContext.matchText)
             }
-            setUpdateParameter(updateParameter)
 
             replaceText( updateParameter )
             .then(refreshText( quill.getText() ))
@@ -59,14 +53,12 @@ export const handleRedictation = (utterance, workingText) => {
                 length: 0,
                 updateText: ' ' + stripLeftContext(utterance, leftContext.matchText)
             }
-            setUpdateParameter(updateParameter)
             
             insertText( updateParameter )
             .then(refreshText( quill.getText() ))
         }
 
-        speakFeedback('Text Updated', 'SUCCESS')
-        readTextOnUpdate()
+        provideSuccessFeedback('Text Updated', updateParameter)
     }
 
     else if ( rightContext.matchIndex >= 0 ) {
@@ -81,7 +73,6 @@ export const handleRedictation = (utterance, workingText) => {
                 length: match[0].length,
                 updateText: stripRightContext(utterance, rightContext.matchText)
             }
-            setUpdateParameter(updateParameter)
 
             replaceText( updateParameter )
             .then(refreshText( quill.getText() ))
@@ -93,13 +84,11 @@ export const handleRedictation = (utterance, workingText) => {
                 length: 0,
                 updateText: stripRightContext(utterance, rightContext.matchText)
             }
-            setUpdateParameter(updateParameter)
 
             insertText( updateParameter )
             .then(refreshText( quill.getText() ))
         }
 
-        speakFeedback('Text Updated', 'SUCCESS')
-        readTextOnUpdate()
+        provideSuccessFeedback('Text Updated', updateParameter)
     }
 }
