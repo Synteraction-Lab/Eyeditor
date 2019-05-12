@@ -1,7 +1,9 @@
 import * as tts from '../Services/tts.js'
-import { getSentenceIndices } from '../Utils/stringutils.js';
+import { getSentenceIndices, generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js';
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
+import { getFeedbackConfiguration } from '../main.js'
+import { feedbackOnTextNavigation } from '../Engines/FeedbackHandler.js'
 
 const LEFT_KEY_CODE = 33
 const RIGHT_KEY_CODE = 34
@@ -16,6 +18,8 @@ var timer = new Timer()
 var accControllerPresses
 var lastKeyPressCode
 var interruptIndex
+var isDispAlwaysOnMode
+var currentContext = 0  // context captures the sentence number/index
 
 // timer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('Timer ::', timer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
@@ -29,8 +33,11 @@ timer.addEventListener('targetAchieved', function (e) {
 });
 
 document.addEventListener('keydown', function(e) {
-    tts.pause()
-    interruptIndex = (tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex()) || 0
+    isDispAlwaysOnMode = (getFeedbackConfiguration() === 'DISP_ALWAYS_ON')
+    if (!isDispAlwaysOnMode) {
+        tts.pause()
+        interruptIndex = (tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex()) || 0
+    }
     
     lastKeyPressCode = e.keyCode
     fireControllerEvent()
@@ -51,19 +58,27 @@ const classifyControllerEvent = () => {
     let controllerEvent
     switch(lastKeyPressCode) {
         case LEFT_KEY_CODE:
-            if (accControllerPresses > 3 || interruptIndex == 0) controllerEvent = 'READ_FROM_BEGINNING'
-                else controllerEvent = 'READ_PREV' 
+            if (!isDispAlwaysOnMode) {
+                if (accControllerPresses > 3 || interruptIndex == 0) 
+                            controllerEvent = 'READ_FROM_BEGINNING'
+                    else    controllerEvent = 'READ_PREV'
+            } 
+            else    controllerEvent = 'CONTEXT_PREV_SENTENCE'
             break;
         case RIGHT_KEY_CODE:
-            if (interruptIndex == 0) controllerEvent = 'READ_FROM_BEGINNING'
-                else controllerEvent = 'READ_NEXT'
+            if (!isDispAlwaysOnMode) {
+                if (interruptIndex == 0) 
+                            controllerEvent = 'READ_FROM_BEGINNING'
+                    else    controllerEvent = 'READ_NEXT'
+            } 
+            else    controllerEvent = 'CONTEXT_NEXT_SENTENCE'
             break;
         case UNDO_KEY_CODE_1:
         case UNDO_KEY_CODE_2:
-            if (accControllerPresses < 3)   handleCommand('undo')
+            if (accControllerPresses > 3)   handleCommand('undo')
             break;
         case REDO_KEY_CODE:
-            if (accControllerPresses < 3 && !quill.hasFocus())   handleCommand('redo')
+            if (accControllerPresses > 3 && !quill.hasFocus())   handleCommand('redo')
             break;
     }
 
@@ -76,6 +91,7 @@ const classifyControllerEvent = () => {
 const handleControllerEvent = (event) => {
     let i;
     let currentSentenceIndices;
+    let sentenceDelimiterIndices;
 
     switch(event.event) {
         case 'READ_FROM_BEGINNING':
@@ -106,6 +122,28 @@ const handleControllerEvent = (event) => {
             }
             
             tts.read(currentSentenceIndices.start)
+            break;
+
+        case 'CONTEXT_PREV_SENTENCE':
+            sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
+            currentContext = currentContext > 0 ? currentContext-1 : currentContext
+            currentSentenceIndices = {
+                start: sentenceDelimiterIndices[currentContext-1] + 1 || 0,
+                end: sentenceDelimiterIndices[currentContext] + 1
+            }
+            
+            feedbackOnTextNavigation(currentSentenceIndices)
+            break;
+
+        case 'CONTEXT_NEXT_SENTENCE':
+            sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
+            currentContext = currentContext < sentenceDelimiterIndices.length-1 ? currentContext+1 : currentContext
+            currentSentenceIndices = {
+                start: sentenceDelimiterIndices[currentContext-1] + 1 || 0,
+                end: sentenceDelimiterIndices[currentContext] + 1
+            }
+            
+            feedbackOnTextNavigation(currentSentenceIndices)
             break;
     }
 }

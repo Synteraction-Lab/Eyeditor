@@ -107,3 +107,11 @@ export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => 
             break;
     }
 }
+
+export const feedbackOnTextNavigation = (sentenceIndices) => {
+    let currentText = quill.getText()
+    let [start, end] = [sentenceIndices.start, sentenceIndices.end]
+    let [leftContext, currentContext, rightContext] = [currentText.substring(0, start), currentText.substring(start, end), currentText.substring(end)]
+    let renderTextHTML = `${leftContext}<b>${currentContext}</b>${rightContext}`
+    renderBladeDisplay(renderTextHTML)
+}

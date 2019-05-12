@@ -3,6 +3,11 @@ export const stripPunctuations = (text) => {
     return text
 }
 
+export const removeLeadingNonWordChars = (text) => {
+    text = text.replace(/^[^\w]+/g, '')
+    return text
+}
+
 export const forceMonoSpacing = (text) => {     // <Text.Text    text  ?> => <Text. Text text?>
     text = text.replace(/([^\w\s]\b)/g, '$1 ')
     text = text.replace(/\s(?!\b)/g, '')
@@ -21,6 +26,7 @@ export const forceFirstCharOfSentenceToUpperCase = (text) => {
 
 export const formatText = (text) => {
     text = text.trim()
+    text = removeLeadingNonWordChars(text)
     text = appendPeriodIfMissing(text)
     text = forceMonoSpacing(text)
     text = forceFirstCharOfSentenceToUpperCase(text)
@@ -159,7 +165,7 @@ const generateSentencesList = (text) => {
     return sentences;
 }
 
-const generateSentenceDelimiterIndicesList = (text) => {
+export const generateSentenceDelimiterIndicesList = (text) => {
     let delimiterRegex = /[.!?]/g
     let delimiterIndicesList = []
 
