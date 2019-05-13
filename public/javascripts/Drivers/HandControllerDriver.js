@@ -21,6 +21,8 @@ var interruptIndex
 var isDispAlwaysOnMode
 var currentContext = 0  // context captures the sentence number/index
 
+export const getCurrentContext = () => currentContext;
+
 // timer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('Timer ::', timer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
 // });
@@ -63,7 +65,7 @@ const classifyControllerEvent = () => {
                             controllerEvent = 'READ_FROM_BEGINNING'
                     else    controllerEvent = 'READ_PREV'
             } 
-            else    controllerEvent = 'CONTEXT_PREV_SENTENCE'
+            else    controllerEvent = 'CONTEXT_PREV'
             break;
         case RIGHT_KEY_CODE:
             if (!isDispAlwaysOnMode) {
@@ -71,7 +73,7 @@ const classifyControllerEvent = () => {
                             controllerEvent = 'READ_FROM_BEGINNING'
                     else    controllerEvent = 'READ_NEXT'
             } 
-            else    controllerEvent = 'CONTEXT_NEXT_SENTENCE'
+            else    controllerEvent = 'CONTEXT_NEXT'
             break;
         case UNDO_KEY_CODE_1:
         case UNDO_KEY_CODE_2:
@@ -124,26 +126,22 @@ const handleControllerEvent = (event) => {
             tts.read(currentSentenceIndices.start)
             break;
 
-        case 'CONTEXT_PREV_SENTENCE':
-            sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
-            currentContext = currentContext > 0 ? currentContext-1 : currentContext
-            currentSentenceIndices = {
-                start: sentenceDelimiterIndices[currentContext-1] + 1 || 0,
-                end: sentenceDelimiterIndices[currentContext] + 1
-            }
-            
-            feedbackOnTextNavigation(currentSentenceIndices)
+        case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display
+            currentContext = currentContext - event.nPress
+            if (currentContext < 0)
+                currentContext = 0
+
+            feedbackOnTextNavigation(currentContext)
             break;
 
-        case 'CONTEXT_NEXT_SENTENCE':
+        case 'CONTEXT_NEXT':
             sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
-            currentContext = currentContext < sentenceDelimiterIndices.length-1 ? currentContext+1 : currentContext
-            currentSentenceIndices = {
-                start: sentenceDelimiterIndices[currentContext-1] + 1 || 0,
-                end: sentenceDelimiterIndices[currentContext] + 1
-            }
+
+            currentContext = currentContext + event.nPress
+            if (currentContext >= sentenceDelimiterIndices.length)
+                currentContext = sentenceDelimiterIndices.length - 1
             
-            feedbackOnTextNavigation(currentSentenceIndices)
+            feedbackOnTextNavigation(currentContext)
             break;
     }
 }

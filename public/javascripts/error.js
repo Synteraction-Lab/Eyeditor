@@ -11,5 +11,8 @@ export const handleError = (code, arg) => {
         case 'INSUFFICIENT_NO_OF_ARGS':
             speakFeedback(`Insufficient number of arguments.`, TYPE_ERROR_FEEDBACK)
             break
+        case 'NO_UPDATE':
+            speakFeedback(`Nothing to update.`, TYPE_ERROR_FEEDBACK)
+            break
     }
 }

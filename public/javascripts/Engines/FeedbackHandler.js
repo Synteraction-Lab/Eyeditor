@@ -2,7 +2,8 @@ import { getFeedbackConfiguration, getLoadedText } from '../main.js'
 import { pushTextToBlade } from '../Drivers/VuzixBladeDriver.js'
 import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
-import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition } from '../Utils/stringutils.js'
+import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList } from '../Utils/stringutils.js'
+import { getCurrentContext } from '../Drivers/HandControllerDriver.js'
 
 const MAX_DISPLAY_ON_TIME = 7 // in seconds
 
@@ -72,8 +73,10 @@ const renderBladeDisplay = (text, utterance) => {
 export const feedbackOnTextLoad = () => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
-        case 'DISP_ALWAYS_ON':
             renderBladeDisplay(quill.getText(), 'forceClear')
+            break;
+        case 'DISP_ALWAYS_ON':
+            feedbackOnTextNavigation(0, true)
             break;
         case 'DISP_ON_DEMAND':
             renderBladeDisplayBlank()
@@ -99,8 +102,10 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText) => {
 export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
-        case 'DISP_ALWAYS_ON':
             renderBladeDisplay(getColorCodedTextHTML( getLoadedText(), quill.getText() ))
+            break;
+        case 'DISP_ALWAYS_ON':
+            feedbackOnTextNavigation(getCurrentContext())
             break;
         case 'DISP_ON_DEMAND':
             renderBladeDisplay(getColorCodedTextHTML( getSentenceGivenSentenceIndex( getLoadedText(), getSentenceIndexGivenCharIndexPosition(getLoadedText(), updateParameter.startIndex) ), updatedSentence ))
@@ -108,10 +113,13 @@ export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => 
     }
 }
 
-export const feedbackOnTextNavigation = (sentenceIndices) => {
-    let currentText = quill.getText()
-    let [start, end] = [sentenceIndices.start, sentenceIndices.end]
-    let [leftContext, currentContext, rightContext] = [currentText.substring(0, start), currentText.substring(start, end), currentText.substring(end)]
-    let renderTextHTML = `${leftContext}<b>${currentContext}</b>${rightContext}`
-    renderBladeDisplay(renderTextHTML)
+export const feedbackOnTextNavigation = (currentContext, isOnload) => {
+    let colorCodedTextHTML = (isOnload) ? quill.getText() : getColorCodedTextHTML( getLoadedText(), quill.getText() )
+    console.log('colorCodedTextHTML (feedbackHandler.js)', colorCodedTextHTML)
+    let colorCodedTextHTMLSentences = generateSentencesList(colorCodedTextHTML, true)
+    console.log('colorCodedTextHTMLSentences (feedbackHandler.js)', colorCodedTextHTMLSentences)
+    let renderTextHTML = colorCodedTextHTMLSentences.map( (sentence, index) => (index === currentContext) ? `<b>${sentence}</b>` : sentence )
+    
+    if (isOnload)   renderBladeDisplay(renderTextHTML.join(' '), 'forceClear')
+        else        renderBladeDisplay(renderTextHTML.join(' '))
 }

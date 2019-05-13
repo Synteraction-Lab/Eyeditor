@@ -159,8 +159,11 @@ export const stripRightContext = (queryString, rightContext) => {
     return queryString.substr(0, queryString.length - rightContext.length - 1)
 }
 
-const generateSentencesList = (text) => {
-    let splitRegex = /\b.*?\b[.!?]/g
+export const generateSentencesList = (text, isHTML) => {
+    let splitRegex
+    if (isHTML) splitRegex = /<*\b.*?\b>*[.?!]/g
+        else    splitRegex = /\b.*?\b[.!?]/g
+
     let sentences = text.match(splitRegex)
     return sentences;
 }
@@ -170,7 +173,7 @@ export const generateSentenceDelimiterIndicesList = (text) => {
     let delimiterIndicesList = []
 
     while (delimiterRegex.exec(text) !== null)
-        delimiterIndicesList.push(delimiterRegex.lastIndex)
+        delimiterIndicesList.push(delimiterRegex.lastIndex - 1)
     
     console.log('delimiterIndicesList', delimiterIndicesList)
     return delimiterIndicesList;
@@ -181,4 +184,3 @@ export const getSentenceIndexGivenCharIndexPosition = (text, charIndex) =>  // c
 
 export const getSentenceGivenSentenceIndex = (text, sentenceIndex) =>
     generateSentencesList(text)[sentenceIndex];
-

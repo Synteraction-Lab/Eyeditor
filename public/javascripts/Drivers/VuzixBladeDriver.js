@@ -1,6 +1,6 @@
 
 const bladeURLObject = {
-    ip: '172.25.105.13',
+    ip: '172.25.106.143',
     port: '8080',
     route: 'displays',
     endpoint: '10'
@@ -27,7 +27,7 @@ export const pushTextToBlade = (text, utterance) => {
 
     dataObject = {
         "html":true,
-        "heading": null,
+        // "heading": null,
         "subheading": text || null,
         "content": utterance || null
     };

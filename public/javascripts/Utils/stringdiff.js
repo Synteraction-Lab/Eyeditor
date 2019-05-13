@@ -102,16 +102,20 @@ function diffString( o, n ) {
 export const getColorCodedTextHTML = (originalText, changedText) => {
     let deltaString = diffString(originalText, changedText)
     let fontColorDelete = '#5E5E5E'
+    // let fontColorDelete = '#878484'
     let fontColorInsert = '#F7E511'
 
     /* clean deltaString */
     deltaString = deltaString.replace(/\n/g, '')
     deltaString = deltaString.replace(/\s\s+/g, ' ')
-    deltaString = deltaString.replace(/<\/(\w+)><\1>/g, '')
+    // console.log('deltaString before combination', deltaString)
+    deltaString = deltaString.replace(/(?<![.?!]\s)<\/(...)><\1>/g, '')
+    // console.log('deltaString after combination', deltaString)
+    deltaString = purgeAndAppendAnyEnclosedSentenceDelimiter(deltaString)
     // console.log('cleaned deltaString', deltaString)
 
     /* change tags of deltaString to font color tags */
-    deltaString = deltaString.replace(/<\/.*?>/g, '</font>')
+    deltaString = deltaString.replace(/<\/.*?>/g, `</font>`)
     deltaString = deltaString.replace(/<del>/g, `<font color=${fontColorDelete}>`)
     deltaString = deltaString.replace(/<ins>/g, `<font color=${fontColorInsert}>`)
     // console.log('color coded deltaString', deltaString)
@@ -119,4 +123,10 @@ export const getColorCodedTextHTML = (originalText, changedText) => {
     return deltaString;
 }
 
+const purgeAndAppendAnyEnclosedSentenceDelimiter = (htmlString) => {
+    let regexPurgeAndAppend = /(<del>.*?)([.?!])(\s?)(<\/del>)(<ins>.*?)([.?!])(\s?)(<\/ins>)/g
+    htmlString = htmlString.replace(regexPurgeAndAppend, '$1$3$4$5$8$2')
+    // console.log('after purge&append ::', htmlString)
+    return htmlString
+}
         

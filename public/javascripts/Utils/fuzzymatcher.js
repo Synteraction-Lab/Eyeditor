@@ -23,18 +23,17 @@ const options =
 const keywords = ['delete', 'undo', 'redo']
 
 var keywordsFuzzySet = [];
-var argumentFuzzySet = [];
+var argumentFuzzySet;
 
-const keywordsFuse = new Fuse(keywordsFuzzySet, options.keyword)
-const argumentFuse = new Fuse(argumentFuzzySet, options.argument)
-
-
-export const generateFuzzySetForCommands = () => {
-    keywords.forEach(keyword => addToFuzzySet(keywordsFuzzySet, keyword))
-}
+const keywordsFuse = new Fuse(keywordsFuzzySet, options.keyword);
+var argumentFuse;
 
 const addToFuzzySet = (fuzzySet, addString) => {
     fuzzySet.push( {id: addString} )
+}
+
+export const generateFuzzySetForCommands = () => {
+    keywords.forEach(keyword => addToFuzzySet(keywordsFuzzySet, keyword))
 }
 
 export const matchFuzzyForCommand = (firstWord, restOfTheUtterance) => {
@@ -53,13 +52,18 @@ export const matchFuzzyForCommand = (firstWord, restOfTheUtterance) => {
     else return null
 }
 
+const initArgumentFuzzySet = () => {
+    argumentFuzzySet = []
+    argumentFuse = new Fuse(argumentFuzzySet, options.argument)
+}
+
 export const matchFuzzyForArgument = (argumentText, workingText) => {
+    initArgumentFuzzySet()
     generateFuzzySetForArgument(workingText)
 
     let match = argumentFuse.search(argumentText)
-    
     if (match.length > 0)   return match[0].id
-    else return null
+        else                return null
 }
 
 const generateFuzzySetForArgument = (workingText) => {
