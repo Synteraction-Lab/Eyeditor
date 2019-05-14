@@ -124,8 +124,11 @@ export const getColorCodedTextHTML = (originalText, changedText) => {
 }
 
 const purgeAndAppendAnyEnclosedSentenceDelimiter = (htmlString) => {
+    // console.log('html string before purge&append ::', htmlString)
     let regexPurgeAndAppend = /(<del>.*?)([.?!])(\s?)(<\/del>)(<ins>.*?)([.?!])(\s?)(<\/ins>)/g
-    htmlString = htmlString.replace(regexPurgeAndAppend, '$1$3$4$5$8$2')
+    htmlString = htmlString.replace(regexPurgeAndAppend, '$1 $4$5$8$2')
+    // console.log('html string after purge&append ::', htmlString)
+
     // console.log('after purge&append ::', htmlString)
     return htmlString
 }

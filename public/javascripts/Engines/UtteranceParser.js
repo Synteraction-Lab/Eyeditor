@@ -79,7 +79,6 @@ const callManagerForAlwaysOnDisplay = (utterance) => {
     let sentenceDelimiterList = generateSentenceDelimiterIndicesList(quill.getText())
 
     let pointerToSentenceList = sentenceList.map( (sentence, index) => index - currentContext )
-    console.log('pointerToSentenceList', pointerToSentenceList)
     pointerToSentenceList = pointerToSentenceList.sort( (a,b) => Math.abs(a) - Math.abs(b) )
 
     let workingTextArray = []
@@ -89,7 +88,6 @@ const callManagerForAlwaysOnDisplay = (utterance) => {
             startIndex: sentenceDelimiterList[currentContext+pointer -1] + 2 || 0
         })
     })
-    console.log('working text array', workingTextArray)
 
     parseUtterancePrioritizedWorkingText(utterance, workingTextArray)
 }
