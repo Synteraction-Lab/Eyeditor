@@ -1,6 +1,7 @@
 import * as tts from './tts.js'
 import * as parser from '../Engines/UtteranceParser.js'
 import { feedbackOnUserUtterance } from '../Engines/FeedbackHandler.js'
+import { forceNumberToWords } from '../Utils/stringutils.js';
 
 /* Speech recognizer setup */
 var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
@@ -23,6 +24,7 @@ recognition.onresult = function(event) {
     tts.pause()
 
     if (event.results[last].isFinal) {
+        hypothesis = forceNumberToWords(hypothesis)
         parser.handleUtterance(hypothesis)
         console.log('hypothesis: ' + hypothesis);
     }

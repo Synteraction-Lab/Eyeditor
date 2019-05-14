@@ -100,25 +100,40 @@ function diffString( o, n ) {
 
 
 export const getColorCodedTextHTML = (originalText, changedText) => {
-    let deltaString = diffString(originalText, changedText)
+    let dmp = new diff_match_patch()
+    // let deltaString = diffString(originalText, changedText)
+    let deltaString = dmp.diff_wordMode(originalText, changedText);
+    console.log('raw deltaString', deltaString)
+    deltaString = dmp.diff_prettyHtml(deltaString);
+    console.log('pretty deltaString', deltaString)
+
     let fontColorDelete = '#5E5E5E'
+    // let fontColorDelete = '#ffe6e6'
     // let fontColorDelete = '#878484'
     let fontColorInsert = '#F7E511'
+    // let fontColorInsert = '#e6ffe6'
+    
+    // /* clean deltaString */
+    // deltaString = deltaString.replace(/\n/g, '')
+    // deltaString = deltaString.replace(/\s\s+/g, ' ')
+    // // console.log('deltaString before combination', deltaString)
+    // deltaString = deltaString.replace(/(?<![.?!]\s)<\/(...)><\1>/g, '')
+    // // console.log('deltaString after combination', deltaString)
+    // deltaString = purgeAndAppendAnyEnclosedSentenceDelimiter(deltaString)
+    // // console.log('cleaned deltaString', deltaString)
 
-    /* clean deltaString */
-    deltaString = deltaString.replace(/\n/g, '')
-    deltaString = deltaString.replace(/\s\s+/g, ' ')
-    // console.log('deltaString before combination', deltaString)
-    deltaString = deltaString.replace(/(?<![.?!]\s)<\/(...)><\1>/g, '')
-    // console.log('deltaString after combination', deltaString)
-    deltaString = purgeAndAppendAnyEnclosedSentenceDelimiter(deltaString)
-    // console.log('cleaned deltaString', deltaString)
+    // /* change tags of deltaString to font color tags */
+    // deltaString = deltaString.replace(/<\/.*?>/g, `</font>`)
+    // deltaString = deltaString.replace(/<del>/g, `<font color=${fontColorDelete}>`)
+    // deltaString = deltaString.replace(/<ins>/g, `<font color=${fontColorInsert}>`)
+    // // console.log('color coded deltaString', deltaString)
 
     /* change tags of deltaString to font color tags */
-    deltaString = deltaString.replace(/<\/.*?>/g, `</font>`)
-    deltaString = deltaString.replace(/<del>/g, `<font color=${fontColorDelete}>`)
-    deltaString = deltaString.replace(/<ins>/g, `<font color=${fontColorInsert}>`)
-    // console.log('color coded deltaString', deltaString)
+    deltaString = deltaString.replace(/<del\s.*?>/g, `<font color=${fontColorDelete}>`)
+    deltaString = deltaString.replace(/<ins\s.*?>/g, `<font color=${fontColorInsert}>`)
+    deltaString = deltaString.replace(/<\/...>/g, `</font>`)
+
+    console.log('cleaned pretty html', deltaString)
 
     return deltaString;
 }

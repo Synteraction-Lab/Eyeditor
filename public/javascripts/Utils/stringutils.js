@@ -161,10 +161,16 @@ export const stripRightContext = (queryString, rightContext) => {
 
 export const generateSentencesList = (text, isHTML) => {
     let splitRegex
-    if (isHTML) splitRegex = /<*\b.*?\b>*[.?!]/g
+    if (isHTML)
+            // splitRegex = /<*\b.*?\b>*[.?!]/g
+                splitRegex = /(?<=^|[.?!]\s).*?[.?!]/g
         else    splitRegex = /\b.*?\b[.!?]/g
 
     let sentences = text.match(splitRegex)
+    console.log('sentences', sentences)
+    if (isHTML)
+        sentences = sentences.map(sentence => sentence.replace(/^<\/.*?>/g, ''))
+    
     return sentences;
 }
 
@@ -184,3 +190,11 @@ export const getSentenceIndexGivenCharIndexPosition = (text, charIndex) =>  // c
 
 export const getSentenceGivenSentenceIndex = (text, sentenceIndex) =>
     generateSentencesList(text)[sentenceIndex];
+
+export const forceNumberToWords = (utteranceString) => {
+    let regex = /\b(\d+)\b/g;
+    utteranceString = utteranceString.replace(regex, replacerFnNumbersToWords)
+    return utteranceString;
+}
+
+const replacerFnNumbersToWords = (match, p1) => numberToWords.toWords(p1);
