@@ -78,7 +78,7 @@ export const handleRedictation = (utterance, workingText) => {
         }
 
         else {
-            let relativeStartIndex = (rightContext.matchIndex > 0) ? rightContext.matchIndex - 2 : 0
+            let relativeStartIndex = (/[.?!]\s/g.test(workingText.text.substr(rightContext.matchIndex - 2, 2))) ? rightContext.matchIndex : rightContext.matchIndex - 2
             updateParameter = {
                 startIndex: workingText.startIndex + relativeStartIndex,
                 length: 0,
@@ -169,7 +169,7 @@ export const handleRedictationPrioritizedWorkingText = (utterance, workingText) 
         }
 
         else {
-            let relativeStartIndex = (rightContext.matchIndex > 0) ? rightContext.matchIndex - 2 : 0
+            let relativeStartIndex = (/[.?!]\s/g.test(workingText.text.substr(rightContext.matchIndex - 2, 2))) ? rightContext.matchIndex : rightContext.matchIndex - 2
             updateParameter = {
                 startIndex: workingText.startIndex + relativeStartIndex,
                 length: 0,

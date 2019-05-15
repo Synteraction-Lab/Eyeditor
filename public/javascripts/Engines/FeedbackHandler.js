@@ -102,7 +102,7 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText) => {
 export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
-            renderBladeDisplay(getColorCodedTextHTML( getLoadedText(), quill.getText() ))
+            renderBladeDisplay(getColorCodedTextHTML( getLoadedText(), quill.getText() ).replace(/&para.*/g, ''))
             break;
         case 'DISP_ALWAYS_ON':
             feedbackOnTextNavigation(getCurrentContext())

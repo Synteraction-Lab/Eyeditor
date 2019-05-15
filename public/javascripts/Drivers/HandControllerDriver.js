@@ -12,9 +12,10 @@ const UNDO_KEY_CODE_2 = 27
 const REDO_KEY_CODE = 66
 const READ_RESTART_INDEX = 0
 const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 10 chars of current sent., TTS reads the prev. sentence.
-const CUT_KEY_INPUT_DELAY = 3 // 0.1 seconds = 100ms
+const CUT_KEY_INPUT_DELAY = 3 // 0.3 seconds = 300ms
 
-var timer = new Timer()
+
+var inputStreamTimer = new Timer()
 var accControllerPresses
 var lastKeyPressCode
 var interruptIndex
@@ -23,12 +24,12 @@ var currentContext = 0  // context captures the sentence number/index
 
 export const getCurrentContext = () => currentContext;
 
-// timer.addEventListener('secondTenthsUpdated', function (e) {
-    // console.log('Timer ::', timer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
+// inputStreamTimer.addEventListener('secondTenthsUpdated', function (e) {
+    // console.log('inputStreamTimer ::', inputStreamTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
 // });
 
-timer.addEventListener('targetAchieved', function (e) {
-    timer.stop()
+inputStreamTimer.addEventListener('targetAchieved', function (e) {
+    inputStreamTimer.stop()
     console.log('accControllerPresses', accControllerPresses)
     
     handleControllerEvent(classifyControllerEvent())
@@ -46,13 +47,13 @@ document.addEventListener('keydown', function(e) {
 })
 
 const fireControllerEvent = () => {
-    if (!timer.isRunning()) {
+    if (!inputStreamTimer.isRunning()) {
         accControllerPresses = 1;
-        timer.start({precision: 'secondTenths', countdown: true, startValues: {secondTenths: CUT_KEY_INPUT_DELAY}});
+        inputStreamTimer.start({precision: 'secondTenths', countdown: true, startValues: {secondTenths: CUT_KEY_INPUT_DELAY}});
     } 
     else {
         accControllerPresses += 1
-        timer.reset()
+        inputStreamTimer.reset()
     }
 }
 
@@ -77,10 +78,13 @@ const classifyControllerEvent = () => {
             break;
         case UNDO_KEY_CODE_1:
         case UNDO_KEY_CODE_2:
-            if (accControllerPresses > 3)   handleCommand('undo')
+            if (accControllerPresses < 3)
+                        controllerEvent = 'UNDO'
+                else    controllerEvent = 'PUSH-TO-TALK'
             break;
         case REDO_KEY_CODE:
-            if (accControllerPresses > 3 && !quill.hasFocus())   handleCommand('redo')
+            if (accControllerPresses < 3 && !quill.hasFocus())
+                controllerEvent = 'REDO'
             break;
     }
 
@@ -125,6 +129,14 @@ const handleControllerEvent = (event) => {
             
             tts.read(currentSentenceIndices.start)
             break;
+        
+        case 'UNDO':
+            handleCommand('undo');
+            break;
+
+        case 'REDO':
+            handleCommand('redo');
+            break;
 
         case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display
             currentContext = currentContext - event.nPress
@@ -143,5 +155,9 @@ const handleControllerEvent = (event) => {
             
             feedbackOnTextNavigation(currentContext)
             break;
+
+        case 'PUSH-TO-TALK':
+            break;
+            
     }
 }
