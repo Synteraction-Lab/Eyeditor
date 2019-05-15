@@ -78,7 +78,15 @@ export const handleRedictation = (utterance, workingText) => {
         }
 
         else {
-            let relativeStartIndex = (/[.?!]\s/g.test(workingText.text.substr(rightContext.matchIndex - 2, 2))) ? rightContext.matchIndex : rightContext.matchIndex - 2
+            let relativeStartIndex
+            let absCharIndexOfMatchStart = workingText.startIndex + rightContext.matchIndex
+            if (absCharIndexOfMatchStart > 0) {
+                if (/[.?!]\s/g.test(quill.getText().substr(absCharIndexOfMatchStart - 2, 2)))
+                        relativeStartIndex = rightContext.matchIndex
+                else    relativeStartIndex = rightContext.matchIndex - 2
+            }
+            else        relativeStartIndex = rightContext.matchIndex
+
             updateParameter = {
                 startIndex: workingText.startIndex + relativeStartIndex,
                 length: 0,
@@ -169,7 +177,15 @@ export const handleRedictationPrioritizedWorkingText = (utterance, workingText) 
         }
 
         else {
-            let relativeStartIndex = (/[.?!]\s/g.test(workingText.text.substr(rightContext.matchIndex - 2, 2))) ? rightContext.matchIndex : rightContext.matchIndex - 2
+            let relativeStartIndex
+            let absCharIndexOfMatchStart = workingText.startIndex + rightContext.matchIndex
+            if (absCharIndexOfMatchStart > 0) {
+                if (/[.?!]\s/g.test(quill.getText().substr(absCharIndexOfMatchStart-2, 2)) )
+                        relativeStartIndex = rightContext.matchIndex
+                else    relativeStartIndex = rightContext.matchIndex - 2
+            }
+            else        relativeStartIndex = rightContext.matchIndex
+
             updateParameter = {
                 startIndex: workingText.startIndex + relativeStartIndex,
                 length: 0,
