@@ -1,38 +1,33 @@
 
 const bladeURLObject = {
-    ip: '172.25.98.23',
-    port: '8080',
-    route: 'displays',
-    endpoint: '10'
+    ip: '172.25.96.238',
+    port: '9090'
 }
-const bladeURL = `http://${bladeURLObject.ip}:${bladeURLObject.port}/${bladeURLObject.route}/${bladeURLObject.endpoint}/`
+const bladeURL = `ws://${bladeURLObject.ip}:${bladeURLObject.port}`
 
 var socket = io.connect('http://localhost:3000');
-var dataObject;
 
 export const pushTextToBlade = (text, utterance) => {
-    var xhr = new XMLHttpRequest()
-    xhr.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            console.log('response from Blade Server', this.responseText);
-        }
-    }
-    
-    xhr.open("POST", bladeURL, true)
-    
-    // Request Header Configuration
-    xhr.setRequestHeader("Content-Type", "application/json")
-
-    // text = '<b>hello world</b> <i>what</i><br><strike>hello</strike> <font color="#ff00ff">text</font>'
-
-    dataObject = {
+    let dataObject = {
         "html":true,
-        // "heading": null,
         "subheading": text || null,
         "content": utterance || null
     };
 
-    xhr.send(JSON.stringify(dataObject));
+    var ws = new WebSocket(bladeURL);
+
+    ws.onopen = function () {
+        ws.send(JSON.stringify(dataObject));
+    };
+
+    ws.onmessage = function (evt) {
+        // let messageReceived = evt.data;
+        // console.log('Msg received from Blade ::', messageReceived)
+    };
+
+    ws.onclose = function () {
+        console.log("Blade Websocket is closed.");
+    };
 
     // push to Blade Clone
     socket.emit('bladeData', dataObject)
