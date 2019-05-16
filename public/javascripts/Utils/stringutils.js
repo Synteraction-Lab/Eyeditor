@@ -163,7 +163,7 @@ export const generateSentencesList = (text, isHTML) => {
     let splitRegex
     if (isHTML)
             // splitRegex = /<*\b.*?\b>*[.?!]/g
-                splitRegex = /(?<=^|[.?!]\s).*?[.?!]/g
+                splitRegex = /(?<=^|[.?!]).*?[.?!]/g
         else    splitRegex = /\b.*?\b[.!?]/g
 
     let sentences = text.match(splitRegex)
