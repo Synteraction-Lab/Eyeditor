@@ -4,6 +4,7 @@ import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList } from '../Utils/stringutils.js'
 import { getCurrentContext } from '../Drivers/HandControllerDriver.js'
+import { extractWorkingText } from './UtteranceParser.js';
 
 const MAX_DISPLAY_ON_TIME = 7 // in seconds
 
@@ -122,4 +123,17 @@ export const feedbackOnTextNavigation = (currentContext, isOnload) => {
     
     if (isOnload)   renderBladeDisplay(renderTextHTML.join(' '), 'forceClear')
         else        renderBladeDisplay(renderTextHTML.join(' '))
+}
+
+export const feedbackOnPushToTalk = (interruptIndex, isPushToTalkOn) => {
+    if (pushToTalkOn) {
+        renderBladeDisplay(extractWorkingText(interruptIndex))
+        // suppress timer
+        // suppress audio feedback
+    } 
+    else {
+        renderBladeDisplayBlank()
+        // resume feedback from interruptIndex
+    }
+
 }

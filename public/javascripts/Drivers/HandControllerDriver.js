@@ -3,7 +3,7 @@ import { getSentenceIndices, generateSentenceDelimiterIndicesList } from '../Uti
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { getFeedbackConfiguration } from '../main.js'
-import { feedbackOnTextNavigation } from '../Engines/FeedbackHandler.js'
+import { feedbackOnTextNavigation, feedbackOnPushToTalk } from '../Engines/FeedbackHandler.js'
 
 const LEFT_KEY_CODE = 33
 const RIGHT_KEY_CODE = 34
@@ -13,8 +13,14 @@ const REDO_KEY_CODE = 66
 const READ_RESTART_INDEX = 0
 const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 12 chars of current sentence, TTS reads the prev. sentence.
 const LONG_PRESS_TRIGGER_DELAY = 3 // 0.3 seconds = 300ms
-const keyStatus = {}
-const isKeyLongPressed = {}
+const keyStatus = {}    // on or off
+const keyPressEventStatus = {}    // short/long_pressed/long_released
+const KEY_PRESS_EVENT_TYPES = {
+    short: 0,
+    longPressed: 1,
+    longReleased: -1
+}
+Object.freeze(KEY_PRESS_EVENT_TYPES)
 const SWITCH = {
     on: true,
     off: false,
@@ -69,8 +75,10 @@ document.addEventListener('keydown', function(e) {
             keyStatus[e.keyCode] = SWITCH.on
             lastKeyPressCode = e.keyCode
 
-            if ( e.keyCode === REDO_KEY_CODE )
+            if ( e.keyCode === REDO_KEY_CODE ) {
                 longPressTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: LONG_PRESS_TRIGGER_DELAY } });
+                keyPressEventStatus[REDO_KEY_CODE] = KEY_PRESS_EVENT_TYPES.short
+            }
             else
                 handleControllerEvent(classifyControllerEvent())
             break;
@@ -91,17 +99,17 @@ document.addEventListener('keyup', function (e) {
     keyStatus[e.keyCode] = SWITCH.off
 
     if (isDispOnDemandMode && e.keyCode === REDO_KEY_CODE) {
-        if ( isKeyLongPressed[e.keyCode] )
-            isKeyLongPressed[e.keyCode] = false;
-        else
-            handleControllerEvent(classifyControllerEvent())
+        if ( keyPressEventStatus[e.keyCode] === KEY_PRESS_EVENT_TYPES.longPressed )
+            keyPressEventStatus[e.keyCode] = KEY_PRESS_EVENT_TYPES.longReleased
+        
+        handleControllerEvent(classifyControllerEvent())
     }
 })
 
 const handleLongPressEvent = () => {
     if (keyStatus[lastKeyPressCode] === SWITCH.on) {
-        isKeyLongPressed[lastKeyPressCode] = true;
-        handleControllerEvent(classifyControllerEvent())
+        keyPressEventStatus[lastKeyPressCode] = KEY_PRESS_EVENT_TYPES.longPressed
+        handleControllerEvent(classifyControllerEvent());
     }
 }
 
@@ -116,6 +124,7 @@ const classifyControllerEvent = () => {
             } 
             else    controllerEvent = 'CONTEXT_PREV'
             break;
+
         case RIGHT_KEY_CODE:
             if (!isDispAlwaysOnMode) {
                 if (interruptIndex == 0) 
@@ -124,15 +133,27 @@ const classifyControllerEvent = () => {
             } 
             else    controllerEvent = 'CONTEXT_NEXT'
             break;
+
         case UNDO_KEY_CODE_1:
         case UNDO_KEY_CODE_2:
             controllerEvent = 'UNDO'
             break;
+
         case REDO_KEY_CODE:
             if ( !quill.hasFocus() ) {
-                if( !isKeyLongPressed[REDO_KEY_CODE] )
+                switch (keyPressEventStatus[REDO_KEY_CODE] ) {
+                    case KEY_PRESS_EVENT_TYPES.short:
                         controllerEvent = 'REDO'
-                else    controllerEvent = 'PUSH_TO_TALK'
+                        break;
+                    case KEY_PRESS_EVENT_TYPES.longPressed:
+                        controllerEvent = 'PUSH_TO_TALK_ENGAGED'
+                        break;
+                    case KEY_PRESS_EVENT_TYPES.longReleased:
+                        controllerEvent = 'PUSH_TO_TALK_RELEASED'
+                        break;
+                    default:
+                        controllerEvent = 'REDO'
+                }
             }
             break;
     }
@@ -194,9 +215,14 @@ const handleControllerEvent = (event) => {
             feedbackOnTextNavigation(currentContext)
             break;
 
-        case 'PUSH_TO_TALK':
-            console.log('firing event :: PUSH_TO_TALK')
+        case 'PUSH_TO_TALK_ENGAGED':
+            console.log('firing event :: PUSH_TO_TALK_ENGAGED')
+            // feedbackOnPushToTalk(interruptIndex)
             break;
-            
+
+        case 'PUSH_TO_TALK_RELEASED':
+            console.log('firing event :: PUSH_TO_TALK_RELEASED')
+            // feedbackOnPushToTalk(interruptIndex)
+            break;
     }
 }
