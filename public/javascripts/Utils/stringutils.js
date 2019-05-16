@@ -167,7 +167,7 @@ export const generateSentencesList = (text, isHTML) => {
         else    splitRegex = /\b.*?\b[.!?]/g
 
     let sentences = text.match(splitRegex)
-    console.log('sentences', sentences)
+    // console.log('sentences', sentences)
     if (isHTML)
         sentences = sentences.map(sentence => sentence.replace(/^<\/.*?>/g, ''))
     
@@ -181,7 +181,7 @@ export const generateSentenceDelimiterIndicesList = (text) => {
     while (delimiterRegex.exec(text) !== null)
         delimiterIndicesList.push(delimiterRegex.lastIndex - 1)
     
-    console.log('delimiterIndicesList', delimiterIndicesList)
+    // console.log('delimiterIndicesList', delimiterIndicesList)
     return delimiterIndicesList;
 }
 

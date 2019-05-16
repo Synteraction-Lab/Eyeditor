@@ -115,9 +115,9 @@ export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => 
 
 export const feedbackOnTextNavigation = (currentContext, isOnload) => {
     let colorCodedTextHTML = (isOnload) ? quill.getText() : getColorCodedTextHTML( getLoadedText(), quill.getText() )
-    console.log('colorCodedTextHTML (feedbackHandler.js)', colorCodedTextHTML)
+    // console.log('colorCodedTextHTML (feedbackHandler.js)', colorCodedTextHTML)
     let colorCodedTextHTMLSentences = generateSentencesList(colorCodedTextHTML, true)
-    console.log('colorCodedTextHTMLSentences (feedbackHandler.js)', colorCodedTextHTMLSentences)
+    // console.log('colorCodedTextHTMLSentences (feedbackHandler.js)', colorCodedTextHTMLSentences)
     let renderTextHTML = colorCodedTextHTMLSentences.map( (sentence, index) => (index === currentContext) ? `<b>${sentence}</b>` : sentence )
     
     if (isOnload)   renderBladeDisplay(renderTextHTML.join(' '), 'forceClear')

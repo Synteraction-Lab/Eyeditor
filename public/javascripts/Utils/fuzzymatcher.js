@@ -37,7 +37,7 @@ export const generateFuzzySetForCommands = () => {
 }
 
 export const matchFuzzyForCommand = (firstWord, restOfTheUtterance) => {
-    console.log('rest of the utternace', restOfTheUtterance)
+    // console.log('rest of the utternace', restOfTheUtterance)
     let match = keywordsFuse.search(firstWord)
 
     if (match.length > 0)   {
