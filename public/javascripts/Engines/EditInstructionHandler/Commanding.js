@@ -4,6 +4,8 @@ import { findinText } from '../../Utils/stringutils.js'
 import { handleError } from '../../error.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 import { readNextSentence, readPrevSentence, repeatSentence } from '../AudioFeedbackHandler.js';
+import { navigateContext, isDisplayON, fireDisplayOffRoutine } from '../FeedbackHandler.js';
+import { getFeedbackConfiguration } from '../../main.js';
 
 export const handleCommand = (keyword, arg, workingText) => {
     let updateParameter;
@@ -48,10 +50,16 @@ export const handleCommand = (keyword, arg, workingText) => {
                 break;
 
             case 'previous':
+                if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
+                    fireDisplayOffRoutine()
+                
                 readPrevSentence(null, true)
                 break;
             
             case 'next':
+                if (getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON())
+                    fireDisplayOffRoutine()
+                
                 readNextSentence()
                 break;
             
@@ -121,15 +129,11 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
             return true;
 
         case 'previous':
-            readPrevSentence(null, true)
+            navigateContext('PREV')
             return true;
 
         case 'next':
-            readNextSentence()
-            return true;
-
-        case 'repeat':
-            repeatSentence()
+            navigateContext('NEXT')
             return true;
     }
 }

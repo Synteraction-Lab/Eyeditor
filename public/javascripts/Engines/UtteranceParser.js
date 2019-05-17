@@ -4,9 +4,8 @@ import * as fuzzy from '../Utils/fuzzymatcher.js'
 import { handleCommand, handleCommandPrioritizedWorkingText } from './EditInstructionHandler/Commanding.js'
 import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js'
 import { handleRedictation, handleRedictationPrioritizedWorkingText } from './EditInstructionHandler/Redictation.js';
-import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText } from './FeedbackHandler.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
-import { getCurrentContext } from '../Drivers/HandControllerDriver.js'
 import { handleError } from '../error.js'
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 20 // in chars
@@ -120,7 +119,8 @@ const callManagerForAlwaysOnDisplay = (utterance) => {
 const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
-    if (keyword) {
+    let suppressedFunctions = ['repeat']
+    if ( keyword && !suppressedFunctions.includes(keyword) ) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let iter, fuzzyArgument, passArgument;
         let isCommandComplete;

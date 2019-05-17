@@ -3,11 +3,11 @@ import { pushTextToBlade } from '../Drivers/VuzixBladeDriver.js'
 import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
-import { getCurrentContext, getPTTStatus } from '../Drivers/HandControllerDriver.js'
+import { getPTTStatus } from '../Drivers/HandControllerDriver.js'
 import { extractWorkingText } from './UtteranceParser.js';
 import { resumeReadAfterGeneralInterrupt } from './AudioFeedbackHandler.js';
 
-const MAX_DISPLAY_ON_TIME = 7 // in seconds
+const MAX_DISPLAY_ON_TIME = 5 // in seconds
 
 var currentText
 var lastUtterance
@@ -15,15 +15,27 @@ var timer = new Timer()
 var displayON = false
 var workingTextSentenceIndex
 var currentWorkingText
+var currentContext = 0  // context captures the sentence number/index in DISP_ALWAYS_ON mode
 
-export const isDisplayON = () => displayON;
-export const getCurrentWorkingText = () => currentWorkingText;
+export const isDisplayON = () => displayON
+export const getCurrentWorkingText = () => currentWorkingText
+export const getCurrentContext = () => currentContext
+
+const getCurrentText = () => currentText
+const setCurrentText = (text) => { currentText = text }
+
+const getLastUtterance = () => lastUtterance
+const setLastUtterance = (utterance) => { lastUtterance = utterance }
 
 timer.addEventListener('secondsUpdated', function (e) {
     console.log('Timer ::',timer.getTimeValues().toString());
 });
 
 timer.addEventListener('targetAchieved', function (e) {
+    fireDisplayOffRoutine();
+})
+
+export const fireDisplayOffRoutine = () => {
     timer.stop()
     console.log('Timer Stopped.');
     
@@ -32,18 +44,7 @@ timer.addEventListener('targetAchieved', function (e) {
         displayON = false
         currentWorkingText = null
     }
-});
-
-const setCurrentText = (text) => {
-    currentText = text
 }
-
-const setLastUtterance = (utterance) => {
-    lastUtterance = utterance
-}
-
-const getCurrentText = () => currentText
-const getLastUtterance = () => lastUtterance
 
 const renderBladeDisplayBlank = () => pushTextToBlade(null, null)
 
@@ -126,7 +127,7 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
             renderBladeDisplay(getColorCodedTextHTML( getLoadedText(), quill.getText() ).replace(/&para.*/g, ''))
             break;
         case 'DISP_ALWAYS_ON':
-            feedbackOnTextNavigation(getCurrentContext())
+            feedbackOnTextNavigation(currentContext)
             break;
         case 'DISP_ON_DEMAND':
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
@@ -179,4 +180,22 @@ export const navigateWorkingText = (dir) => {
     }
 
     feedbackOfWorkingTextOnNavigation()
+}
+
+export const navigateContext = (dir) => {
+    if (dir === 'PREV') {
+        currentContext = currentContext - 1
+        if (currentContext < 0)
+            currentContext = 0
+        
+        feedbackOnTextNavigation(currentContext)
+    } else if (dir === 'NEXT') {
+        let sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
+
+        currentContext = currentContext + 1
+        if (currentContext >= sentenceDelimiterIndices.length)
+            currentContext = sentenceDelimiterIndices.length - 1
+
+        feedbackOnTextNavigation(currentContext)
+    }
 }

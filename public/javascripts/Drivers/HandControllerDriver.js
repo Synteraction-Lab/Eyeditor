@@ -1,9 +1,8 @@
 import * as tts from '../Services/tts.js'
-import { generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js';
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { getFeedbackConfiguration } from '../main.js'
-import { feedbackOnTextNavigation, feedbackOnPushToTalk, isDisplayON, navigateWorkingText } from '../Engines/FeedbackHandler.js'
+import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence } from '../Engines/AudioFeedbackHandler.js';
 
 const LEFT_KEY_CODE = 33
@@ -33,9 +32,7 @@ var lastKeyPressCode
 var interruptIndex
 var isDispAlwaysOnMode
 var isDispOnDemandMode
-var currentContext = 0  // context captures the sentence number/index
 
-export const getCurrentContext = () => currentContext;
 export const getPTTStatus = () => {
     if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
         return 'PTT_ON'
@@ -187,21 +184,11 @@ const handleControllerEvent = (event) => {
             break;
 
         case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display
-            currentContext = currentContext - 1
-            if (currentContext < 0)
-                currentContext = 0
-
-            feedbackOnTextNavigation(currentContext)
+            navigateContext('PREV')
             break;
 
         case 'CONTEXT_NEXT':
-            let sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
-
-            currentContext = currentContext + 1
-            if (currentContext >= sentenceDelimiterIndices.length)
-                currentContext = sentenceDelimiterIndices.length - 1
-            
-            feedbackOnTextNavigation(currentContext)
+            navigateContext('NEXT')
             break;
 
         case 'WORKING_TEXT_PREV':
