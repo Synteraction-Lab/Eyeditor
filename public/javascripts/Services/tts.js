@@ -8,6 +8,7 @@ let synth = window.speechSynthesis;
 var timeoutResumeInfinity
 var TTSRelativeReadIndex
 var TTSAbsoluteReadIndex
+var TTSReadStartedFlag = false;
 
 /* Speech synthesizer setup */
 export function setup() {
@@ -87,6 +88,10 @@ export function getTTSRelativeReadIndex() {
 }
 
 export const read = (index) => {    // read() reads from the quill from a given index. high-level method, calls low-level speak()
+    TTSReadStartedFlag = true
     TTSAbsoluteReadIndex = index
     speak(quill.getText(index))
 }
+
+export const getTTSReadStartedFlag = () => TTSReadStartedFlag;
+export const setTTSReadStartedFlag = (flagStatus) => { TTSAbsoluteReadIndex = flagStatus; }

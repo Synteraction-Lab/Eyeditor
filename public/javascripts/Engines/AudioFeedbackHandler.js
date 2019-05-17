@@ -27,10 +27,10 @@ export const readTextOnFailedUpdate = () => {
 
 export const resumeReadAfterGeneralInterrupt = () => { readTextOnFailedUpdate() }
 
-export const readPrevSentence = (interruptIndex) => {
+export const readPrevSentence = (interruptIndex, isVoiceRequest) => {
     interruptIndex = interruptIndex || getBargeinIndex()
     let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
-    if (interruptIndex - currentSentenceIndices.start < prevSentenceRequestDelta)
+    if (interruptIndex - currentSentenceIndices.start < prevSentenceRequestDelta || isVoiceRequest)
         currentSentenceIndices = getSentenceIndices(quill.getText(), currentSentenceIndices.start - 2)
     
     tts.read(currentSentenceIndices.start)
@@ -44,5 +44,11 @@ export const readNextSentence = (interruptIndex) => {
         currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
     }
 
+    tts.read(currentSentenceIndices.start)
+}
+
+export const repeatSentence = (interruptIndex) => {
+    interruptIndex = interruptIndex || getBargeinIndex()
+    let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
     tts.read(currentSentenceIndices.start)
 }

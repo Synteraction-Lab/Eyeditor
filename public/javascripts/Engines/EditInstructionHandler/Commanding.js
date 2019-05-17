@@ -3,7 +3,7 @@ import { quill } from '../../Services/quill.js'
 import { findinText } from '../../Utils/stringutils.js'
 import { handleError } from '../../error.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
-import { readNextSentence, readPrevSentence } from '../AudioFeedbackHandler.js';
+import { readNextSentence, readPrevSentence, repeatSentence } from '../AudioFeedbackHandler.js';
 
 export const handleCommand = (keyword, arg, workingText) => {
     let updateParameter;
@@ -48,11 +48,15 @@ export const handleCommand = (keyword, arg, workingText) => {
                 break;
 
             case 'previous':
-                readPrevSentence()
+                readPrevSentence(null, true)
                 break;
             
             case 'next':
                 readNextSentence()
+                break;
+            
+            case 'repeat':
+                repeatSentence()
                 break;
         }
     }
@@ -97,7 +101,6 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
             } 
             else 
                 return false;
-            break;
         
         case 'undo':
             let indexOfUndo = editor.undo()
@@ -107,7 +110,6 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
                 else                provideFailureFeedback('There is nothing more to undo.')
             
             return true;
-            break;
 
         case 'redo':
             let indexOfRedo = editor.redo()
@@ -117,16 +119,17 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
                 else                provideFailureFeedback('There is nothing more to redo.')
             
             return true;
-            break;
 
         case 'previous':
-            readPrevSentence()
+            readPrevSentence(null, true)
             return true;
-            break;
 
         case 'next':
             readNextSentence()
             return true;
-            break;
+
+        case 'repeat':
+            repeatSentence()
+            return true;
     }
 }

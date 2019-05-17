@@ -117,7 +117,7 @@ const classifyControllerEvent = () => {
     switch(lastKeyPressCode) {
         case LEFT_KEY_CODE:
             if (!isDispAlwaysOnMode) {
-                if (interruptIndex == 0) 
+                if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() )
                             controllerEvent = 'READ_FROM_BEGINNING'
                     else    controllerEvent = 'READ_PREV'
             } 
@@ -126,7 +126,7 @@ const classifyControllerEvent = () => {
 
         case RIGHT_KEY_CODE:
             if (!isDispAlwaysOnMode) {
-                if (interruptIndex == 0) 
+                if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() )
                             controllerEvent = 'READ_FROM_BEGINNING'
                     else    controllerEvent = 'READ_NEXT'
             } 

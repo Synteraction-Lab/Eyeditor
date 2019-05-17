@@ -19,6 +19,7 @@ const initLoad = (text) => {
     mic.checked = false
     editor.refreshText(text, isLoading)
     loadedText = quill.getText()
+    tts.setTTSReadStartedFlag(false)
 }
 
 export const getLoadedText = () => loadedText;
@@ -48,9 +49,9 @@ mic.addEventListener('click', (e) => {
     }
 })
 
-stopTTS.addEventListener('click', function(e) {
-    tts.pause()
-})
+// stopTTS.addEventListener('click', function(e) {
+//     tts.pause()
+// })
 
 export const getFeedbackConfiguration = () => feedbackConfiguration
 
