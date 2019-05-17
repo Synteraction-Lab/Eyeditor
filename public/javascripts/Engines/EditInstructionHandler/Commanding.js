@@ -3,6 +3,7 @@ import { quill } from '../../Services/quill.js'
 import { findinText } from '../../Utils/stringutils.js'
 import { handleError } from '../../error.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
+import { readNextSentence, readPrevSentence } from '../AudioFeedbackHandler.js';
 
 export const handleCommand = (keyword, arg, workingText) => {
     let updateParameter;
@@ -44,6 +45,14 @@ export const handleCommand = (keyword, arg, workingText) => {
                 if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter)
                     else                provideFailureFeedback('There is nothing more to redo.')
                     
+                break;
+
+            case 'previous':
+                readPrevSentence()
+                break;
+            
+            case 'next':
+                readNextSentence()
                 break;
         }
     }
@@ -96,7 +105,8 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
             
             if (indexOfUndo >= 0)   provideSuccessFeedback('Undone', updateParameter)
                 else                provideFailureFeedback('There is nothing more to undo.')
-                
+            
+            return true;
             break;
 
         case 'redo':
@@ -105,7 +115,18 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
             
             if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter)
                 else                provideFailureFeedback('There is nothing more to redo.')
-                
+            
+            return true;
+            break;
+
+        case 'previous':
+            readPrevSentence()
+            return true;
+            break;
+
+        case 'next':
+            readNextSentence()
+            return true;
             break;
     }
 }

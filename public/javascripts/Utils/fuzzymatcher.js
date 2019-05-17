@@ -20,7 +20,9 @@ const options =
                 }
             }
 
-const keywords = ['delete', 'undo', 'redo']
+const keywordsParameterized = ['delete']
+const keywordsNonParameterized = ['undo', 'redo', 'previous', 'next']
+const keywords = [...keywordsParameterized, ...keywordsNonParameterized]
 
 var keywordsFuzzySet = [];
 var argumentFuzzySet;
@@ -45,7 +47,7 @@ export const matchFuzzyForCommand = (firstWord, restOfTheUtterance) => {
 
         console.log('keyword matched ', keyword)
 
-        if ( (keyword === 'undo' || keyword === 'redo') && restOfTheUtterance.length > 0 )
+        if ( keywordsNonParameterized.includes(keyword) && restOfTheUtterance.length > 0 )
             return null
         else return keyword
     }

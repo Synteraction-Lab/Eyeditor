@@ -1,9 +1,10 @@
 import * as tts from '../Services/tts.js'
-import { getSentenceIndices, generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js';
+import { generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js';
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { feedbackOnTextNavigation, feedbackOnPushToTalk } from '../Engines/FeedbackHandler.js'
+import { readPrevSentence, readNextSentence } from '../Engines/AudioFeedbackHandler.js';
 
 const LEFT_KEY_CODE = 33
 const RIGHT_KEY_CODE = 34
@@ -11,7 +12,6 @@ const UNDO_KEY_CODE_1 = 116
 const UNDO_KEY_CODE_2 = 27
 const REDO_KEY_CODE = 66
 const READ_RESTART_INDEX = 0
-const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 12 chars of current sentence, TTS reads the prev. sentence.
 const LONG_PRESS_TRIGGER_DELAY = 3 // 0.3 seconds = 300ms
 const keyStatus = {}    // on or off
 const keyPressEventStatus = {}    // short/long_pressed/long_released
@@ -36,6 +36,12 @@ var isDispOnDemandMode
 var currentContext = 0  // context captures the sentence number/index
 
 export const getCurrentContext = () => currentContext;
+export const getPTTStatus = () => {
+    if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+        return 'PTT_ON'
+    else if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longReleased )
+        return 'PTT_OFF'
+}
 
 // longPressTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('longPressTimer ::', longPressTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
@@ -51,6 +57,10 @@ document.addEventListener('keydown', function(e) {
     if (keyStatus[e.keyCode] && [UNDO_KEY_CODE_1, UNDO_KEY_CODE_2, REDO_KEY_CODE].includes(e.keyCode) && keyStatus[e.keyCode] === SWITCH.on)
         return;
 
+    keyStatus[e.keyCode] = SWITCH.on
+    keyPressEventStatus[REDO_KEY_CODE] = KEY_PRESS_EVENT_TYPES.short
+    lastKeyPressCode = e.keyCode
+
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
             isDispAlwaysOnMode = false;
@@ -59,9 +69,6 @@ document.addEventListener('keydown', function(e) {
             tts.pause()
             interruptIndex = (tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex()) || 0
             
-            keyStatus[e.keyCode] = SWITCH.on
-            lastKeyPressCode = e.keyCode
-
             handleControllerEvent(classifyControllerEvent())
             break;
 
@@ -72,13 +79,8 @@ document.addEventListener('keydown', function(e) {
             tts.pause()
             interruptIndex = (tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex()) || 0
 
-            keyStatus[e.keyCode] = SWITCH.on
-            lastKeyPressCode = e.keyCode
-
-            if ( e.keyCode === REDO_KEY_CODE ) {
+            if ( e.keyCode === REDO_KEY_CODE )
                 longPressTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: LONG_PRESS_TRIGGER_DELAY } });
-                keyPressEventStatus[REDO_KEY_CODE] = KEY_PRESS_EVENT_TYPES.short
-            }
             else
                 handleControllerEvent(classifyControllerEvent())
             break;
@@ -86,9 +88,6 @@ document.addEventListener('keydown', function(e) {
         case 'DISP_ALWAYS_ON':
             isDispAlwaysOnMode = true;
             isDispOnDemandMode = false;
-
-            keyStatus[e.keyCode] = SWITCH.on
-            lastKeyPressCode = e.keyCode
 
             handleControllerEvent(classifyControllerEvent())
             break;
@@ -141,7 +140,7 @@ const classifyControllerEvent = () => {
 
         case REDO_KEY_CODE:
             if ( !quill.hasFocus() ) {
-                switch (keyPressEventStatus[REDO_KEY_CODE] ) {
+                switch ( keyPressEventStatus[REDO_KEY_CODE] ) {
                     case KEY_PRESS_EVENT_TYPES.short:
                         controllerEvent = 'REDO'
                         break;
@@ -162,31 +161,17 @@ const classifyControllerEvent = () => {
 }
 
 const handleControllerEvent = (event) => {
-    let i;
-    let currentSentenceIndices;
-    let sentenceDelimiterIndices;
-
     switch(event) {
         case 'READ_FROM_BEGINNING':
             tts.read(READ_RESTART_INDEX)
             break;
 
         case 'READ_PREV':
-            currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
-            if ( interruptIndex - currentSentenceIndices.start < prevSentenceRequestDelta )
-                currentSentenceIndices = getSentenceIndices(quill.getText(), currentSentenceIndices.start - 2)
-
-            tts.read(currentSentenceIndices.start)
+            readPrevSentence(interruptIndex)
             break;
 
         case 'READ_NEXT':
-            currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
-            if (currentSentenceIndices.end < quill.getText().length - 1) {
-                interruptIndex = currentSentenceIndices.end + 2 
-                currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
-            }
-            
-            tts.read(currentSentenceIndices.start)
+            readNextSentence(interruptIndex)
             break;
         
         case 'UNDO':
@@ -206,7 +191,7 @@ const handleControllerEvent = (event) => {
             break;
 
         case 'CONTEXT_NEXT':
-            sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
+            let sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
 
             currentContext = currentContext + 1
             if (currentContext >= sentenceDelimiterIndices.length)
@@ -217,12 +202,12 @@ const handleControllerEvent = (event) => {
 
         case 'PUSH_TO_TALK_ENGAGED':
             console.log('firing event :: PUSH_TO_TALK_ENGAGED')
-            // feedbackOnPushToTalk(interruptIndex)
+            feedbackOnPushToTalk(interruptIndex)
             break;
 
         case 'PUSH_TO_TALK_RELEASED':
             console.log('firing event :: PUSH_TO_TALK_RELEASED')
-            // feedbackOnPushToTalk(interruptIndex)
+            feedbackOnPushToTalk()
             break;
     }
 }

@@ -3,8 +3,9 @@ import { pushTextToBlade } from '../Drivers/VuzixBladeDriver.js'
 import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList } from '../Utils/stringutils.js'
-import { getCurrentContext } from '../Drivers/HandControllerDriver.js'
+import { getCurrentContext, getPTTStatus } from '../Drivers/HandControllerDriver.js'
 import { extractWorkingText } from './UtteranceParser.js';
+import { resumeReadAfterGeneralInterrupt } from './AudioFeedbackHandler.js';
 
 const MAX_DISPLAY_ON_TIME = 7 // in seconds
 
@@ -18,10 +19,13 @@ timer.addEventListener('secondsUpdated', function (e) {
 });
 
 timer.addEventListener('targetAchieved', function (e) {
-    renderBladeDisplayBlank();
-    isDisplayOn = false
     timer.stop()
     console.log('Timer Stopped.');
+    
+    if ( !getPTTStatus() ) {
+        renderBladeDisplayBlank();
+        isDisplayOn = false
+    }
 });
 
 const setCurrentText = (text) => {
@@ -125,15 +129,13 @@ export const feedbackOnTextNavigation = (currentContext, isOnload) => {
         else        renderBladeDisplay(renderTextHTML.join(' '))
 }
 
-export const feedbackOnPushToTalk = (interruptIndex, isPushToTalkOn) => {
-    if (pushToTalkOn) {
-        renderBladeDisplay(extractWorkingText(interruptIndex))
-        // suppress timer
-        // suppress audio feedback
-    } 
-    else {
+export const feedbackOnPushToTalk = (interruptIndex) => {
+    let PTTStatus = getPTTStatus()
+    console.log('PTTStatus', PTTStatus)
+    if ( PTTStatus === 'PTT_ON' )
+        renderBladeDisplay(extractWorkingText(interruptIndex).text)
+    else if ( PTTStatus === 'PTT_OFF' ){
         renderBladeDisplayBlank()
-        // resume feedback from interruptIndex
+        resumeReadAfterGeneralInterrupt()
     }
-
 }
