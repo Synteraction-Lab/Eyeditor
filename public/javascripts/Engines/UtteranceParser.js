@@ -9,8 +9,9 @@ import { getFeedbackConfiguration } from '../main.js'
 import { getCurrentContext } from '../Drivers/HandControllerDriver.js'
 import { handleError } from '../error.js'
 
-const MAX_REACTION_TEXT_WINDOW_SIZE = 30 // in chars
-const cropSelectionToBargeinIndex = true // either crop or full sentence.
+const MAX_REACTION_TEXT_WINDOW_SIZE = 20 // in chars
+const cropSelectionToBargeinIndex = false // either crop or full sentence.
+const constrainWorkingTextToSingleSentence = true   // if false, working sent. can be two sentences
 
 var bargeinIndex;
 var workingText;
@@ -22,7 +23,7 @@ export const handleUtterance = (utterance) => {
         bargeinIndex = tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex();
         workingText = extractWorkingText(bargeinIndex);
         
-        feedbackOfWorkingTextOnUserUtterance(workingText.text)
+        feedbackOfWorkingTextOnUserUtterance(workingText)
         parseUtterance(utterance, workingText)
     }
 }
@@ -48,11 +49,16 @@ export const extractWorkingText = (index) => {
 
     if ( endIndex - sentenceIndices.start < MAX_REACTION_TEXT_WINDOW_SIZE && sentenceIndices.start > 0 ) {
         let prevSentenceIndices = getSentenceIndices(quill.getText(), sentenceIndices.start-2)
-        workingText = {
-            text: getSentenceSnippetBetweenIndices(quill.getText(), prevSentenceIndices) + ' ' + workingText.text,
-            startIndex: prevSentenceIndices.start
-        }
-
+        if (constrainWorkingTextToSingleSentence)
+            workingText = {
+                text: getSentenceSnippetBetweenIndices(quill.getText(), prevSentenceIndices),
+                startIndex: prevSentenceIndices.start
+            }
+        else 
+            workingText = {
+                text: getSentenceSnippetBetweenIndices(quill.getText(), prevSentenceIndices) + ' ' + workingText.text,
+                startIndex: prevSentenceIndices.start
+            }
     }
 
     return workingText

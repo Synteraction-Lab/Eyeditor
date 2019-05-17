@@ -107,7 +107,8 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText) => {
         case 'DISP_ALWAYS_ON':
             break;
         case 'DISP_ON_DEMAND':
-            renderBladeDisplay(workingText)
+            let workingTextSentenceIndex = getSentenceIndexGivenCharIndexPosition(quill.getText(), workingText.startIndex)
+            renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ) )
             break;
     }
 }
@@ -121,7 +122,8 @@ export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => 
             feedbackOnTextNavigation(getCurrentContext())
             break;
         case 'DISP_ON_DEMAND':
-            renderBladeDisplay(getColorCodedTextHTML( getSentenceGivenSentenceIndex( getLoadedText(), getSentenceIndexGivenCharIndexPosition(getLoadedText(), updateParameter.startIndex) ), updatedSentence ))
+            let updatedSentenceIndex = getSentenceIndexGivenCharIndexPosition( quill.getText(), updateParameter.startIndex )
+            renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
             break;
     }
 }

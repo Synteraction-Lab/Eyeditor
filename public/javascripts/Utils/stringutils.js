@@ -88,7 +88,7 @@ export const getIndexOfNextSpace = (text, index) => {
     return indexOfNextSpace
 }
 
-export const getSentenceIndices = (text, index) => {    // absolute indices
+export const getSentenceIndices = (text, index) => {    // input: abs index; output: abs indices
     let regexEnd = /[.!?]/g
     let matchEnd = regexEnd.exec(text.substr(index))
     let startIndex, endIndex;

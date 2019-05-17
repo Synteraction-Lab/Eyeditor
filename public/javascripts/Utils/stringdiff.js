@@ -101,7 +101,6 @@ function diffString( o, n ) {
 
 export const getColorCodedTextHTML = (originalText, changedText) => {
     let dmp = new diff_match_patch()
-    // let deltaString = diffString(originalText, changedText)
     let deltaString = dmp.diff_wordMode(originalText, changedText);
     // console.log('raw deltaString', deltaString)
     deltaString = dmp.diff_prettyHtml(deltaString);
@@ -113,21 +112,6 @@ export const getColorCodedTextHTML = (originalText, changedText) => {
     let fontColorInsert = '#F7E511'
     // let fontColorInsert = '#e6ffe6'
     
-    // /* clean deltaString */
-    // deltaString = deltaString.replace(/\n/g, '')
-    // deltaString = deltaString.replace(/\s\s+/g, ' ')
-    // // console.log('deltaString before combination', deltaString)
-    // deltaString = deltaString.replace(/(?<![.?!]\s)<\/(...)><\1>/g, '')
-    // // console.log('deltaString after combination', deltaString)
-    // deltaString = purgeAndAppendAnyEnclosedSentenceDelimiter(deltaString)
-    // // console.log('cleaned deltaString', deltaString)
-
-    // /* change tags of deltaString to font color tags */
-    // deltaString = deltaString.replace(/<\/.*?>/g, `</font>`)
-    // deltaString = deltaString.replace(/<del>/g, `<font color=${fontColorDelete}>`)
-    // deltaString = deltaString.replace(/<ins>/g, `<font color=${fontColorInsert}>`)
-    // // console.log('color coded deltaString', deltaString)
-
     /* change tags of deltaString to font color tags */
     deltaString = deltaString.replace(/<del\s.*?>/g, `<font color=${fontColorDelete}>`)
     deltaString = deltaString.replace(/<ins\s.*?>/g, `<font color=${fontColorInsert}>`)
@@ -137,14 +121,3 @@ export const getColorCodedTextHTML = (originalText, changedText) => {
 
     return deltaString;
 }
-
-const purgeAndAppendAnyEnclosedSentenceDelimiter = (htmlString) => {
-    // console.log('html string before purge&append ::', htmlString)
-    let regexPurgeAndAppend = /(<del>.*?)([.?!])(\s?)(<\/del>)(<ins>.*?)([.?!])(\s?)(<\/ins>)/g
-    htmlString = htmlString.replace(regexPurgeAndAppend, '$1 $4$5$8$2')
-    // console.log('html string after purge&append ::', htmlString)
-
-    // console.log('after purge&append ::', htmlString)
-    return htmlString
-}
-        
