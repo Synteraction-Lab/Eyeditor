@@ -3,7 +3,7 @@ import { generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js';
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { getFeedbackConfiguration } from '../main.js'
-import { feedbackOnTextNavigation, feedbackOnPushToTalk } from '../Engines/FeedbackHandler.js'
+import { feedbackOnTextNavigation, feedbackOnPushToTalk, isDisplayON, navigateWorkingText } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence } from '../Engines/AudioFeedbackHandler.js';
 
 const LEFT_KEY_CODE = 33
@@ -116,20 +116,24 @@ const classifyControllerEvent = () => {
     let controllerEvent
     switch(lastKeyPressCode) {
         case LEFT_KEY_CODE:
-            if (!isDispAlwaysOnMode) {
-                if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() )
+            if (!isDispAlwaysOnMode)
+                if ( isDispOnDemandMode && isDisplayON() )
+                    controllerEvent = 'WORKING_TEXT_PREV'
+                else
+                    if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() )
                             controllerEvent = 'READ_FROM_BEGINNING'
                     else    controllerEvent = 'READ_PREV'
-            } 
             else    controllerEvent = 'CONTEXT_PREV'
             break;
 
         case RIGHT_KEY_CODE:
-            if (!isDispAlwaysOnMode) {
-                if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() )
+            if (!isDispAlwaysOnMode)
+                if ( isDispOnDemandMode && isDisplayON() )
+                    controllerEvent = 'WORKING_TEXT_NEXT'
+                else
+                    if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() )
                             controllerEvent = 'READ_FROM_BEGINNING'
                     else    controllerEvent = 'READ_NEXT'
-            } 
             else    controllerEvent = 'CONTEXT_NEXT'
             break;
 
@@ -198,6 +202,14 @@ const handleControllerEvent = (event) => {
                 currentContext = sentenceDelimiterIndices.length - 1
             
             feedbackOnTextNavigation(currentContext)
+            break;
+
+        case 'WORKING_TEXT_PREV':
+            navigateWorkingText('PREV')
+            break;
+
+        case 'WORKING_TEXT_NEXT':
+            navigateWorkingText('NEXT')
             break;
 
         case 'PUSH_TO_TALK_ENGAGED':

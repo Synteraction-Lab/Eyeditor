@@ -2,17 +2,22 @@ import { getFeedbackConfiguration, getLoadedText } from '../main.js'
 import { pushTextToBlade } from '../Drivers/VuzixBladeDriver.js'
 import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
-import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList } from '../Utils/stringutils.js'
+import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { getCurrentContext, getPTTStatus } from '../Drivers/HandControllerDriver.js'
 import { extractWorkingText } from './UtteranceParser.js';
 import { resumeReadAfterGeneralInterrupt } from './AudioFeedbackHandler.js';
 
 const MAX_DISPLAY_ON_TIME = 7 // in seconds
 
-var currentText;
-var lastUtterance;
+var currentText
+var lastUtterance
 var timer = new Timer()
-var displayON = false;
+var displayON = false
+var workingTextSentenceIndex
+var currentWorkingText
+
+export const isDisplayON = () => displayON;
+export const getCurrentWorkingText = () => currentWorkingText;
 
 timer.addEventListener('secondsUpdated', function (e) {
     console.log('Timer ::',timer.getTimeValues().toString());
@@ -25,6 +30,7 @@ timer.addEventListener('targetAchieved', function (e) {
     if ( !getPTTStatus() ) {
         renderBladeDisplayBlank();
         displayON = false
+        currentWorkingText = null
     }
 });
 
@@ -42,10 +48,6 @@ const getLastUtterance = () => lastUtterance
 const renderBladeDisplayBlank = () => pushTextToBlade(null, null)
 
 const renderBladeDisplay = (text, utterance) => {
-    // console.log('inside renderBladeDisplay...')
-    // console.log('received text', text)
-    // console.log('received utterance', utterance)
-
     let isReceivedTextNull = (text) ? false : true
 
     if (!text) text = getCurrentText()
@@ -107,13 +109,18 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText) => {
         case 'DISP_ALWAYS_ON':
             break;
         case 'DISP_ON_DEMAND':
-            let workingTextSentenceIndex = getSentenceIndexGivenCharIndexPosition(quill.getText(), workingText.startIndex)
+            workingTextSentenceIndex = getSentenceIndexGivenCharIndexPosition(quill.getText(), workingText.startIndex)
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ) )
             break;
     }
 }
 
-export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => {
+export const feedbackOfWorkingTextOnNavigation = () => {
+    renderBladeDisplay(getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), currentWorkingText.text ))
+    timer.reset()   // at this point display and hence, timer was on, so reset, and do not need to set displayON
+}
+
+export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex) => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
             renderBladeDisplay(getColorCodedTextHTML( getLoadedText(), quill.getText() ).replace(/&para.*/g, ''))
@@ -122,8 +129,12 @@ export const feedbackOnCommandExecution = (updateParameter, updatedSentence) => 
             feedbackOnTextNavigation(getCurrentContext())
             break;
         case 'DISP_ON_DEMAND':
-            let updatedSentenceIndex = getSentenceIndexGivenCharIndexPosition( quill.getText(), updateParameter.startIndex )
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
+            // update Working Text
+            currentWorkingText = {
+                text: getSentenceGivenSentenceIndex(quill.getText(), workingTextSentenceIndex),
+                startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
+            }
             break;
     }
 }
@@ -148,4 +159,24 @@ export const feedbackOnPushToTalk = (interruptIndex) => {
         renderBladeDisplayBlank()
         resumeReadAfterGeneralInterrupt()
     }
+}
+
+export const navigateWorkingText = (dir) => {
+    if (dir === 'PREV') {
+        workingTextSentenceIndex = workingTextSentenceIndex - 1
+        if (workingTextSentenceIndex < 0)
+            workingTextSentenceIndex = 0
+    } else if (dir === 'NEXT') {
+        let sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
+        workingTextSentenceIndex = workingTextSentenceIndex + 1
+        if (workingTextSentenceIndex >= sentenceDelimiterIndices.length)
+            workingTextSentenceIndex = sentenceDelimiterIndices.length - 1
+    }
+
+    currentWorkingText = {
+        text: getSentenceGivenSentenceIndex(quill.getText(), workingTextSentenceIndex),
+        startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
+    }
+
+    feedbackOfWorkingTextOnNavigation()
 }

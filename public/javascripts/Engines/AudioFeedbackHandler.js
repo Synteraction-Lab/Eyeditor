@@ -4,6 +4,7 @@ import { getBargeinIndex } from './UtteranceParser.js'
 import { getIndexOfLastPunctuation, getSentenceIndices } from '../Utils/stringutils.js'
 import { getFeedbackConfiguration } from '../main.js';
 import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
+import { isDisplayON } from './FeedbackHandler.js';
 
 const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 12 chars of current sentence, TTS reads the prev. sentence.
 const feedbackRate = {
@@ -16,12 +17,20 @@ export const speakFeedback = (feedback, type) => {
 }
 
 export const readTextOnUpdate = (updateParameter) => {
-    if ( getFeedbackConfiguration() !== 'DISP_ALWAYS_ON' && getPTTStatus() !== 'PTT_ON' )
+    if (    getFeedbackConfiguration() === 'DISP_ALWAYS_ON' 
+        || (getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON())
+        ||  getPTTStatus()             === 'PTT_ON'     )
+        return;
+    else
         tts.read(getIndexOfLastPunctuation( quill.getText(), updateParameter.startIndex ) + 2)
 }
 
 export const readTextOnFailedUpdate = () => {
-    if ( getFeedbackConfiguration() !== 'DISP_ALWAYS_ON' && getPTTStatus() !== 'PTT_ON' )
+    if (    getFeedbackConfiguration() === 'DISP_ALWAYS_ON'
+        || (getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON())
+        ||  getPTTStatus()             === 'PTT_ON'     )
+        return;
+    else 
         tts.read(getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
 }
 

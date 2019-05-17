@@ -4,7 +4,12 @@ export const stripPunctuations = (text) => {
 }
 
 export const removeLeadingNonWordChars = (text) => {
-    text = text.replace(/^[^\w]+/g, '')
+    text = text.replace(/^\W+/g, '')
+    return text
+}
+
+export const removingNonWordCharsBeforeSentenceDelimiters = (text) => {
+    text = text.replace(/(\W+)([.?!])/g, '$2')
     return text
 }
 
@@ -30,6 +35,7 @@ export const formatText = (text) => {
     text = appendPeriodIfMissing(text)
     text = forceMonoSpacing(text)
     text = forceFirstCharOfSentenceToUpperCase(text)
+    text = removingNonWordCharsBeforeSentenceDelimiters(text)
     return text
 }
 
@@ -162,9 +168,8 @@ export const stripRightContext = (queryString, rightContext) => {
 export const generateSentencesList = (text, isHTML) => {
     let splitRegex
     if (isHTML)
-            // splitRegex = /<*\b.*?\b>*[.?!]/g
                 splitRegex = /(?<=^|[.?!]).*?[.?!]/g
-        else    splitRegex = /\b.*?\b[.!?]/g
+        else    splitRegex = /\b.*?\b[.?!]/g
 
     let sentences = text.match(splitRegex)
     // console.log('sentences', sentences)
@@ -181,7 +186,6 @@ export const generateSentenceDelimiterIndicesList = (text) => {
     while (delimiterRegex.exec(text) !== null)
         delimiterIndicesList.push(delimiterRegex.lastIndex - 1)
     
-    // console.log('delimiterIndicesList', delimiterIndicesList)
     return delimiterIndicesList;
 }
 
@@ -190,6 +194,14 @@ export const getSentenceIndexGivenCharIndexPosition = (text, charIndex) =>  // c
 
 export const getSentenceGivenSentenceIndex = (text, sentenceIndex) =>
     generateSentencesList(text)[sentenceIndex];
+
+export const getSentenceCharIndicesGivenSentenceIndex = (text, sentenceIndex) => {  // abs char indices
+    let delimiterIndicesList = generateSentenceDelimiterIndicesList(text)
+    return {
+        start: delimiterIndicesList[sentenceIndex - 1] + 2 || 0,
+        end: delimiterIndicesList[sentenceIndex] + 1
+    }
+}
 
 export const forceNumberToWords = (utteranceString) => {
     let regex = /\b(\d+)\b/g;

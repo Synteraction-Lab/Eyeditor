@@ -4,7 +4,7 @@ import * as fuzzy from '../Utils/fuzzymatcher.js'
 import { handleCommand, handleCommandPrioritizedWorkingText } from './EditInstructionHandler/Commanding.js'
 import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js'
 import { handleRedictation, handleRedictationPrioritizedWorkingText } from './EditInstructionHandler/Redictation.js';
-import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance } from './FeedbackHandler.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { getCurrentContext } from '../Drivers/HandControllerDriver.js'
 import { handleError } from '../error.js'
@@ -15,22 +15,38 @@ const constrainWorkingTextToSingleSentence = true   // if false, working sent. c
 
 var bargeinIndex;
 var workingText;
+let quillSnapshotBeforeUpdate
+
+export const getBargeinIndex = () => bargeinIndex || 0;
+export const getQuillSnapshotBeforeUpdate = () => quillSnapshotBeforeUpdate;
 
 export const handleUtterance = (utterance) => {
-    if (getFeedbackConfiguration() === 'DISP_ALWAYS_ON')
-        callManagerForAlwaysOnDisplay(utterance)
-    else {
-        bargeinIndex = tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex();
-        workingText = extractWorkingText(bargeinIndex);
+    switch ( getFeedbackConfiguration() ) {
+        case 'DEFAULT':
+            bargeinIndex = tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex()
+            workingText = extractWorkingText(bargeinIndex)
+            parseUtterance(utterance, workingText)
+            break;
         
-        feedbackOfWorkingTextOnUserUtterance(workingText)
-        parseUtterance(utterance, workingText)
+        case 'DISP_ON_DEMAND':
+            let currentWorkingText = getCurrentWorkingText()
+            if ( currentWorkingText ) 
+                parseUtterance(utterance, currentWorkingText)
+            else {
+                bargeinIndex = tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex()
+                workingText = extractWorkingText(bargeinIndex)
+                feedbackOfWorkingTextOnUserUtterance(workingText)
+                parseUtterance(utterance, workingText)
+            }
+            break;
+        
+        case 'DISP_ALWAYS_ON':
+            callManagerForAlwaysOnDisplay(utterance)
+            break;
     }
 }
 
-export const getBargeinIndex = () => {
-    return bargeinIndex || 0
-}
+
 
 export const extractWorkingText = (index) => {
     let sentenceIndices = getSentenceIndices(quill.getText(), index)
@@ -67,6 +83,9 @@ export const extractWorkingText = (index) => {
 const parseUtterance = (utterance, workingText) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
+    
+    quillSnapshotBeforeUpdate = quill.getText()
+
     if (keyword) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let fuzzyArgument = fuzzy.matchFuzzyForArgument(restOfTheUtterance, workingText.text)

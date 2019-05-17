@@ -1,11 +1,14 @@
 import { quill } from '../../Services/quill.js'
-import { getSentenceIndices, getSentenceSnippetBetweenIndices } from '../../Utils/stringutils.js'
+import { getSentenceSnippetBetweenIndices, getSentenceIndexGivenCharIndexPosition, getSentenceCharIndicesGivenSentenceIndex } from '../../Utils/stringutils.js'
 import { feedbackOnCommandExecution } from '../FeedbackHandler.js';
 import { speakFeedback, readTextOnUpdate, readTextOnFailedUpdate } from '../AudioFeedbackHandler.js';
+import { getQuillSnapshotBeforeUpdate } from '../UtteranceParser.js';
 
 export const provideSuccessFeedback = (audioFeedbackMeta, updateParameter) => {
-    let updatedSentence = getSentenceSnippetBetweenIndices(quill.getText(), getSentenceIndices(quill.getText(), updateParameter.startIndex))
-    feedbackOnCommandExecution(updateParameter, updatedSentence)
+    let updatedSentenceIndex = getSentenceIndexGivenCharIndexPosition( getQuillSnapshotBeforeUpdate(), updateParameter.startIndex )
+    let updatedSentence = getSentenceSnippetBetweenIndices( quill.getText(), getSentenceCharIndicesGivenSentenceIndex(quill.getText(), updatedSentenceIndex) )
+
+    feedbackOnCommandExecution(updatedSentence, updatedSentenceIndex)
     speakFeedback(audioFeedbackMeta, 'SUCCESS')
     readTextOnUpdate(updateParameter)
 }
