@@ -45,7 +45,7 @@ export const matchFuzzyForCommand = (firstWord, restOfTheUtterance) => {
     if (match.length > 0)   {
         let keyword = match[0].id
 
-        console.log('keyword matched ', keyword)
+        console.log('keyword matched', keyword)
 
         if ( keywordsNonParameterized.includes(keyword) && restOfTheUtterance.length > 0 )
             return null

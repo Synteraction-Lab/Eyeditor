@@ -25,8 +25,10 @@ recognition.onresult = function(event) {
 
     if (event.results[last].isFinal) {
         hypothesis = forceNumberToWords(hypothesis)
-        parser.handleUtterance(hypothesis)
+        feedbackOnUserUtterance(hypothesis)
         console.log('hypothesis: ' + hypothesis);
+
+        parser.handleUtterance(hypothesis)
     }
 }
 

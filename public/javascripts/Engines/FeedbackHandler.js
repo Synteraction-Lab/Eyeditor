@@ -12,7 +12,7 @@ const MAX_DISPLAY_ON_TIME = 7 // in seconds
 var currentText;
 var lastUtterance;
 var timer = new Timer()
-var isDisplayOn = false;
+var displayON = false;
 
 timer.addEventListener('secondsUpdated', function (e) {
     console.log('Timer ::',timer.getTimeValues().toString());
@@ -24,7 +24,7 @@ timer.addEventListener('targetAchieved', function (e) {
     
     if ( !getPTTStatus() ) {
         renderBladeDisplayBlank();
-        isDisplayOn = false
+        displayON = false
     }
 });
 
@@ -42,7 +42,11 @@ const getLastUtterance = () => lastUtterance
 const renderBladeDisplayBlank = () => pushTextToBlade(null, null)
 
 const renderBladeDisplay = (text, utterance) => {
-    let saveReceivedText = text
+    // console.log('inside renderBladeDisplay...')
+    // console.log('received text', text)
+    // console.log('received utterance', utterance)
+
+    let isReceivedTextNull = (text) ? false : true
 
     if (!text) text = getCurrentText()
     else setCurrentText(text)
@@ -59,16 +63,20 @@ const renderBladeDisplay = (text, utterance) => {
             break;
 
         case 'DISP_ON_DEMAND':
-            if (saveReceivedText) {
+            let exemptedTriggerKeywords = ['previous', 'next']
+            
+            if (exemptedTriggerKeywords.includes(utterance))
+                pushTextToBlade(null, utterance)
+            else if (!isReceivedTextNull) {     // when there is text pushed as working text or after command-execution
                 pushTextToBlade(text, utterance)
                 timer.start({countdown: true, startValues: {seconds: MAX_DISPLAY_ON_TIME}});
-                isDisplayOn = true
+                displayON = true
             }
-            else if (isDisplayOn) {
-                pushTextToBlade(text, utterance)
+            else if (displayON) {     // incoming text is null but display is still on
+                pushTextToBlade(text, utterance)    // text is the last saved text
                 timer.reset()
             }
-            else
+            else    // incoming text null, display off.
                 pushTextToBlade(null, utterance)
             
             break;
