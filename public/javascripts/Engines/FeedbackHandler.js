@@ -5,7 +5,7 @@ import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { getPTTStatus } from '../Drivers/HandControllerDriver.js'
 import { extractWorkingText } from './UtteranceParser.js';
-import { resumeReadAfterGeneralInterrupt } from './AudioFeedbackHandler.js';
+import { resumeReadAfterGeneralInterrupt, resumeReadAfterDisplayTimeout } from './AudioFeedbackHandler.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
 
@@ -19,6 +19,7 @@ var currentContext = 0  // context captures the sentence number/index in DISP_AL
 
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText
+export const getCurrentWorkingTextSentenceIndex = () => workingTextSentenceIndex
 export const getCurrentContext = () => currentContext
 
 const getCurrentText = () => currentText
@@ -28,7 +29,7 @@ const getLastUtterance = () => lastUtterance
 const setLastUtterance = (utterance) => { lastUtterance = utterance }
 
 timer.addEventListener('secondsUpdated', function (e) {
-    console.log('Timer ::',timer.getTimeValues().toString());
+    // console.log('Timer ::',timer.getTimeValues().toString());
 });
 
 timer.addEventListener('targetAchieved', function (e) {
@@ -37,13 +38,15 @@ timer.addEventListener('targetAchieved', function (e) {
 
 export const fireDisplayOffRoutine = () => {
     timer.stop()
-    console.log('Timer Stopped.');
+    // console.log('Timer Stopped.');
     
     if ( !getPTTStatus() ) {
         renderBladeDisplayBlank();
         displayON = false
         currentWorkingText = null
     }
+
+    resumeReadAfterDisplayTimeout()
 }
 
 const renderBladeDisplayBlank = () => pushTextToBlade(null, null)
@@ -111,6 +114,7 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText) => {
             break;
         case 'DISP_ON_DEMAND':
             workingTextSentenceIndex = getSentenceIndexGivenCharIndexPosition(quill.getText(), workingText.startIndex)
+            // console.log('(feedbackOfWorkingTextOnUserUtterance) Setting workingTextSentenceIndex :', workingTextSentenceIndex)
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ) )
             break;
     }
@@ -174,6 +178,7 @@ export const navigateWorkingText = (dir) => {
             workingTextSentenceIndex = sentenceDelimiterIndices.length - 1
     }
 
+    // console.log('(navigateWorkingText) Setting workingTextSentenceIndex :', workingTextSentenceIndex)
     currentWorkingText = {
         text: getSentenceGivenSentenceIndex(quill.getText(), workingTextSentenceIndex),
         startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
