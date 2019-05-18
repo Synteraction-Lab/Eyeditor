@@ -202,9 +202,11 @@ export const feedbackOnPushToTalk = (interruptIndex) => {
     let PTTStatus = getPTTStatus()
 
     if (PTTStatus === 'PTT_ON') {
-        fireDisplayOnRoutine()
-        currentWorkingText = extractWorkingText(interruptIndex)
-        feedbackOfWorkingTextOnPushToTalk()
+        if (!displayON) {
+            fireDisplayOnRoutine()
+            currentWorkingText = extractWorkingText(interruptIndex)
+            feedbackOfWorkingTextOnPushToTalk()
+        }
     }
     else if (PTTStatus === 'PTT_OFF')
         fireDisplayOffRoutine('PTT')
