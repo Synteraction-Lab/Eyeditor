@@ -16,6 +16,7 @@ var displayON = false
 var workingTextSentenceIndex
 var currentWorkingText
 var currentContext = 0  // context captures the sentence number/index in DISP_ALWAYS_ON mode
+let exemptedTriggerKeywords = ['previous', 'next', 'cancel']
 
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText
@@ -36,10 +37,11 @@ timer.addEventListener('targetAchieved', function (e) {
     fireDisplayOffRoutine();
 })
 
-export const fireDisplayOffRoutine = (callString) => {
+export const fireDisplayOffRoutine = () => {
     timer.stop()
     
-    if ( callString === 'PTT' || !getPTTStatus() ) {
+    // console.log('PTT Status at Timer Expiry', getPTTStatus())
+    if ( getPTTStatus() !== 'PTT_ON' ) {
         renderBladeDisplayBlank();
         displayON = false
         currentWorkingText = null
@@ -47,12 +49,13 @@ export const fireDisplayOffRoutine = (callString) => {
     }
 }
 
-export const fireDisplayOnRoutine = () => {
+const fireDisplayOnRoutine = () => {
     timer.start({ countdown: true, startValues: { seconds: MAX_DISPLAY_ON_TIME } })
     displayON = true
 }
 
 const renderBladeDisplayBlank = () => pushTextToBlade(null, null)
+export const clearUserUtterance = () => feedbackOnUserUtterance('forceClear')
 
 const renderBladeDisplay = (text, utterance) => {
     let isReceivedTextNull = (text) ? false : true
@@ -72,9 +75,9 @@ const renderBladeDisplay = (text, utterance) => {
             break;
 
         case 'DISP_ON_DEMAND':
-            let exemptedTriggerKeywords = ['previous', 'next', 'cancel']
-            
-            if (exemptedTriggerKeywords.includes(utterance))
+            if (!utterance)
+                pushTextToBlade(text, null)
+            else if (exemptedTriggerKeywords.includes(utterance))
                 pushTextToBlade(null, utterance)
             else if (!isReceivedTextNull) {     // when there is text pushed as working text or after command-execution
                 pushTextToBlade(text, utterance)
@@ -109,7 +112,7 @@ export const feedbackOnUserUtterance = (utterance) => {
     renderBladeDisplay(null, utterance)
 }
 
-export const feedbackOfWorkingTextOnUserUtterance = (workingText) => {
+export const feedbackOfWorkingTextOnUserUtterance = (workingText, callString) => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
         case 'DISP_ALWAYS_ON':
@@ -117,17 +120,20 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText) => {
         case 'DISP_ON_DEMAND':
             workingTextSentenceIndex = getSentenceIndexGivenCharIndexPosition(quill.getText(), workingText.startIndex)
             // console.log('(feedbackOfWorkingTextOnUserUtterance) Setting workingTextSentenceIndex :', workingTextSentenceIndex)
-            renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ) )
+            if (callString === 'PTT')
+                renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ), 'forceClear' )
+            else
+                renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ) )
             break;
     }
 }
 
-export const feedbackOfWorkingTextOnNavigation = () => {
-    renderBladeDisplay(getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), currentWorkingText.text ))
+const feedbackOfWorkingTextOnNavigation = () => {
+    renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), currentWorkingText.text ), 'forceClear' )
     timer.reset()   // at this point display and hence, timer was on, so reset, and do not need to set displayON
 }
 
-export const feedbackOfWorkingTextOnPushToTalk = () => { feedbackOfWorkingTextOnUserUtterance(currentWorkingText) }
+const feedbackOfWorkingTextOnPushToTalk = () => { feedbackOfWorkingTextOnUserUtterance(currentWorkingText, 'PTT') }
 
 export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex) => {
     switch(getFeedbackConfiguration()) {
@@ -148,7 +154,7 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
     }
 }
 
-export const feedbackOnTextNavigation = (currentContext, isOnload) => {
+const feedbackOnTextNavigation = (currentContext, isOnload) => {
     let colorCodedTextHTML = (isOnload) ? quill.getText() : getColorCodedTextHTML( getLoadedText(), quill.getText() )
     // console.log('colorCodedTextHTML (feedbackHandler.js)', colorCodedTextHTML)
     let colorCodedTextHTMLSentences = generateSentencesList(colorCodedTextHTML, true)
@@ -209,5 +215,5 @@ export const feedbackOnPushToTalk = (interruptIndex) => {
         }
     }
     else if (PTTStatus === 'PTT_OFF')
-        fireDisplayOffRoutine('PTT')
+        fireDisplayOffRoutine()
 }
