@@ -36,6 +36,15 @@ export const readTextOnFailedUpdate = () => {
 
 export const resumeReadAfterGeneralInterrupt = () => { readTextOnFailedUpdate() }
 
+export const resumeReadAfterDisplayTimeout = () => {
+    let workingTextSentenceIndex = getCurrentWorkingTextSentenceIndex() + 1
+    // console.log('(resumeReadAfterDisplayTimeout) Retrieving and computing workingTextSentenceIndex :', workingTextSentenceIndex)
+    let sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
+
+    if (workingTextSentenceIndex < sentenceDelimiterIndices.length)
+        tts.read(getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start)
+}
+
 export const readPrevSentence = (interruptIndex, isVoiceRequest) => {
     interruptIndex = interruptIndex || getBargeinIndex()
     let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
@@ -62,11 +71,4 @@ export const repeatSentence = (interruptIndex) => {
     tts.read(currentSentenceIndices.start)
 }
 
-export const resumeReadAfterDisplayTimeout = () => {
-    let workingTextSentenceIndex = getCurrentWorkingTextSentenceIndex() + 1
-    // console.log('(resumeReadAfterDisplayTimeout) Retrieving and computing workingTextSentenceIndex :', workingTextSentenceIndex)
-    let sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
-
-    if (workingTextSentenceIndex < sentenceDelimiterIndices.length)
-        tts.read(getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start)
-}
+export const stopReading = () => { tts.pause() }

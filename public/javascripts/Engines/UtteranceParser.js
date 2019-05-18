@@ -7,6 +7,7 @@ import { handleRedictation, handleRedictationPrioritizedWorkingText } from './Ed
 import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from '../error.js'
+import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 20 // in chars
 const cropSelectionToBargeinIndex = false // either crop or full sentence.
@@ -29,13 +30,18 @@ export const handleUtterance = (utterance) => {
         
         case 'DISP_ON_DEMAND':
             let currentWorkingText = getCurrentWorkingText()
-            if ( currentWorkingText ) 
+
+            if (getPTTStatus() === 'PTT_ON')
                 parseUtterance(utterance, currentWorkingText)
             else {
-                bargeinIndex = tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex()
-                workingText = extractWorkingText(bargeinIndex)
-                feedbackOfWorkingTextOnUserUtterance(workingText)
-                parseUtterance(utterance, workingText)
+                if ( currentWorkingText ) 
+                    parseUtterance(utterance, currentWorkingText)
+                else {
+                    bargeinIndex = tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex()
+                    workingText = extractWorkingText(bargeinIndex)
+                    feedbackOfWorkingTextOnUserUtterance(workingText)
+                    parseUtterance(utterance, workingText)
+                }
             }
             break;
         
@@ -119,7 +125,7 @@ const callManagerForAlwaysOnDisplay = (utterance) => {
 const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
-    let suppressedFunctions = ['repeat']
+    let suppressedFunctions = ['repeat', 'cancel']
     if ( keyword && !suppressedFunctions.includes(keyword) ) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let iter, fuzzyArgument, passArgument;

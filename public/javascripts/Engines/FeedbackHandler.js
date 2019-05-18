@@ -5,7 +5,7 @@ import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { getPTTStatus } from '../Drivers/HandControllerDriver.js'
 import { extractWorkingText } from './UtteranceParser.js';
-import { resumeReadAfterGeneralInterrupt, resumeReadAfterDisplayTimeout } from './AudioFeedbackHandler.js';
+import { resumeReadAfterDisplayTimeout } from './AudioFeedbackHandler.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
 
@@ -29,24 +29,27 @@ const getLastUtterance = () => lastUtterance
 const setLastUtterance = (utterance) => { lastUtterance = utterance }
 
 timer.addEventListener('secondsUpdated', function (e) {
-    // console.log('Timer ::',timer.getTimeValues().toString());
+    console.log('Timer ::',timer.getTimeValues().toString());
 });
 
 timer.addEventListener('targetAchieved', function (e) {
     fireDisplayOffRoutine();
 })
 
-export const fireDisplayOffRoutine = () => {
+export const fireDisplayOffRoutine = (callString) => {
     timer.stop()
-    // console.log('Timer Stopped.');
     
-    if ( !getPTTStatus() ) {
+    if ( callString === 'PTT' || !getPTTStatus() ) {
         renderBladeDisplayBlank();
         displayON = false
         currentWorkingText = null
+        resumeReadAfterDisplayTimeout()
     }
+}
 
-    resumeReadAfterDisplayTimeout()
+export const fireDisplayOnRoutine = () => {
+    timer.start({ countdown: true, startValues: { seconds: MAX_DISPLAY_ON_TIME } })
+    displayON = true
 }
 
 const renderBladeDisplayBlank = () => pushTextToBlade(null, null)
@@ -69,16 +72,15 @@ const renderBladeDisplay = (text, utterance) => {
             break;
 
         case 'DISP_ON_DEMAND':
-            let exemptedTriggerKeywords = ['previous', 'next']
+            let exemptedTriggerKeywords = ['previous', 'next', 'cancel']
             
             if (exemptedTriggerKeywords.includes(utterance))
                 pushTextToBlade(null, utterance)
             else if (!isReceivedTextNull) {     // when there is text pushed as working text or after command-execution
                 pushTextToBlade(text, utterance)
-                timer.start({countdown: true, startValues: {seconds: MAX_DISPLAY_ON_TIME}});
-                displayON = true
+                fireDisplayOnRoutine()
             }
-            else if (displayON) {     // incoming text is null but display is still on
+            else if (displayON) {     // incoming text is null but display is still on i.e. streaming utterance coming in with display on
                 pushTextToBlade(text, utterance)    // text is the last saved text
                 timer.reset()
             }
@@ -125,6 +127,8 @@ export const feedbackOfWorkingTextOnNavigation = () => {
     timer.reset()   // at this point display and hence, timer was on, so reset, and do not need to set displayON
 }
 
+export const feedbackOfWorkingTextOnPushToTalk = () => { feedbackOfWorkingTextOnUserUtterance(currentWorkingText) }
+
 export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex) => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
@@ -153,17 +157,6 @@ export const feedbackOnTextNavigation = (currentContext, isOnload) => {
     
     if (isOnload)   renderBladeDisplay(renderTextHTML.join(' '), 'forceClear')
         else        renderBladeDisplay(renderTextHTML.join(' '))
-}
-
-export const feedbackOnPushToTalk = (interruptIndex) => {
-    let PTTStatus = getPTTStatus()
-    console.log('PTTStatus', PTTStatus)
-    if ( PTTStatus === 'PTT_ON' )
-        renderBladeDisplay(extractWorkingText(interruptIndex).text)
-    else if ( PTTStatus === 'PTT_OFF' ){
-        renderBladeDisplayBlank()
-        resumeReadAfterGeneralInterrupt()
-    }
 }
 
 export const navigateWorkingText = (dir) => {
@@ -203,4 +196,16 @@ export const navigateContext = (dir) => {
 
         feedbackOnTextNavigation(currentContext)
     }
+}
+
+export const feedbackOnPushToTalk = (interruptIndex) => {
+    let PTTStatus = getPTTStatus()
+
+    if (PTTStatus === 'PTT_ON') {
+        fireDisplayOnRoutine()
+        currentWorkingText = extractWorkingText(interruptIndex)
+        feedbackOfWorkingTextOnPushToTalk()
+    }
+    else if (PTTStatus === 'PTT_OFF')
+        fireDisplayOffRoutine('PTT')
 }

@@ -3,7 +3,7 @@ import { quill } from '../../Services/quill.js'
 import { findinText } from '../../Utils/stringutils.js'
 import { handleError } from '../../error.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
-import { readNextSentence, readPrevSentence, repeatSentence } from '../AudioFeedbackHandler.js';
+import { readNextSentence, readPrevSentence, repeatSentence, stopReading } from '../AudioFeedbackHandler.js';
 import { navigateContext, isDisplayON, fireDisplayOffRoutine } from '../FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../../main.js';
 
@@ -65,6 +65,10 @@ export const handleCommand = (keyword, arg, workingText) => {
             
             case 'repeat':
                 repeatSentence()
+                break;
+
+            case 'cancel':
+                stopReading()
                 break;
         }
     }
