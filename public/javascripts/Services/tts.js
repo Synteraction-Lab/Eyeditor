@@ -2,13 +2,14 @@ import { quill } from './quill.js'
 
 // global variables
 var voice;
-const RATE = 0.6;
+const TEXT_READ_RATE = 0.6;
 var synthUtterance = new SpeechSynthesisUtterance('');
 let synth = window.speechSynthesis;
 var timeoutResumeInfinity
 var TTSRelativeReadIndex
 var TTSAbsoluteReadIndex
-var TTSReadStartedFlag = false;
+var TTSReadStartedFlag = false
+var TTSReadFlag
 
 /* Speech synthesizer setup */
 export function setup() {
@@ -38,22 +39,18 @@ export function setup() {
 
 export function speak(text, rate) { // speak() reads just passed argument at a given speaking rate. low-level method used by read().
     synthUtterance.voice = voice;
-    synthUtterance.rate = rate || RATE;
+    synthUtterance.rate = rate || TEXT_READ_RATE;
     synthUtterance.text = text;
     
     synth.speak(synthUtterance);
 }
 
-export function isPaused() {
-    return synth.paused
-}
-
-export function isSpeaking() {
-    return synth.speaking
+export function isReading() {
+    return TTSReadFlag
 }
 
 export function pause() {
-    console.log('TTS has stopped reading.')
+    // console.log('TTS has stopped reading.')
     synth.cancel()
 }
 
@@ -64,15 +61,18 @@ function resumeInfinity() {
 
 /* utterance event handlers */
 synthUtterance.onstart = function(event) {
+    TTSReadFlag = true
     resumeInfinity();
 };
 
 synthUtterance.onend = function(event) {
+    TTSReadFlag = false
     clearTimeout(timeoutResumeInfinity);
 };
 
 synthUtterance.onboundary = function(event) {
-    TTSRelativeReadIndex = event.charIndex
+    if (event.target.rate.toFixed(1) == TEXT_READ_RATE)
+        TTSRelativeReadIndex = event.charIndex
 };
 
 synthUtterance.onerror = function(event) {

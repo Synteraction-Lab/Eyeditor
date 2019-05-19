@@ -14,7 +14,20 @@ recognition.interimResults = true;
 recognition.maxAlternatives = 1;
 
 const USER_UTTERANCE_DISPLAY_TIMEOUT = 4000     // 4000ms
+
 let userUtteranceDisplayTimer
+let TTSReadStates = {
+    'NOT_SET': -1,
+    'READING': 1,
+    'NOT_READING': 0
+}
+Object.freeze(TTSReadStates)
+
+let TTSReadState = TTSReadStates.NOT_SET
+
+export const getTTSReadState = () => TTSReadState;
+export const setTTSReadState = (readState) => { TTSReadState = readState }
+export const getTTSReadStates = () => TTSReadStates;
 
 /* Recognition Events */
 recognition.onresult = function(event) {
@@ -23,6 +36,11 @@ recognition.onresult = function(event) {
 
     currentTranscript.innerHTML = hypothesis
     feedbackOnUserUtterance(hypothesis)
+
+    if (TTSReadState === TTSReadStates.NOT_SET)
+        if (tts.isReading())
+                    TTSReadState = TTSReadStates.READING
+            else    TTSReadState = TTSReadStates.NOT_READING
 
     tts.pause()
 
@@ -40,7 +58,7 @@ recognition.onresult = function(event) {
 }
 
 recognition.onstart = function() {
-    console.log('Audio recognition started.');
+    // console.log('Audio recognition started.');
 }
 
 recognition.onend = function() {
@@ -48,6 +66,6 @@ recognition.onend = function() {
         recognition.start()
     else {
         recognition.stop()
-        console.log('Audio recognition stopped.');
+        // console.log('Audio recognition stopped.');
     }
 }

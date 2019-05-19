@@ -53,7 +53,7 @@ export const handleCommand = (keyword, arg, workingText) => {
                 if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
                     fireDisplayOffRoutine()
                 
-                readPrevSentence(null, true)
+                readPrevSentence(true)
                 break;
             
             case 'next':

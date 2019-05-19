@@ -9,10 +9,13 @@ import { isDisplayON, getCurrentWorkingTextSentenceIndex } from './FeedbackHandl
 const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 12 chars of current sentence, TTS reads the prev. sentence.
 const feedbackRate = {
     'ERROR': 1.0,
-    'SUCCESS': 1.0
+    'SUCCESS': 1.0,
+    'DEFAULT': 1.0
 }
+const READ_RESTART_INDEX = 0
 
 export const speakFeedback = (feedback, type) => {
+    type = type || 'DEFAULT'
     tts.speak( feedback, feedbackRate[type] )
 }
 
@@ -38,15 +41,14 @@ export const resumeReadAfterGeneralInterrupt = () => { readTextOnFailedUpdate() 
 
 export const resumeReadAfterDisplayTimeout = () => {
     let workingTextSentenceIndex = getCurrentWorkingTextSentenceIndex() + 1
-    // console.log('(resumeReadAfterDisplayTimeout) Retrieving and computing workingTextSentenceIndex :', workingTextSentenceIndex)
     let sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
 
     if (workingTextSentenceIndex < sentenceDelimiterIndices.length)
         tts.read(getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start)
 }
 
-export const readPrevSentence = (interruptIndex, isVoiceRequest) => {
-    interruptIndex = interruptIndex || getBargeinIndex()
+export const readPrevSentence = (isVoiceRequest) => {
+    let interruptIndex = getBargeinIndex()
     let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
     if (interruptIndex - currentSentenceIndices.start < prevSentenceRequestDelta || isVoiceRequest)
         currentSentenceIndices = getSentenceIndices(quill.getText(), currentSentenceIndices.start - 2)
@@ -54,8 +56,8 @@ export const readPrevSentence = (interruptIndex, isVoiceRequest) => {
     tts.read(currentSentenceIndices.start)
 }
 
-export const readNextSentence = (interruptIndex) => {
-    interruptIndex = interruptIndex || getBargeinIndex()
+export const readNextSentence = () => {
+    let interruptIndex = getBargeinIndex()
     let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
     if (currentSentenceIndices.end < quill.getText().length - 1) {
         interruptIndex = currentSentenceIndices.end + 2
@@ -65,10 +67,14 @@ export const readNextSentence = (interruptIndex) => {
     tts.read(currentSentenceIndices.start)
 }
 
-export const repeatSentence = (interruptIndex) => {
-    interruptIndex = interruptIndex || getBargeinIndex()
+export const repeatSentence = () => {
+    let interruptIndex = getBargeinIndex()
     let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
     tts.read(currentSentenceIndices.start)
+}
+
+export const readFromStart = () => {
+    tts.read(READ_RESTART_INDEX)
 }
 
 export const stopReading = () => { tts.pause() }
