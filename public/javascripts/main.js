@@ -22,23 +22,20 @@ const initLoad = (text) => {
     tts.setTTSReadStartedFlag(false)
 }
 
+const initMode = (data, config) => {
+    feedbackConfiguration = config
+    initLoad(data.textToCorrect)
+}
+
 export const getLoadedText = () => loadedText;
 
 /* Task Button Handlers */
-btn1.addEventListener('click', function(e) {
-    feedbackConfiguration = 'DEFAULT'
-    initLoad(data[0].trig)
-})
+btn_c1.addEventListener('click', (e) => { initMode(data.task[0], 'DISP_ON_DEMAND') })
+btn_c2.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ON_DEMAND') })
+btn_c3.addEventListener('click', (e) => { initMode(data.task[2], 'DISP_ALWAYS_ON') })
 
-btn2.addEventListener('click', function(e) {
-    feedbackConfiguration = 'DISP_ON_DEMAND'
-    initLoad(data[1].trig)
-})
-
-btn3.addEventListener('click', function(e) {
-    feedbackConfiguration = 'DISP_ALWAYS_ON'
-    initLoad(data[2].trig)
-})
+btn_tr1.addEventListener('click', (e) => { initMode(data.training[0], 'DISP_ON_DEMAND') })
+btn_tr2.addEventListener('click', (e) => { initMode(data.training[1], 'DISP_ALWAYS_ON') })
 
 mic.addEventListener('click', (e) => {
     if (mic.checked) {
@@ -48,10 +45,6 @@ mic.addEventListener('click', (e) => {
         recognition.stop()
     }
 })
-
-// stopTTS.addEventListener('click', function(e) {
-//     tts.pause()
-// })
 
 export const getFeedbackConfiguration = () => feedbackConfiguration
 
