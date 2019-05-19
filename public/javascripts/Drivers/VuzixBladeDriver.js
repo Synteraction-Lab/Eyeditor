@@ -1,9 +1,11 @@
 
 const bladeURLObject = {
-    ip: '172.25.96.238',
-    port: '9090'
+    ip: '172.25.100.179',
+    port: '9090',
+    route: 'displays',
+    endpoint: '10'
 }
-const bladeURL = `ws://${bladeURLObject.ip}:${bladeURLObject.port}`
+const bladeURL = `ws://${bladeURLObject.ip}:${bladeURLObject.port}/${bladeURLObject.route}/${bladeURLObject.endpoint}`
 
 var socket = io.connect('http://localhost:3000');
 
