@@ -1,6 +1,6 @@
 
 const bladeURLObject = {
-    ip: '172.25.100.179',
+    ip: '172.25.106.169',
     port: '9090',
     route: 'displays',
     endpoint: '10'
@@ -8,6 +8,7 @@ const bladeURLObject = {
 const bladeURL = `ws://${bladeURLObject.ip}:${bladeURLObject.port}/${bladeURLObject.route}/${bladeURLObject.endpoint}`
 
 var socket = io.connect('http://localhost:3000');
+var ws = new WebSocket(bladeURL);
 
 export const pushTextToBlade = (text, utterance) => {
     let dataObject = {
@@ -15,8 +16,6 @@ export const pushTextToBlade = (text, utterance) => {
         "subheading": text || null,
         "content": utterance || null
     };
-
-    var ws = new WebSocket(bladeURL);
 
     ws.onopen = function () {
         ws.send(JSON.stringify(dataObject));
