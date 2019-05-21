@@ -1,7 +1,7 @@
 import * as editor from '../TextEditor.js'
 import { quill } from '../../Services/quill.js'
 import { findInText } from '../../Utils/stringutils.js'
-import { handleError } from '../../Data/error.js';
+import { handleError } from '../ErrorHandler.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 import { readNextSentence, readPrevSentence, repeatSentence, stopReading } from '../AudioFeedbackHandler.js';
 import { navigateContext, isDisplayON, fireDisplayOffRoutine } from '../FeedbackHandler.js';
