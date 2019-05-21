@@ -7,6 +7,11 @@ import { quill } from './Services/quill.js'
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;
+var pushToBladeLock = false;    // if true => locked => push to blade.
+
+export const getFeedbackConfiguration = () => feedbackConfiguration
+export const getLoadedText = () => loadedText
+export const getPushToBladeLockStatus = () => pushToBladeLock
 
 /* configure TTS */
 tts.setup()
@@ -27,8 +32,6 @@ const initMode = (data, config) => {
     initLoad(data.textToCorrect)
 }
 
-export const getLoadedText = () => loadedText;
-
 /* Task Button Handlers */
 btn_c1.addEventListener('click', (e) => { initMode(data.task[0], 'DISP_ON_DEMAND') })
 btn_c2.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ON_DEMAND') })
@@ -38,13 +41,16 @@ btn_tr1.addEventListener('click', (e) => { initMode(data.training[0], 'DISP_ON_D
 btn_tr2.addEventListener('click', (e) => { initMode(data.training[1], 'DISP_ALWAYS_ON') })
 
 mic.addEventListener('click', (e) => {
-    if (mic.checked) {
+    if (mic.checked)
         recognition.start()
-    }
-    else {
+    else
         recognition.stop()
-    }
 })
 
-export const getFeedbackConfiguration = () => feedbackConfiguration
+if (!pushToBladeLock)
+    $(".lock").toggleClass('unlocked');
 
+$(".lock").click(function () {
+    $(this).toggleClass('unlocked');
+    pushToBladeLock = !pushToBladeLock
+});

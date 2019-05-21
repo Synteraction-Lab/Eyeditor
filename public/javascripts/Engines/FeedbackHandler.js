@@ -52,6 +52,7 @@ const fireDisplayOnRoutine = () => {
 }
 
 const renderBladeDisplayBlank = () => { pushTextToBlade(null, null) }
+
 export const clearUserUtterance = () => { 
     if (getFeedbackConfiguration() === 'DISP_ON_DEMAND' && !displayON)
         return;

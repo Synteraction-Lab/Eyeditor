@@ -1,3 +1,5 @@
+import { getPushToBladeLockStatus } from "../main.js";
+
 var socket = io.connect('http://localhost:3000');
 
 export const pushTextToBlade = (text, utterance) => {
@@ -8,7 +10,8 @@ export const pushTextToBlade = (text, utterance) => {
     };
     
     // push text to Blade
-    WS.send(JSON.stringify(dataObject));
+    if (getPushToBladeLockStatus())
+        WS.send(JSON.stringify(dataObject));
 
     // push to Blade Clone
     socket.emit('bladeData', dataObject)
