@@ -106,22 +106,12 @@ export const getColorCodedTextHTML = (originalText, changedText) => {
     let deltaString = dmp.diff_wordMode(originalText, changedText);
     // console.log('raw deltaString', deltaString)
     deltaString = dmp.diff_prettyHtml(deltaString);
-    console.log('pretty deltaString', deltaString)
+    // console.log('pretty deltaString', deltaString)
 
-    let fontColorDelete = '#5E5E5E'
-    // let fontColorDelete = '#ffe6e6'
-    // let fontColorDelete = '#878484'
-    let fontColorInsert = '#F7E511'
-    // let fontColorInsert = '#e6ffe6'
-    
     /* change tags of deltaString to font color tags */
-    // deltaString = deltaString.replace(/<del\s.*?>/g, `<font color=${fontColorDelete}>`)
-    // deltaString = deltaString.replace(/<ins\s.*?>/g, `<font color=${fontColorInsert}>`)
     deltaString = deltaString.replace(/(<del.*?\/del>)/g, replacerFnDelete)
     deltaString = deltaString.replace(/(<ins.*?\/ins>)/g, replacerFnInsert)
-    // deltaString = deltaString.replace(/<\/...>/g, `</font>`)
-
-    console.log('cleaned pretty html', deltaString)
+    // console.log('cleaned pretty html', deltaString)
 
     return deltaString;
 }
