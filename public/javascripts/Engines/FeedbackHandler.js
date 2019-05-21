@@ -160,7 +160,8 @@ const feedbackOnContextNavigation = (currentContext, callString) => {
     // console.log('colorCodedTextHTML (feedbackHandler.js)', colorCodedTextHTML)
     let colorCodedTextHTMLSentences = generateSentencesList(colorCodedTextHTML, true)
     // console.log('colorCodedTextHTMLSentences (feedbackHandler.js)', colorCodedTextHTMLSentences)
-    let renderTextHTML = colorCodedTextHTMLSentences.map( (sentence, index) => (index === currentContext) ? `<b><i>${sentence}</i></b>` : sentence )
+    let fontColorHighlight = '#F9BB56'
+    let renderTextHTML = colorCodedTextHTMLSentences.map((sentence, index) => (index === currentContext) ? `<font color=${fontColorHighlight}>${sentence}</font>` : sentence )
     
     if (callString === 'ON_TEXT_UPDATE')
         renderBladeDisplay(renderTextHTML.join(' '))

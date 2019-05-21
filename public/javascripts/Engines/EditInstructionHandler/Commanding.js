@@ -1,7 +1,7 @@
 import * as editor from '../TextEditor.js'
 import { quill } from '../../Services/quill.js'
-import { findinText } from '../../Utils/stringutils.js'
-import { handleError } from '../../error.js';
+import { findInText } from '../../Utils/stringutils.js'
+import { handleError } from '../../Data/error.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 import { readNextSentence, readPrevSentence, repeatSentence, stopReading } from '../AudioFeedbackHandler.js';
 import { navigateContext, isDisplayON, fireDisplayOffRoutine } from '../FeedbackHandler.js';
@@ -15,7 +15,7 @@ export const handleCommand = (keyword, arg, workingText) => {
                 if (arg.length == 0)
                     throw 'INSUFFICIENT_NO_OF_ARGS'
                 
-                let findResult = findinText(arg, workingText.text)
+                let findResult = findInText(arg, workingText.text)
 
                 if (findResult) {
                     updateParameter = {
@@ -98,7 +98,7 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
                 return true;
             }
             
-            let findResult = findinText(arg, workingText.text)
+            let findResult = findInText(arg, workingText.text)
             if (findResult) {
                 updateParameter = {
                     startIndex: workingText.startIndex + findResult.startIndex,

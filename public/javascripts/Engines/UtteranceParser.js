@@ -6,7 +6,7 @@ import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndic
 import { handleRedictation, handleRedictationPrioritizedWorkingText } from './EditInstructionHandler/Redictation.js';
 import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, isDisplayON } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
-import { handleError } from '../error.js'
+import { handleError } from '../Data/error.js'
 import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
 import { getTTSReadStates, getTTSReadState, setTTSReadState } from '../Services/speechrecognizer.js';
 

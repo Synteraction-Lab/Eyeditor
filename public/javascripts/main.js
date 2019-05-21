@@ -1,4 +1,4 @@
-import { data } from './data.js'
+import { data } from './Data/data.js'
 import * as tts from './Services/tts.js'
 import { recognition } from './Services/speechrecognizer.js';
 import * as editor from './Engines/TextEditor.js'
