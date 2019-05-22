@@ -111,7 +111,7 @@ export const getColorCodedTextHTML = (originalText, changedText) => {
     /* change tags of deltaString to font color tags */
     deltaString = deltaString.replace(/(<del.*?\/del>)/g, replacerFnDelete)
     deltaString = deltaString.replace(/(<ins.*?\/ins>)/g, replacerFnInsert)
-    // console.log('cleaned pretty html', deltaString)
+    console.log('cleaned pretty html', deltaString)
 
     return deltaString;
 }

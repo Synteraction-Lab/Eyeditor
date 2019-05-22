@@ -10,8 +10,13 @@ export const pushTextToBlade = (text, utterance) => {
     };
     
     // push text to Blade
-    if (getPushToBladeLockStatus())
-        WS.send(JSON.stringify(dataObject));
+    if ( getPushToBladeLockStatus() ) {
+        try {
+            WS.send(JSON.stringify(dataObject));
+        } catch(err) {
+            console.log('Cannot connect to Blade server.')
+        }
+    }
 
     // push to Blade Clone
     socket.emit('bladeData', dataObject)
