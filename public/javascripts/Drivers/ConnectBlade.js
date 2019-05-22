@@ -7,18 +7,21 @@ const bladeURLObject = {
 }
 const bladeURL = `ws://${bladeURLObject.ip}:${bladeURLObject.port}/${bladeURLObject.route}/${bladeURLObject.endpoint}`
 
-var WS = new WebSocket(bladeURL);
+export const getBladeURLObject = () => bladeURLObject;
+export const getWebSocketRef = () => ws
 
-WS.onopen = function () {
+var ws = new WebSocket(bladeURL);
+
+ws.onopen = function () {
     console.log('Connection established!')
 };
 
-WS.onmessage = function (evt) {
+ws.onmessage = function (evt) {
     // let messageReceived = evt.data;
     // console.log('Msg received from Blade ::', messageReceived)
 };
 
-WS.onclose = function () {
+ws.onclose = function () {
     console.log("Connection with Blade server closed.");
 };
 

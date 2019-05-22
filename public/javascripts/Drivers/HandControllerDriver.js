@@ -5,6 +5,7 @@ import { getFeedbackConfiguration } from '../main.js'
 import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
 import { getBargeinIndex } from '../Engines/UtteranceParser.js';
+import { sendScrollEvent } from './VuzixBladeDriver.js';
 
 const LEFT_KEY_CODE = 33
 const RIGHT_KEY_CODE = 34
@@ -18,6 +19,8 @@ const keyPressEventStatus = {}    // short/long_pressed/long_released
 const keysThatSupportLongPressEvent = [UNDO_KEY_CODE_1, UNDO_KEY_CODE_2, REDO_KEY_CODE]
 const keysThatAcknowledgeKeyUpEvent = [REDO_KEY_CODE]
 const undoKeyCodes = [UNDO_KEY_CODE_1, UNDO_KEY_CODE_2]
+const SCROLL_INITIATION = 3         // measured in no. of keypresses
+const SCROLL_GRANULARITY = 7       // measured in no. of keypresses
 
 const KEY_PRESS_EVENT_TYPES = {
     short: 0,
@@ -41,6 +44,7 @@ var isDispOnDemandMode
 let wasTTSReading
 let accKeyPresses = 0
 let hasFiredScrollEvent = false
+let nextScrollThreshold;
 
 export const getPTTStatus = () => {
     if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
@@ -178,9 +182,15 @@ const classifyControllerEvent = () => {
         case UNDO_KEY_CODE_2:
             if (isDispOnDemandMode)
                 controllerEvent = 'UNDO'
-            else if (accKeyPresses > 3) {
-                hasFiredScrollEvent = true
-                controllerEvent = 'SCROLL_UP'
+            else if ( accKeyPresses > SCROLL_INITIATION ) {
+                if ( !hasFiredScrollEvent ) {
+                    hasFiredScrollEvent = true
+                    nextScrollThreshold = SCROLL_INITIATION + SCROLL_GRANULARITY
+                    controllerEvent = 'SCROLL_UP'
+                } else if ( accKeyPresses % nextScrollThreshold == 0 ) {
+                    nextScrollThreshold = nextScrollThreshold + SCROLL_GRANULARITY
+                    controllerEvent = 'SCROLL_UP'
+                }
             }
             break;
 
@@ -198,9 +208,15 @@ const classifyControllerEvent = () => {
                             controllerEvent = 'PUSH_TO_TALK_RELEASED'
                             break;
                     }
-                else if (accKeyPresses > 3) {
-                    hasFiredScrollEvent = true
-                    controllerEvent = 'SCROLL_DOWN'
+                else if ( accKeyPresses > SCROLL_INITIATION ) {
+                    if ( !hasFiredScrollEvent ) {
+                        hasFiredScrollEvent = true
+                        nextScrollThreshold = SCROLL_INITIATION + SCROLL_GRANULARITY
+                        controllerEvent = 'SCROLL_DOWN'
+                    } else if ( accKeyPresses % nextScrollThreshold == 0 ) {
+                        nextScrollThreshold = nextScrollThreshold + SCROLL_GRANULARITY
+                        controllerEvent = 'SCROLL_DOWN'
+                    }
                 }
             }
             break;
@@ -270,11 +286,13 @@ const handleControllerEvent = (event) => {
             break;
         
         case 'SCROLL_UP':
-            console.log('SCROLL_UP Event Fired.')
+            // console.log('SCROLL_UP Event Fired.')
+            sendScrollEvent('UP')
             break;
         
         case 'SCROLL_DOWN':
-            console.log('SCROLL_DOWN Event Fired.')
+            // console.log('SCROLL_DOWN Event Fired.')
+            sendScrollEvent('DOWN')
             break;
 
         default:
