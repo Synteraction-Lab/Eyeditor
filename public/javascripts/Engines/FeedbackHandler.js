@@ -21,7 +21,7 @@ let exemptedTriggerKeywords = ['previous', 'next', 'cancel']
 
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText
-export const getCurrentWorkingTextSentenceIndex = () => workingTextSentenceIndex
+export const getCurrentWorkingTextSentenceIndex = () => workingTextSentenceIndex || 0
 export const getCurrentContext = () => currentContext
 
 const getCurrentText = () => currentText
@@ -38,12 +38,15 @@ timer.addEventListener('targetAchieved', function (e) {
     fireDisplayOffRoutine();
 })
 
-export const fireDisplayOffRoutine = () => {
+export const fireDisplayOffRoutine = (suppressRead) => {
+    suppressRead = suppressRead || false
+
     timer.stop()
     if ( getPTTStatus() !== 'PTT_ON' ) {
         renderBladeDisplayBlank();
         displayON = false
-        resumeReadAfterDisplayTimeout()
+        if (!suppressRead)
+            resumeReadAfterDisplayTimeout()
     }
 }
 

@@ -249,7 +249,7 @@ const handleControllerEvent = (event) => {
             break;
 
         case 'REDO':
-            handleCommand('redo');
+            handleCommand('redo', null, null, true);
             break;
 
         case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display

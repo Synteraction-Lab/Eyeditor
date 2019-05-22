@@ -1,9 +1,9 @@
 import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js'
-import { getBargeinIndex } from './UtteranceParser.js'
+import { getBargeinIndex, getWasTTSReadingBeforeUtterance } from './UtteranceParser.js'
 import { getIndexOfLastPunctuation, getSentenceIndices, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { getFeedbackConfiguration } from '../main.js';
-import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
+import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js';
 import { isDisplayON, getCurrentWorkingTextSentenceIndex } from './FeedbackHandler.js';
 
 const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 12 chars of current sentence, TTS reads the prev. sentence.
@@ -48,23 +48,36 @@ export const resumeReadAfterDisplayTimeout = () => {
 }
 
 export const readPrevSentence = (isVoiceRequest) => {
-    let interruptIndex = getBargeinIndex()
-    let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
-    if (interruptIndex - currentSentenceIndices.start < prevSentenceRequestDelta || isVoiceRequest)
-        currentSentenceIndices = getSentenceIndices(quill.getText(), currentSentenceIndices.start - 2)
-    
-    tts.read(currentSentenceIndices.start)
+    isVoiceRequest = isVoiceRequest || false
+
+    if ( ( isVoiceRequest && getWasTTSReadingBeforeUtterance() ) || ( !isVoiceRequest && getWasTTSReading() ) ) {
+        let interruptIndex = getBargeinIndex()
+        let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
+        if (interruptIndex - currentSentenceIndices.start < prevSentenceRequestDelta || isVoiceRequest)
+            currentSentenceIndices = getSentenceIndices(quill.getText(), currentSentenceIndices.start - 2)
+        tts.read(currentSentenceIndices.start)
+    }
+    else if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' ) {
+        let workingTextSentenceIndex = getCurrentWorkingTextSentenceIndex() - 1
+        if (workingTextSentenceIndex < 0)   workingTextSentenceIndex = 0
+        tts.read(getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start)
+    }
 }
 
-export const readNextSentence = () => {
-    let interruptIndex = getBargeinIndex()
-    let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
-    if (currentSentenceIndices.end < quill.getText().length - 1) {
-        interruptIndex = currentSentenceIndices.end + 2
-        currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
-    }
+export const readNextSentence = (isVoiceRequest) => {
+    isVoiceRequest = isVoiceRequest || false
 
-    tts.read(currentSentenceIndices.start)
+    if ( ( isVoiceRequest && getWasTTSReadingBeforeUtterance() ) || ( !isVoiceRequest && getWasTTSReading() ) ) {
+        let interruptIndex = getBargeinIndex()
+        let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
+        if (currentSentenceIndices.end < quill.getText().length - 1) {
+            interruptIndex = currentSentenceIndices.end + 2
+            currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
+        }
+        tts.read(currentSentenceIndices.start)
+    }
+    else if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' )
+        resumeReadAfterDisplayTimeout()
 }
 
 export const repeatSentence = () => {

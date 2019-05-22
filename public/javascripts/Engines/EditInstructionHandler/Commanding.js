@@ -7,8 +7,10 @@ import { readNextSentence, readPrevSentence, repeatSentence, stopReading } from 
 import { navigateContext, isDisplayON, fireDisplayOffRoutine } from '../FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../../main.js';
 
-export const handleCommand = (keyword, arg, workingText) => {
+export const handleCommand = (keyword, arg, workingText, isControllerRequest) => {
     let updateParameter;
+    isControllerRequest = isControllerRequest || false;
+
     try {
         switch ( keyword ) {
             case 'delete': 
@@ -44,23 +46,29 @@ export const handleCommand = (keyword, arg, workingText) => {
                 let indexOfRedo = editor.redo()
                 updateParameter = {startIndex: indexOfRedo}
                 
-                if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter)
-                    else                provideFailureFeedback('There is nothing more to redo.')
+                if (indexOfRedo >= 0)   
+                    provideSuccessFeedback('Redone', updateParameter)
+                else {
+                    if ( isControllerRequest && getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
+                        fireDisplayOffRoutine()
+                    else
+                        provideFailureFeedback('There is nothing more to redo.')
+                }
                     
                 break;
 
             case 'previous':
                 if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
-                    fireDisplayOffRoutine()
+                    fireDisplayOffRoutine(true)
                 
                 readPrevSentence(true)
                 break;
             
             case 'next':
-                if (getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON())
-                    fireDisplayOffRoutine()
-                
-                readNextSentence()
+                if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
+                    fireDisplayOffRoutine(true)
+
+                readNextSentence(true)
                 break;
             
             case 'repeat':

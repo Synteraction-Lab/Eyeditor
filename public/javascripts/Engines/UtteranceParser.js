@@ -15,14 +15,17 @@ const cropSelectionToBargeinIndex = false // either crop or full sentence.
 const constrainWorkingTextToSingleSentence = true   // if false, working sent. can be two sentences
 
 let quillSnapshotBeforeUpdate
+let TTSReadStateBeforeUtterance
+let TTSReadStates
 
 export const getBargeinIndex = () => ( tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex() ) || 0;
 export const getQuillSnapshotBeforeUpdate = () => quillSnapshotBeforeUpdate;
 export const getWorkingTextFromReadIndex = () => extractWorkingText(getBargeinIndex());
+export const getWasTTSReadingBeforeUtterance = () => ( TTSReadStateBeforeUtterance === TTSReadStates.READING ) ? true : false;
 
 export const handleUtterance = (utterance) => {
-    let TTSReadStateBeforeUtterance = getTTSReadState()
-    let TTSReadStates = getTTSReadStates()
+    TTSReadStateBeforeUtterance = getTTSReadState()
+    TTSReadStates = getTTSReadStates()
     setTTSReadState( TTSReadStates.NOT_SET )
 
     switch ( getFeedbackConfiguration() ) {
