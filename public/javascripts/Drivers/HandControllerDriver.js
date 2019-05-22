@@ -17,6 +17,7 @@ const keyStatus = {}    // on or off
 const keyPressEventStatus = {}    // short/long_pressed/long_released
 const keysThatSupportLongPressEvent = [UNDO_KEY_CODE_1, UNDO_KEY_CODE_2, REDO_KEY_CODE]
 const keysThatAcknowledgeKeyUpEvent = [REDO_KEY_CODE]
+const undoKeyCodes = [UNDO_KEY_CODE_1, UNDO_KEY_CODE_2]
 
 const KEY_PRESS_EVENT_TYPES = {
     short: 0,
@@ -39,6 +40,7 @@ var isDispAlwaysOnMode
 var isDispOnDemandMode
 let wasTTSReading
 let accKeyPresses = 0
+let hasFiredScrollEvent = false
 
 export const getPTTStatus = () => {
     if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
@@ -63,16 +65,17 @@ const initKeysThatSupportLongPressEvent = () => {
 }
 
 document.addEventListener('keydown', function(e) {
+    let feedbackConfig = getFeedbackConfiguration()
+
     /* reject multiple undos/redos */
-    if (keyStatus[e.keyCode] && [UNDO_KEY_CODE_1, UNDO_KEY_CODE_2, REDO_KEY_CODE].includes(e.keyCode) && keyStatus[e.keyCode] === SWITCH.on)
+    if (feedbackConfig === 'DISP_ON_DEMAND' && keyStatus[e.keyCode] && keysThatSupportLongPressEvent.includes(e.keyCode) && keyStatus[e.keyCode] === SWITCH.on)
         return;
 
     accKeyPresses = accKeyPresses + 1
     keyStatus[e.keyCode] = SWITCH.on
-    initKeysThatSupportLongPressEvent()
     lastKeyPressCode = e.keyCode
 
-    switch(getFeedbackConfiguration()) {
+    switch (feedbackConfig) {
         case 'DEFAULT':
             isDispAlwaysOnMode = false;
             isDispOnDemandMode = false;
@@ -81,10 +84,7 @@ document.addEventListener('keydown', function(e) {
             tts.pause()
             interruptIndex = getBargeinIndex()
             
-            if ( keysThatSupportLongPressEvent.includes(e.keyCode) )
-                longPressTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: LONG_PRESS_TRIGGER_DELAY } });
-            else
-                handleControllerEvent(classifyControllerEvent())
+            handleControllerEvent(classifyControllerEvent())
             break;
 
         case 'DISP_ON_DEMAND':
@@ -94,6 +94,8 @@ document.addEventListener('keydown', function(e) {
             wasTTSReading = tts.isReading()
             tts.pause()
             interruptIndex = getBargeinIndex()
+
+            initKeysThatSupportLongPressEvent()
 
             if ( keysThatSupportLongPressEvent.includes(e.keyCode) )
                 longPressTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: LONG_PRESS_TRIGGER_DELAY } });
@@ -105,27 +107,38 @@ document.addEventListener('keydown', function(e) {
             isDispAlwaysOnMode = true;
             isDispOnDemandMode = false;
 
-            if ( keysThatSupportLongPressEvent.includes(e.keyCode) )
-                longPressTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: LONG_PRESS_TRIGGER_DELAY } });
-            else
-                handleControllerEvent(classifyControllerEvent())
+            handleControllerEvent(classifyControllerEvent())
             break;
     }
 })
 
 document.addEventListener('keyup', function (e) {
     keyStatus[e.keyCode] = SWITCH.off
-    accKeyPresses = 0
-
-    if ( keyPressEventStatus[e.keyCode] === KEY_PRESS_EVENT_TYPES.short )
-        handleControllerEvent(classifyControllerEvent())
-
-    else if ( isDispOnDemandMode && keysThatAcknowledgeKeyUpEvent.includes(e.keyCode) ) {
-        if ( keyPressEventStatus[e.keyCode] === KEY_PRESS_EVENT_TYPES.longPressed )
-            keyPressEventStatus[e.keyCode] = KEY_PRESS_EVENT_TYPES.longReleased
-        
-        handleControllerEvent(classifyControllerEvent())
+    // console.log('::::::::: accKeyPresses', accKeyPresses)
+    
+    if (isDispOnDemandMode) {
+        if ( keyPressEventStatus[e.keyCode] === KEY_PRESS_EVENT_TYPES.short )
+            handleControllerEvent(classifyControllerEvent())
+    
+        else if ( isDispOnDemandMode && keysThatAcknowledgeKeyUpEvent.includes(e.keyCode) ) {
+            if ( keyPressEventStatus[e.keyCode] === KEY_PRESS_EVENT_TYPES.longPressed )
+                keyPressEventStatus[e.keyCode] = KEY_PRESS_EVENT_TYPES.longReleased
+            
+            handleControllerEvent(classifyControllerEvent())
+        }
     }
+    else {
+        if ( undoKeyCodes.includes(e.keyCode) || e.keyCode === REDO_KEY_CODE ) {
+            if (accKeyPresses <= 2 && !hasFiredScrollEvent)
+                if (undoKeyCodes.includes(e.keyCode))
+                            handleControllerEvent('UNDO')
+                    else    handleControllerEvent('REDO')
+
+            hasFiredScrollEvent = false;
+        }
+    }
+
+    accKeyPresses = 0
 })
 
 const handleLongPressEvent = () => {
@@ -163,34 +176,31 @@ const classifyControllerEvent = () => {
 
         case UNDO_KEY_CODE_1:
         case UNDO_KEY_CODE_2:
-            switch ( keyPressEventStatus[lastKeyPressCode] ) {
-                case KEY_PRESS_EVENT_TYPES.short:
-                    controllerEvent = 'UNDO'
-                    break;
-                case KEY_PRESS_EVENT_TYPES.longPressed:
-                    controllerEvent = 'MIC_SWITCH_TOGGLE'
-                    break;
+            if (isDispOnDemandMode)
+                controllerEvent = 'UNDO'
+            else if (accKeyPresses > 3) {
+                hasFiredScrollEvent = true
+                controllerEvent = 'SCROLL_UP'
             }
             break;
 
         case REDO_KEY_CODE:
             if ( !quill.hasFocus() ) {
-                switch ( keyPressEventStatus[REDO_KEY_CODE] ) {
-                    case KEY_PRESS_EVENT_TYPES.short:
-                        controllerEvent = 'REDO'
-                        break;
-                    case KEY_PRESS_EVENT_TYPES.longPressed:
-                        if (isDispOnDemandMode)
-                            controllerEvent = 'PUSH_TO_TALK_ENGAGED'
-                        else if (isDispAlwaysOnMode)    
+                if (isDispOnDemandMode)
+                    switch ( keyPressEventStatus[REDO_KEY_CODE] ) {
+                        case KEY_PRESS_EVENT_TYPES.short:
                             controllerEvent = 'REDO'
-                        else
-                            controllerEvent = 'STOP_TTS_READ'
-                        break;
-                    case KEY_PRESS_EVENT_TYPES.longReleased:
-                        if (isDispOnDemandMode)
+                            break;
+                        case KEY_PRESS_EVENT_TYPES.longPressed:
+                            controllerEvent = 'PUSH_TO_TALK_ENGAGED'
+                            break;
+                        case KEY_PRESS_EVENT_TYPES.longReleased:
                             controllerEvent = 'PUSH_TO_TALK_RELEASED'
-                        break;
+                            break;
+                    }
+                else if (accKeyPresses > 3) {
+                    hasFiredScrollEvent = true
+                    controllerEvent = 'SCROLL_DOWN'
                 }
             }
             break;
@@ -259,6 +269,14 @@ const handleControllerEvent = (event) => {
                 resumeReadAfterGeneralInterrupt()
             break;
         
+        case 'SCROLL_UP':
+            console.log('SCROLL_UP Event Fired.')
+            break;
+        
+        case 'SCROLL_DOWN':
+            console.log('SCROLL_DOWN Event Fired.')
+            break;
+
         default:
             break;
     }
