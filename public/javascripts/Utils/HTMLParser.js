@@ -7,17 +7,13 @@ const colorMap = {
 
     'font': {
         'delete': '#ADACAC',
+        // 'deleteBasic': '#5E5E5E',
         'insert': '#F7E511',
         'highlight': '#F9BB56'
     }
 }
 
 export const flattenHTML = (htmlString) => {
-    console.log('coming here')
-    let fontColorDelete = '#5E5E5E'
-    let fontColorInsert = '#F7E511'
-    let fontColorHighlight = '#F9BB56'
-
     let regexDeleteString = `(<font color=${colorMap.font.delete}>.*?<\/font>)`
     let regexInsertString = `(<font color=${colorMap.font.insert}>.*?<\/font>)`
 
@@ -41,4 +37,11 @@ export const markupForDeletion = (text) =>
 export const markupForInsertion = (text) =>
     `<span style="background-color:${colorMap.background.insert}; color:black">${text}</span>`
 
+// export const markupForDeletionBasic = (text) =>
+//     `<span style="color:${colorMap.font.deleteBasic}">${text}</span>`
 
+// export const markupForInsertionBasic = (text) =>
+//     `<span style="color:${colorMap.font.insert}">${text}</span>`
+
+export const markupSentenceForHighlight = (sentence) =>
+    `<b><u>${sentence}</u></b>`

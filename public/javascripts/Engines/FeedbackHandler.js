@@ -6,6 +6,7 @@ import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, 
 import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js'
 import { getWorkingTextFromReadIndex } from './UtteranceParser.js';
 import { resumeReadAfterDisplayTimeout } from './AudioFeedbackHandler.js';
+import { markupSentenceForHighlight } from '../Utils/HTMLParser.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
 
@@ -161,8 +162,7 @@ const feedbackOnContextNavigation = (currentContext, callString) => {
     // console.log('colorCodedTextHTML (feedbackHandler.js)', colorCodedTextHTML)
     let colorCodedTextHTMLSentences = generateSentencesList(colorCodedTextHTML, true)
     // console.log('colorCodedTextHTMLSentences (feedbackHandler.js)', colorCodedTextHTMLSentences)
-    let fontColorHighlight = '#F9BB56'
-    let renderTextHTML = colorCodedTextHTMLSentences.map((sentence, index) => (index === currentContext) ? `<b><i><u>${sentence}</u></i></b>` : sentence )
+    let renderTextHTML = colorCodedTextHTMLSentences.map((sentence, index) => (index === currentContext) ? markupSentenceForHighlight(sentence) : sentence )
     
     if (callString === 'ON_TEXT_UPDATE')
         renderBladeDisplay(renderTextHTML.join(' '))

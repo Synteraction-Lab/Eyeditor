@@ -1,4 +1,5 @@
 import { markupForDeletion, markupForInsertion } from './HTMLParser.js';
+// import { markupForDeletionBasic, markupForInsertionBasic } from './HTMLParser.js';
 
 function escape(s) {
     var n = s;
@@ -109,12 +110,15 @@ export const getColorCodedTextHTML = (originalText, changedText) => {
     // console.log('pretty deltaString', deltaString)
 
     /* change tags of deltaString to font color tags */
-    deltaString = deltaString.replace(/(<del.*?\/del>)/g, replacerFnDelete)
-    deltaString = deltaString.replace(/(<ins.*?\/ins>)/g, replacerFnInsert)
-    console.log('cleaned pretty html', deltaString)
+    deltaString = deltaString.replace(/<del.*?>(.*?)<\/del>/g, replacerFnDelete)
+    deltaString = deltaString.replace(/<ins.*?>(.*?)<\/ins>/g, replacerFnInsert)
+    // console.log('cleaned pretty html', deltaString)
 
     return deltaString;
 }
 
 const replacerFnDelete = (match, p1) => markupForDeletion(p1)
 const replacerFnInsert = (match, p1) => markupForInsertion(p1)
+
+// const replacerFnDelete = (match, p1) => markupForDeletionBasic(p1)
+// const replacerFnInsert = (match, p1) => markupForInsertionBasic(p1)
