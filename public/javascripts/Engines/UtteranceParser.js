@@ -3,7 +3,7 @@ import { quill } from '../Services/quill.js'
 import * as fuzzy from '../Utils/fuzzymatcher.js'
 import { handleCommand, handleCommandPrioritizedWorkingText } from './EditInstructionHandler/Commanding.js'
 import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js'
-import { handleRedictation, handleRedictationPrioritizedWorkingText } from './EditInstructionHandler/Redictation.js';
+import { handleRedictation } from './EditInstructionHandler/Redictation.js';
 import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, isDisplayON } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from './ErrorHandler.js'
@@ -154,7 +154,7 @@ const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
     else {
         let iter, isCommandComplete;
         for (iter = 0; iter < workingTextArray.length; iter++) {
-            isCommandComplete = handleRedictationPrioritizedWorkingText(utterance, workingTextArray[iter])
+            isCommandComplete = handleRedictation(utterance, workingTextArray[iter], true)
             if (isCommandComplete)
                 break;
         }
