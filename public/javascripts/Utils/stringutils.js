@@ -60,7 +60,7 @@ export const getIndexOfLastPunctuation = (text, index) => {   // index: absolute
     return regex.lastIndex - 1
 }
 
-export const findInText = (searchString, text) => {
+export const findInText = (searchString, text) => {     // if multiple occurrences, finds last occurrence
     searchString = removeFormatting(searchString)
     let searchRegexString = searchString.split(' ').map(word=>`\\b${word}\\b`).join('[^\\w\\s]*\\s')   // find match irrespective of punctuations in between the words
     let searchRegex = new RegExp(searchRegexString, 'gi')
