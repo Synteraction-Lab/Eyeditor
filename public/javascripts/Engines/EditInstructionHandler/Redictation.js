@@ -18,7 +18,7 @@ export const handleRedictation = (utterance, workingText, isDispAlwaysOnMode) =>
             provideFailureFeedback('Nothing to update.')
         else return false;
 
-    else if ( leftContext.matchIndex >= 0 && rightContext.matchIndex >= 0 ) {
+    else if ( leftContext.matchIndex >= 0 && rightContext.matchIndex >= 0 ) {   // (lazy) finds last occurring, densest cluster of L∂R
         updateParameter = {
             startIndex: workingText.startIndex + leftContext.matchIndex,
             length: rightContext.matchIndex + rightContext.matchText.length - leftContext.matchIndex,

@@ -45,16 +45,6 @@ export const removeFormatting = (text) => {
     return text
 }
 
-// export const countPunctuations = (text) => {
-//     let match = text.match(/[^\w\s]/g) || ''
-//     return match.length
-// }
-
-// export const countSentences = (text) => {
-//     let match = text.match(/[^.!?]+[.!?]+/g) || ''
-//     return match.length
-// }
-
 export const getIndexOfLastPunctuation = (text, index) => {   // index: absolute
     let regex = /.+[.!?,;:]/g
     regex.exec(text.substr(0, index-1))
@@ -116,7 +106,7 @@ export const getSentenceSnippetBetweenIndices = (text, indexObj) => {
     return text.substring(indexObj.start, indexObj.end)
 }
 
-export const findLeftContext = (text, queryString) => {    
+export const findLeftContext = (text, queryString) => {     // (lazy) if multiple occurrences, matches as late as possible (last occurrence)    
     if (queryString.length == 0) {
         return {matchText: "", matchIndex: -1}
     }
@@ -137,7 +127,7 @@ export const findLeftContext = (text, queryString) => {
     return findLeftContext(text, queryString.substring(0, queryString.lastIndexOf(' ')));
 }
 
-export const findRightContext = (text, queryString) => {
+export const findRightContext = (text, queryString) => {    // (lazy) if multiple occurrences, matches as late as possible (last occurrence)
     let regex = new RegExp('\\b' + queryString.trim() + '\\b', 'gi');
     let index = -1, match;
 
