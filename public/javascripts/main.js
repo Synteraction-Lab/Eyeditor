@@ -40,6 +40,8 @@ btn_c3.addEventListener('click', (e) => { initMode(data.task[2], 'DISP_ALWAYS_ON
 btn_tr1.addEventListener('click', (e) => { initMode(data.training[0], 'DISP_ON_DEMAND') })
 btn_tr2.addEventListener('click', (e) => { initMode(data.training[1], 'DISP_ALWAYS_ON') })
 
+btn_test.addEventListener('click', (e) => { initMode(data.training[1], 'DEFAULT') })
+
 mic.addEventListener('click', (e) => {
     if (mic.checked)
         recognition.start()

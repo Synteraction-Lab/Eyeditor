@@ -61,18 +61,13 @@ export const getIndexOfLastPunctuation = (text, index) => {   // index: absolute
 }
 
 export const findInText = (searchString, text) => {     // if multiple occurrences, finds last occurrence
-    searchString = removeFormatting(searchString)
-    let searchRegexString = searchString.split(' ').map(word=>`\\b${word}\\b`).join('[^\\w\\s]*\\s')   // find match irrespective of punctuations in between the words
-    let searchRegex = new RegExp(searchRegexString, 'gi')
-    
-    let match = text.match(searchRegex)
-
-    if(!match) return null
+    let match = text.match(getPunctuationInsensitiveRegex(searchString))
+    if (!match) return null
     else {
         let len = match.length
         return {
-            startIndex: text.lastIndexOf( match[len -1] ), 
-            length: match[len -1].length
+            startIndex: text.lastIndexOf(match[len - 1]),
+            length: match[len - 1].length
         }
     }
 }
@@ -107,53 +102,58 @@ export const getSentenceSnippetBetweenIndices = (text, indexObj) => {
 }
 
 export const findLeftContext = (text, queryString) => {     // (lazy) if multiple occurrences, matches as late as possible (last occurrence)    
-    if (queryString.length == 0) {
-        return {matchText: "", matchIndex: -1}
-    }
+    if (queryString.length == 0)
+        return null;
 
-    let regex = new RegExp('\\b' + queryString.trim() + '\\b', 'gi');
+    let regex = getPunctuationInsensitiveRegex(queryString)
     let index = -1, match;
 
-    while ((match = regex.exec(text)) !== null)
+    let matchInText
+    while (( match = regex.exec(text) ) !== null) {
+        matchInText = match[0]
         index = match.index
-    
-    if (index >= 0) {
-        return {
-            matchText: queryString.trim(),
-            matchIndex: index
-        }
     }
-    
+
+    if (index >= 0)
+        return {
+            matchInText,
+            matchIndex: index,
+            length: matchInText.length,
+            matchInQueryString: queryString.trim(),
+        }
+
     return findLeftContext(text, queryString.substring(0, queryString.lastIndexOf(' ')));
 }
 
 export const findRightContext = (text, queryString) => {    // (lazy) if multiple occurrences, matches as late as possible (last occurrence)
-    let regex = new RegExp('\\b' + queryString.trim() + '\\b', 'gi');
+    let regex = getPunctuationInsensitiveRegex(queryString)
     let index = -1, match;
 
-    while ((match = regex.exec(text)) !== null)
+    let matchInText
+    while (( match = regex.exec(text) ) !== null) {
+        matchInText = match[0]
         index = match.index
-    
-    if (index >= 0) {
-        return {
-            matchText: queryString.trim(),
-            matchIndex: index
-        }
     }
 
+    if (index >= 0)
+        return {
+            matchInText,
+            matchIndex: index,
+            length: matchInText.length,
+            matchInQueryString: queryString.trim(),
+        }
+
     if (queryString.indexOf(' ') == -1)
-        return {matchText: "", matchIndex: -1}
-    
-    return findRightContext(text, queryString.substring(queryString.indexOf(' ')+1, queryString.length));
+        return null;
+
+    return findRightContext(text, queryString.substring(queryString.indexOf(' ') + 1, queryString.length));
 }
 
-export const stripLeftContext = (queryString, leftContext) => {
-    return queryString.substr(leftContext.length + 1)
-}
+export const stripLeft = (queryString, leftTextSnippet) => 
+    (leftTextSnippet) ? queryString.substr(leftTextSnippet.length + 1) : queryString
 
-export const stripRightContext = (queryString, rightContext) => {
-    return queryString.substr(0, queryString.length - rightContext.length - 1)
-}
+export const stripRight = (queryString, rightTextSnippet) => 
+    (rightTextSnippet) ? queryString.substr(0, queryString.length - rightTextSnippet.length - 1) : queryString
 
 export const generateSentencesList = (text, isHTML) => {
     let splitRegex
@@ -200,3 +200,9 @@ export const forceNumberToWords = (utteranceString) => {
 }
 
 const replacerFnNumbersToWords = (match, p1) => numberToWords.toWords(p1);
+
+const getPunctuationInsensitiveRegex = (searchString) => {
+    searchString = removeFormatting(searchString)
+    let searchRegexString = searchString.split(' ').map(word => `\\b${word}\\b`).join('\\W+')   // find match irrespective of punctuations in between the words
+    return new RegExp(searchRegexString, 'gi')
+}
