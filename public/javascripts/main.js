@@ -7,7 +7,7 @@ import { quill } from './Services/quill.js'
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;
-var pushToBladeLock = false;    // if true => locked => push to blade.
+var pushToBladeLock = true;    // if true => locked => push to blade.
 
 export const getFeedbackConfiguration = () => feedbackConfiguration
 export const getLoadedText = () => loadedText

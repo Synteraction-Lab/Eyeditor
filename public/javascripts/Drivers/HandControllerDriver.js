@@ -2,7 +2,7 @@ import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { getFeedbackConfiguration } from '../main.js'
-import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext } from '../Engines/FeedbackHandler.js'
+import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
 import { getBargeinIndex } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
@@ -21,6 +21,7 @@ const keysThatAcknowledgeKeyUpEvent = [REDO_KEY_CODE]
 const undoKeyCodes = [UNDO_KEY_CODE_1, UNDO_KEY_CODE_2]
 const SCROLL_INITIATION = 3         // measured in no. of keypresses
 const SCROLL_GRANULARITY = 7       // measured in no. of keypresses
+const AUTOSCROLL_CHUNK_SIZE = 2     // scroll up/down if navigating backward/forward by 2 sentences.
 
 const KEY_PRESS_EVENT_TYPES = {
     short: 0,
@@ -45,6 +46,8 @@ let wasTTSReading
 let accKeyPresses = 0
 let hasFiredScrollEvent = false
 let nextScrollThreshold;
+let currentContext;
+let lastSavedContext = 0;
 
 export const getPTTStatus = () => {
     if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
@@ -254,10 +257,20 @@ const handleControllerEvent = (event) => {
 
         case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display
             navigateContext('PREV')
+            currentContext = getCurrentContext()
+            if ( currentContext - lastSavedContext == -AUTOSCROLL_CHUNK_SIZE ) {
+                sendScrollEvent('UP')
+                lastSavedContext = currentContext
+            }
             break;
 
         case 'CONTEXT_NEXT':
-            navigateContext('NEXT')
+            navigateContext('NEXT');
+            currentContext = getCurrentContext()
+            if ( currentContext - lastSavedContext == AUTOSCROLL_CHUNK_SIZE ) {
+                sendScrollEvent('DOWN')
+                lastSavedContext = currentContext
+            }
             break;
 
         case 'WORKING_TEXT_PREV':
