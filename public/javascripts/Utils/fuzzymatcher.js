@@ -93,3 +93,5 @@ const generateWordCombinations = (words) => {
     
     return combinations
 };
+
+export const searchFuzzyMatchInText = (queryString, workingText) => matchFuzzyForArgument(queryString, workingText);

@@ -1,7 +1,8 @@
-import { findLeftContext, findRightContext, stripRight, stripLeft } from '../../Utils/stringutils.js';
+import { findLeftContext, findRightContext, stripRight, stripLeft, findInText } from '../../Utils/stringutils.js';
 import { insertText, replaceText, refreshText } from '../TextEditor.js'
 import { quill } from '../../Services/quill.js'
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
+import { searchFuzzyMatchInText } from '../../Utils/fuzzymatcher.js';
 
 class lock {
     constructor() { this.lockStatus = false; }
@@ -28,10 +29,20 @@ export const handleRedictation = (utterance, workingText, isDispAlwaysOnMode) =>
     /* total of 9 possibilities (normalized): ∂, (range): LR, LR∂, ∂LR, ∂LR∂, (no range): L, L∂, ∂L, ∂L∂
         deltaAlignment: (INS) ∂LR, ∂LR∂, ∂L∂; (SUB) LR∂, ∂L, L∂ */
 
-    if (!leftContext) {  // no match found within the text, so utterance can be interpreted as a change instruction, normalized get method will give a left delta to work with
-        // ! No match found. This condition is to be handled later
-        if (isDispAlwaysOnMode)
-            return false;
+    if (!leftContext) {  // (config: ∂) no match found within the text, so utterance can be interpreted as a change instruction, normalized get method will give a left delta to work with
+        let fuzzyMatch = searchFuzzyMatchInText(utterance, workingText.text)
+        console.log('fuzzyMatch', fuzzyMatch)
+
+        if (fuzzyMatch) {
+            replaceFuzzyMatch(alignmentObject, fuzzyMatch)
+            runPostUpdateRoutine()
+            if (isDispAlwaysOnMode) return true;
+        }
+        else {
+            if (!isDispAlwaysOnMode)
+                provideFailureFeedback('Nothing to update.')
+            else return false;
+        }
     }
 
     else if (leftContext.matchInText === utterance) {
@@ -76,10 +87,30 @@ export const handleRedictation = (utterance, workingText, isDispAlwaysOnMode) =>
             }
         }
 
-        refreshText(quill.getText())
-        provideSuccessFeedback('Text Updated', updateParameter)
+        runPostUpdateRoutine();
         if (isDispAlwaysOnMode) return true;
     }
+}
+
+const runPostUpdateRoutine = () => {
+    refreshText(quill.getText())
+    provideSuccessFeedback('Text Updated', updateParameter)
+}
+
+const replaceFuzzyMatch = (alignmentObject, fuzzyMatch) => {
+    const { workingText, utterance } = alignmentObject;
+    
+    let findResult = findInText(fuzzyMatch, workingText.text)
+    console.log('(replaceFuzzyMatch) findResult', findResult);
+    
+    if (findResult) 
+        updateParameter = {
+            startIndex: workingText.startIndex + findResult.startIndex,
+            length: findResult.length,
+            updateText: utterance
+        }
+
+    replaceText(updateParameter);
 }
 
 const replaceLDR = (alignmentObject) => {
