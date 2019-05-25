@@ -62,35 +62,38 @@ const initArgumentFuzzySet = () => {
 export const matchFuzzyForArgument = (argumentText, workingText) => {
     initArgumentFuzzySet()
     generateFuzzySetForArgument(workingText)
+    // console.log('argumentFuzzySet', argumentFuzzySet)
 
     let match = argumentFuse.search(argumentText)
+    // console.log('(matchFuzzyForArgument) match', match)
+    
     if (match.length > 0)   return match[0].id
         else                return null
 }
 
 const generateFuzzySetForArgument = (workingText) => {
     let regex = /\b\w+\b/g
-
-    // add individual words to the fuzzy set
     let words = workingText.match(regex)
-    words.forEach(word => addToFuzzySet(argumentFuzzySet, word))
-
+    
     // add word combinations to the fuzzy set
     let combinations = generateWordCombinations(words)
-    combinations.forEach(combination => addToFuzzySet(argumentFuzzySet, combination.join(' ')))
+    combinations.forEach( allCombinationsOfNWords => allCombinationsOfNWords.forEach( combination => addToFuzzySet(argumentFuzzySet, combination.join(' ')) ) )
 }
 
 const generateWordCombinations = (words) => {
     var combinations = [], count = 0;
-    for(var i=2; i <= words.length; i++) {
+    for(var i=1; i <= words.length; i++) {
+        combinations[count] = []
         for (var j=0; j < words.length-(i-1); j++) {
-            combinations[count] = []
+            combinations[count][j] = []
             for (var k=0; k < i; k++)
-                combinations[count].push(words[j+k])
-            count++;
+                combinations[count][j].push(words[j+k])
         }
+        combinations[count].reverse()           // for multiple possible matches, the last match is selected as is the case with the rest of the word selection operations (e.g., for deletion)
+        // console.log(combinations[count])
+        count++;
     }
-    
+
     return combinations
 };
 

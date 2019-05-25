@@ -61,13 +61,15 @@ export const getIndexOfLastPunctuation = (text, index) => {   // index: absolute
 }
 
 export const findInText = (searchString, text) => {     // if multiple occurrences, finds last occurrence
-    let match = text.match(getPunctuationInsensitiveRegex(searchString))
+    let puncInsensitiveRegex = getPunctuationInsensitiveRegex(searchString, 'findInText')
+    let match = puncInsensitiveRegex.exec(text)
+    // console.log('(findInText) match', match)
+
     if (!match) return null
     else {
-        let len = match.length
         return {
-            startIndex: text.lastIndexOf(match[len - 1]),
-            length: match[len - 1].length
+            startIndex: puncInsensitiveRegex.lastIndex - match[1].length,
+            length: match[1].length
         }
     }
 }
@@ -201,8 +203,10 @@ export const forceNumberToWords = (utteranceString) => {
 
 const replacerFnNumbersToWords = (match, p1) => numberToWords.toWords(p1);
 
-const getPunctuationInsensitiveRegex = (searchString) => {
+const getPunctuationInsensitiveRegex = (searchString, caller) => {
     searchString = removeFormatting(searchString)
     let searchRegexString = searchString.split(' ').map(word => `\\b${word}\\b`).join('\\W+')   // find match irrespective of punctuations in between the words
+    if (caller === 'findInText')
+        searchRegexString = `.*(${searchRegexString})`
     return new RegExp(searchRegexString, 'gi')
 }
