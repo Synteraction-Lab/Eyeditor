@@ -46,11 +46,8 @@ export const handleUtterance = (utterance) => {
                     parseUtterance(utterance, workingText)
                 } 
                 else {
-                    if (isDisplayON())
-                                workingText = getCurrentWorkingText()
-                        else    workingText = getWorkingTextFromReadIndex()
-                    if (!isDisplayON())
-                        feedbackOfWorkingTextOnUserUtterance(workingText)
+                    workingText = getCurrentWorkingText()
+                    feedbackOfWorkingTextOnUserUtterance(workingText)
                     parseUtterance(utterance, workingText)
                 }
             }
@@ -134,7 +131,7 @@ const callManagerForAlwaysOnDisplay = (utterance) => {
 const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
-    let suppressedFunctions = ['repeat', 'cancel']
+    let suppressedFunctions = ['repeat', 'cancel', 'show', 'stop']
     if ( keyword && !suppressedFunctions.includes(keyword) ) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let iter, fuzzyArgument, passArgument;

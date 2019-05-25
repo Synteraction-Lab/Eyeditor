@@ -39,9 +39,9 @@ export const handleRedictation = (utterance, workingText, isDispAlwaysOnMode) =>
             if (isDispAlwaysOnMode) return true;
         }
         else {
-            if (!isDispAlwaysOnMode)
-                provideFailureFeedback('Nothing to update.')
-            else return false;
+            if (isDispAlwaysOnMode)
+                return false;
+            else return;
         }
     }
 
@@ -102,7 +102,7 @@ const replaceFuzzyMatch = (alignmentObject, fuzzyMatch) => {
     
     let findResult = findInText(fuzzyMatch, workingText.text)
     console.log('(replaceFuzzyMatch) findResult', findResult);
-    
+
     if (findResult) 
         updateParameter = {
             startIndex: workingText.startIndex + findResult.startIndex,

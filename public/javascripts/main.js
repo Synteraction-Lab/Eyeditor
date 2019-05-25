@@ -32,6 +32,11 @@ const initMode = (data, config) => {
     initLoad(data.textToCorrect)
 }
 
+const initRead = (data, config) => {
+    feedbackConfiguration = config
+    initLoad(data)
+}
+
 /* Task Button Handlers */
 btn_c1.addEventListener('click', (e) => { initMode(data.task[0], 'DISP_ON_DEMAND') })
 btn_c2.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ON_DEMAND') })
@@ -41,6 +46,7 @@ btn_tr1.addEventListener('click', (e) => { initMode(data.training[0], 'DISP_ON_D
 btn_tr2.addEventListener('click', (e) => { initMode(data.training[1], 'DISP_ALWAYS_ON') })
 
 btn_test.addEventListener('click', (e) => { initMode(data.training[1], 'DEFAULT') })
+btn_read.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
 
 mic.addEventListener('click', (e) => {
     if (mic.checked)
