@@ -46,7 +46,7 @@ export const handleUtterance = (utterance) => {
                     parseUtterance(utterance, workingText)
                 } 
                 else {
-                    workingText = getCurrentWorkingText()
+                    workingText = getCurrentWorkingText() || getWorkingTextFromReadIndex()
                     feedbackOfWorkingTextOnUserUtterance(workingText)
                     parseUtterance(utterance, workingText)
                 }

@@ -138,8 +138,8 @@ document.addEventListener('keyup', function (e) {
         if ( undoKeyCodes.includes(e.keyCode) || e.keyCode === REDO_KEY_CODE ) {
             if (accKeyPresses <= 2 && !hasFiredScrollEvent)
                 if (undoKeyCodes.includes(e.keyCode))
-                            handleControllerEvent('UNDO')
-                    else    handleControllerEvent('REDO')
+                        handleControllerEvent('SCROLL_UP')      //handleControllerEvent('UNDO')
+                else    handleControllerEvent('SCROLL_DOWN')    //handleControllerEvent('REDO')
 
             hasFiredScrollEvent = false;
         }
