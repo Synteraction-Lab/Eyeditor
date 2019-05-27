@@ -1,12 +1,14 @@
 const colorMap = {
     'background': {
         'insert': '#B3E7B7',
-        'delete': '#EEBBBB',
+        'delete': '#774646',
+        // 'delete': '#EEBBBB',
         'highlight': '#F9BB56'
     },
 
     'font': {
-        'delete': '#ADACAC',
+        'delete': '#8F8F8F',
+        // 'delete': '#ADACAC',
         // 'deleteBasic': '#5E5E5E',
         'insert': '#F7E511',
         'highlight': '#F9BB56'
