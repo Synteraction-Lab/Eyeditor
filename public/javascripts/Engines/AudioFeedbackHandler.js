@@ -20,18 +20,22 @@ export const speakFeedback = (feedback, type) => {
 }
 
 export const readTextOnUpdate = (updateParameter) => {
-    if (    getFeedbackConfiguration() === 'DISP_ALWAYS_ON' 
-        || (getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON())
-        ||  getPTTStatus()             === 'PTT_ON'     )
+    let feedbackConfig = getFeedbackConfiguration()
+    if (    feedbackConfig === 'DISP_ALWAYS_ON'
+        ||  feedbackConfig === 'AOD_SCROLL'
+        || (feedbackConfig === 'DISP_ON_DEMAND' && isDisplayON())
+        ||  getPTTStatus() === 'PTT_ON' )
         return;
     else
         tts.read(getIndexOfLastPunctuation( quill.getText(), updateParameter.startIndex ) + 2)
 }
 
 export const readTextOnFailedUpdate = () => {
-    if (    getFeedbackConfiguration() === 'DISP_ALWAYS_ON'
-        || (getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON())
-        ||  getPTTStatus()             === 'PTT_ON'     )
+    let feedbackConfig = getFeedbackConfiguration()
+    if (    feedbackConfig === 'DISP_ALWAYS_ON'
+        ||  feedbackConfig === 'AOD_SCROLL'
+        || (feedbackConfig === 'DISP_ON_DEMAND' && isDisplayON())
+        ||  getPTTStatus() === 'PTT_ON' )
         return;
     else 
         tts.read(getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)

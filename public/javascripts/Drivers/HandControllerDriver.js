@@ -48,6 +48,7 @@ let hasFiredScrollEvent = false
 let nextScrollThreshold;
 let currentContext;
 let lastSavedContext = 0;
+let feedbackConfig;
 
 export const getPTTStatus = () => {
     if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
@@ -72,10 +73,10 @@ const initKeysThatSupportLongPressEvent = () => {
 }
 
 document.addEventListener('keydown', function(e) {
-    let feedbackConfig = getFeedbackConfiguration()
+    feedbackConfig = getFeedbackConfiguration()
 
     /* reject multiple undos/redos */
-    if (feedbackConfig === 'DISP_ON_DEMAND' && keyStatus[e.keyCode] && keysThatSupportLongPressEvent.includes(e.keyCode) && keyStatus[e.keyCode] === SWITCH.on)
+    if ( ['DISP_ON_DEMAND', 'AOD_SCROLL'].includes(feedbackConfig) && keyStatus[e.keyCode] && keysThatSupportLongPressEvent.includes(e.keyCode) && keyStatus[e.keyCode] === SWITCH.on )
         return;
 
     accKeyPresses = accKeyPresses + 1
@@ -116,6 +117,14 @@ document.addEventListener('keydown', function(e) {
 
             handleControllerEvent(classifyControllerEvent())
             break;
+
+        case 'AOD_SCROLL':
+            initKeysThatSupportLongPressEvent()
+            if ( keysThatSupportLongPressEvent.includes(e.keyCode) )
+                longPressTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: LONG_PRESS_TRIGGER_DELAY } });
+            else
+                handleControllerEvent(classifyControllerEvent())
+            break;
     }
 })
 
@@ -123,7 +132,7 @@ document.addEventListener('keyup', function (e) {
     keyStatus[e.keyCode] = SWITCH.off
     // console.log('::::::::: accKeyPresses', accKeyPresses)
     
-    if (isDispOnDemandMode) {
+    if ( isDispOnDemandMode || feedbackConfig === 'AOD_SCROLL' ) {
         if ( keyPressEventStatus[e.keyCode] === KEY_PRESS_EVENT_TYPES.short )
             handleControllerEvent(classifyControllerEvent())
     
@@ -134,7 +143,8 @@ document.addEventListener('keyup', function (e) {
             handleControllerEvent(classifyControllerEvent())
         }
     }
-    else {
+
+    else if (isDispAlwaysOnMode) {
         if ( undoKeyCodes.includes(e.keyCode) || e.keyCode === REDO_KEY_CODE ) {
             if (accKeyPresses <= 2 && !hasFiredScrollEvent)
                 if (undoKeyCodes.includes(e.keyCode))
@@ -143,7 +153,7 @@ document.addEventListener('keyup', function (e) {
 
             hasFiredScrollEvent = false;
         }
-    }
+    } 
 
     accKeyPresses = 0
 })
@@ -161,7 +171,7 @@ const classifyControllerEvent = () => {
     switch(lastKeyPressCode) {
         case LEFT_KEY_CODE:
             if (!isDispAlwaysOnMode)
-                if ( isDispOnDemandMode && isDisplayON() )
+                if ( isDispOnDemandMode && isDisplayON() || feedbackConfig === 'AOD_SCROLL' )
                     controllerEvent = 'WORKING_TEXT_PREV'
                 else
                     if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() || accKeyPresses >= MIN_KEY_PRESSES_FOR_READ_FROM_START )
@@ -172,7 +182,7 @@ const classifyControllerEvent = () => {
 
         case RIGHT_KEY_CODE:
             if (!isDispAlwaysOnMode)
-                if ( isDispOnDemandMode && isDisplayON() )
+                if ( isDispOnDemandMode && isDisplayON() || feedbackConfig === 'AOD_SCROLL' )
                     controllerEvent = 'WORKING_TEXT_NEXT'
                 else
                     if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() )
@@ -183,7 +193,7 @@ const classifyControllerEvent = () => {
 
         case UNDO_KEY_CODE_1:
         case UNDO_KEY_CODE_2:
-            if (isDispOnDemandMode)
+            if ( isDispOnDemandMode || feedbackConfig === 'AOD_SCROLL' )
                 controllerEvent = 'UNDO'
             else if ( accKeyPresses > SCROLL_INITIATION ) {
                 if ( !hasFiredScrollEvent ) {
@@ -199,7 +209,9 @@ const classifyControllerEvent = () => {
 
         case REDO_KEY_CODE:
             if ( !quill.hasFocus() ) {
-                if (isDispOnDemandMode)
+                if ( feedbackConfig === 'AOD_SCROLL' )
+                    controllerEvent = 'REDO'
+                else if (isDispOnDemandMode)
                     switch ( keyPressEventStatus[REDO_KEY_CODE] ) {
                         case KEY_PRESS_EVENT_TYPES.short:
                             controllerEvent = 'REDO'

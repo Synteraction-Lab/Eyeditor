@@ -14,7 +14,7 @@ var currentText
 var lastUtterance
 var timer = new Timer()
 var displayON = false
-var workingTextSentenceIndex
+var workingTextSentenceIndex = 0
 var currentWorkingText
 var currentContext = 0  // context captures the sentence number/index in DISP_ALWAYS_ON mode
 let exemptedTriggerKeywords = ['previous', 'next', 'cancel']
@@ -78,6 +78,7 @@ const renderBladeDisplay = (text, utterance) => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
         case 'DISP_ALWAYS_ON':
+        case 'AOD_SCROLL':
             pushTextToBlade(text, utterance)
             break;
 
@@ -112,6 +113,15 @@ export const feedbackOnTextLoad = () => {
         case 'DISP_ON_DEMAND':
             renderBladeDisplayBlank()
             break;
+        case 'AOD_SCROLL':
+            setTimeout( () => {
+                currentWorkingText = {
+                    text: getSentenceGivenSentenceIndex(quill.getText(), workingTextSentenceIndex),
+                    startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
+                }
+                feedbackOfWorkingTextOnNavigation()
+            }, 50)
+            break;
     }
 }
 
@@ -121,6 +131,7 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText, callString) =>
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
         case 'DISP_ALWAYS_ON':
+        case 'AOD_SCROLL':
             break;
         case 'DISP_ON_DEMAND':
             currentWorkingText = Object.assign({}, workingText)
@@ -136,7 +147,8 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText, callString) =>
 
 const feedbackOfWorkingTextOnNavigation = () => {
     renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), currentWorkingText.text ), 'forceClear' )
-    timer.reset()   // at this point display and hence, timer was on, so reset, and do not need to set displayON
+    if (getFeedbackConfiguration() !== 'AOD_SCROLL')
+        timer.reset()   // at this point display and hence, timer was on, so reset, and do not need to set displayON
 }
 
 const feedbackOfWorkingTextOnPushToTalk = () => { feedbackOfWorkingTextOnUserUtterance(currentWorkingText, 'PTT') }
@@ -150,6 +162,7 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
             feedbackOnContextNavigation(currentContext, 'ON_TEXT_UPDATE')
             break;
         case 'DISP_ON_DEMAND':
+        case 'AOD_SCROLL':
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
             // update Working Text
             currentWorkingText = {

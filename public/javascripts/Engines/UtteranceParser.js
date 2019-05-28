@@ -2,9 +2,9 @@ import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js'
 import * as fuzzy from '../Utils/fuzzymatcher.js'
 import { handleCommand, handleCommandPrioritizedWorkingText } from './EditInstructionHandler/Commanding.js'
-import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList } from '../Utils/stringutils.js'
+import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceGivenSentenceIndex, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { handleRedictation } from './EditInstructionHandler/Redictation.js';
-import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, isDisplayON } from './FeedbackHandler.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from './ErrorHandler.js'
 import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
@@ -17,6 +17,7 @@ const constrainWorkingTextToSingleSentence = true   // if false, working sent. c
 let quillSnapshotBeforeUpdate
 let TTSReadStateBeforeUtterance
 let TTSReadStates
+let workingText
 
 export const getBargeinIndex = () => ( tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex() ) || 0;
 export const getQuillSnapshotBeforeUpdate = () => quillSnapshotBeforeUpdate;
@@ -34,7 +35,6 @@ export const handleUtterance = (utterance) => {
             break;
         
         case 'DISP_ON_DEMAND':
-            let workingText
             if (getPTTStatus() === 'PTT_ON') {
                 workingText = getCurrentWorkingText() || getWorkingTextFromReadIndex()
                 parseUtterance(utterance, workingText)
@@ -55,6 +55,15 @@ export const handleUtterance = (utterance) => {
         
         case 'DISP_ALWAYS_ON':
             callManagerForAlwaysOnDisplay(utterance)
+            break;
+
+        case 'AOD_SCROLL':
+            let workingTextSentenceIndex = getCurrentWorkingTextSentenceIndex()
+            workingText = {
+                text: getSentenceGivenSentenceIndex(quill.getText(), workingTextSentenceIndex),
+                startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
+            }
+            parseUtterance(utterance, workingText)
             break;
     }
 }
@@ -94,10 +103,13 @@ export const extractWorkingText = (index) => {
 const parseUtterance = (utterance, workingText) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
+    let suppressedFunctions = ['repeat', 'cancel', 'show', 'stop']
     
     quillSnapshotBeforeUpdate = quill.getText()
 
-    if (keyword) {
+    if ( getFeedbackConfiguration() === 'AOD_SCROLL' && suppressedFunctions.includes(keyword) )
+        handleRedictation(utterance, workingText)
+    else if (keyword) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let fuzzyArgument = fuzzy.matchFuzzyForArgument(restOfTheUtterance, workingText.text)
         let passArgument = fuzzyArgument || restOfTheUtterance

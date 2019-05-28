@@ -4,7 +4,7 @@ import { findInText } from '../../Utils/stringutils.js'
 import { handleError } from '../ErrorHandler.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 import { readNextSentence, readPrevSentence, repeatSentence, stopReading } from '../AudioFeedbackHandler.js';
-import { navigateContext, isDisplayON, fireDisplayOffRoutine } from '../FeedbackHandler.js';
+import { navigateContext, isDisplayON, fireDisplayOffRoutine, navigateWorkingText } from '../FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../../main.js';
 
 export const handleCommand = (keyword, arg, workingText, isControllerRequest) => {
@@ -58,17 +58,29 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
 
             case 'previous':
-                if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
-                    fireDisplayOffRoutine(true)
+                if ( getFeedbackConfiguration() === 'AOD_SCROLL' ) {
+                    navigateWorkingText('PREV')
+                    return;
+                }
+                else {
+                    if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
+                        fireDisplayOffRoutine(true)
                 
-                readPrevSentence(true)
+                    readPrevSentence(true)
+                }
                 break;
             
             case 'next':
-                if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
-                    fireDisplayOffRoutine(true)
+                if (getFeedbackConfiguration() === 'AOD_SCROLL') {
+                    navigateWorkingText('NEXT')
+                    return;
+                }
+                else {
+                    if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
+                        fireDisplayOffRoutine(true)
 
-                readNextSentence(true)
+                    readNextSentence(true)
+                }
                 break;
             
             case 'repeat':

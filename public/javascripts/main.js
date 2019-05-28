@@ -41,6 +41,7 @@ const initRead = (data, config) => {
 btn_c1.addEventListener('click', (e) => { initMode(data.task[0], 'DISP_ON_DEMAND') })
 btn_c2.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ON_DEMAND') })
 btn_c3.addEventListener('click', (e) => { initMode(data.task[2], 'DISP_ALWAYS_ON') })
+btn_c4.addEventListener('click', (e) => { initMode(data.task[2], 'AOD_SCROLL') })
 
 btn_tr1.addEventListener('click', (e) => { initMode(data.training[0], 'DISP_ON_DEMAND') })
 btn_tr2.addEventListener('click', (e) => { initMode(data.training[1], 'DISP_ALWAYS_ON') })
