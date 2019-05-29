@@ -1,16 +1,40 @@
-import { getPushToBladeLockStatus } from "../main.js";
+import { getPushToBladeLockStatus, getFeedbackConfiguration } from "../main.js";
 import { getBladeURLObject, getWebSocketRef } from "./ConnectBlade.js";
 
 var socket = io.connect('http://localhost:3000');
 let ws = getWebSocketRef()
+let dataObject = {}
+
+const LAYOUT_CONSTANTS = {
+    NO_GRAVITY: 0,
+    TOP: 48,
+    BOTTOM: 80,
+    CENTER: 17,
+    CENTER_HORIZONTAL: 1,
+    CENTER_VERTICAL: 16,
+    START: 8388611,
+    END: 8388613,
+    LEFT: 3,
+    RIGHT: 5,
+    FILL: 119,
+    FILL_HORIZONTAL: 7,
+    FILL_VERTICAL: 112
+}
+
+const displayConfigsThatSupportVariableLayout = ['DISP_ON_DEMAND', 'AOD_SCROLL']
+
+export const setDataObjectLayoutHeader = () => {
+    if ( displayConfigsThatSupportVariableLayout.includes(getFeedbackConfiguration()) )
+        dataObject.heading = `${LAYOUT_CONSTANTS.CENTER},${LAYOUT_CONSTANTS.CENTER}`
+    else
+        dataObject.heading = `${LAYOUT_CONSTANTS.NO_GRAVITY},${LAYOUT_CONSTANTS.NO_GRAVITY}`
+}
 
 export const pushTextToBlade = (text, utterance) => {
-    let dataObject = {
-        "html":true,
-        "subheading": text || null,
-        "content": utterance || null
-    };
-    
+    dataObject.html = true;
+    dataObject.subheading = text || null;
+    dataObject.content = utterance || null;
+
     // push text to Blade
     if ( getPushToBladeLockStatus() ) {
         try {

@@ -1,5 +1,5 @@
 import { getFeedbackConfiguration, getLoadedText } from '../main.js'
-import { pushTextToBlade } from '../Drivers/VuzixBladeDriver.js'
+import { pushTextToBlade, setDataObjectLayoutHeader } from '../Drivers/VuzixBladeDriver.js'
 import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
@@ -103,6 +103,8 @@ const renderBladeDisplay = (text, utterance) => {
 }
 
 export const feedbackOnTextLoad = () => {
+    setDataObjectLayoutHeader()
+    
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
             renderBladeDisplay(quill.getText(), 'forceClear')
