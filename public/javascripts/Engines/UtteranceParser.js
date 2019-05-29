@@ -2,9 +2,9 @@ import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js'
 import * as fuzzy from '../Utils/fuzzymatcher.js'
 import { handleCommand, handleCommandPrioritizedWorkingText } from './EditInstructionHandler/Commanding.js'
-import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceGivenSentenceIndex, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
+import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceGivenSentenceIndex, getSentenceCharIndicesGivenSentenceIndex, getSentenceCount } from '../Utils/stringutils.js'
 import { handleRedictation } from './EditInstructionHandler/Redictation.js';
-import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex } from './FeedbackHandler.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex, isDisplayON, setCurrentWorkingText } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from './ErrorHandler.js'
 import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
@@ -46,8 +46,13 @@ export const handleUtterance = (utterance) => {
                     parseUtterance(utterance, workingText)
                 } 
                 else {
-                    workingText = getCurrentWorkingText() || getWorkingTextFromReadIndex()
-                    feedbackOfWorkingTextOnUserUtterance(workingText)
+                    let isTextShowing = isDisplayON()
+                    if (isTextShowing)
+                        workingText = getCurrentWorkingText()
+                    else    // end of final sentence when TTS not reading, display not showing 
+                        workingText = getCurrentWorkingText( setCurrentWorkingText(getSentenceCount(quill.getText()) - 1) )
+                    if (!isTextShowing)
+                        feedbackOfWorkingTextOnUserUtterance(workingText)
                     parseUtterance(utterance, workingText)
                 }
             }

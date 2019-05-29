@@ -181,6 +181,9 @@ export const generateSentenceDelimiterIndicesList = (text) => {
     return delimiterIndicesList;
 }
 
+export const getSentenceCount = (text) => 
+    generateSentenceDelimiterIndicesList(text).length;
+
 export const getSentenceIndexGivenCharIndexPosition = (text, charIndex) =>  // charIndex is absolute
     generateSentenceDelimiterIndicesList(text).filter(delimiterIndex => charIndex > delimiterIndex).length;
 

@@ -115,10 +115,7 @@ export const feedbackOnTextLoad = () => {
             break;
         case 'AOD_SCROLL':
             setTimeout( () => {
-                currentWorkingText = {
-                    text: getSentenceGivenSentenceIndex(quill.getText(), workingTextSentenceIndex),
-                    startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
-                }
+                setCurrentWorkingText()
                 feedbackOfWorkingTextOnNavigation()
             }, 50)
             break;
@@ -164,11 +161,7 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
         case 'DISP_ON_DEMAND':
         case 'AOD_SCROLL':
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
-            // update Working Text
-            currentWorkingText = {
-                text: getSentenceGivenSentenceIndex(quill.getText(), workingTextSentenceIndex),
-                startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
-            }
+            setCurrentWorkingText()
             break;
     }
 }
@@ -198,11 +191,7 @@ export const navigateWorkingText = (dir) => {
             workingTextSentenceIndex = sentenceDelimiterIndices.length - 1
     }
 
-    currentWorkingText = {
-        text: getSentenceGivenSentenceIndex(quill.getText(), workingTextSentenceIndex),
-        startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
-    }
-
+    setCurrentWorkingText()
     feedbackOfWorkingTextOnNavigation()
 }
 
@@ -237,4 +226,13 @@ export const feedbackOnPushToTalk = () => {
     }
     else if (PTTStatus === 'PTT_OFF')
         fireDisplayOffRoutine()
+}
+
+export const setCurrentWorkingText = (sentenceIndex) => {
+    sentenceIndex = sentenceIndex || workingTextSentenceIndex
+
+    currentWorkingText = {
+        text: getSentenceGivenSentenceIndex(quill.getText(), sentenceIndex),
+        startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), sentenceIndex).start
+    }
 }
