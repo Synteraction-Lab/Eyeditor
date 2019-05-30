@@ -31,6 +31,7 @@ export const handleUtterance = (utterance) => {
 
     switch ( getFeedbackConfiguration() ) {
         case 'DEFAULT':
+        case 'EYES_FREE':
             parseUtterance(utterance, getWorkingTextFromReadIndex())
             break;
         

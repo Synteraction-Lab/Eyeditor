@@ -79,6 +79,7 @@ const renderBladeDisplay = (text, utterance) => {
         case 'DEFAULT':
         case 'DISP_ALWAYS_ON':
         case 'AOD_SCROLL':
+        case 'EYES_FREE':
             pushTextToBlade(text, utterance)
             break;
 

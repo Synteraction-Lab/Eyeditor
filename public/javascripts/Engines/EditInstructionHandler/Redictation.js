@@ -41,7 +41,8 @@ export const handleRedictation = (utterance, workingText, isDispAlwaysOnMode) =>
         else {
             if (isDispAlwaysOnMode)
                 return false;
-            else return;
+            else 
+                provideFailureFeedback(`Sorry, couldn't identify an update.`);
         }
     }
 

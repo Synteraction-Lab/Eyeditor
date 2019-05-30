@@ -85,6 +85,7 @@ document.addEventListener('keydown', function(e) {
 
     switch (feedbackConfig) {
         case 'DEFAULT':
+        case 'EYES_FREE':
             isDispAlwaysOnMode = false;
             isDispOnDemandMode = false;
 
@@ -193,7 +194,7 @@ const classifyControllerEvent = () => {
 
         case UNDO_KEY_CODE_1:
         case UNDO_KEY_CODE_2:
-            if ( isDispOnDemandMode || feedbackConfig === 'AOD_SCROLL' )
+            if ( !isDispAlwaysOnMode )
                 controllerEvent = 'UNDO'
             else if ( accKeyPresses > SCROLL_INITIATION ) {
                 if ( !hasFiredScrollEvent ) {
@@ -209,7 +210,7 @@ const classifyControllerEvent = () => {
 
         case REDO_KEY_CODE:
             if ( !quill.hasFocus() ) {
-                if ( feedbackConfig === 'AOD_SCROLL' )
+                if ( ['AOD_SCROLL', 'EYES_FREE'].includes(feedbackConfig) )
                     controllerEvent = 'REDO'
                 else if (isDispOnDemandMode)
                     switch ( keyPressEventStatus[REDO_KEY_CODE] ) {
@@ -223,7 +224,7 @@ const classifyControllerEvent = () => {
                             controllerEvent = 'PUSH_TO_TALK_RELEASED'
                             break;
                     }
-                else if ( accKeyPresses > SCROLL_INITIATION ) {
+                else if ( accKeyPresses > SCROLL_INITIATION ) {     // isDispAlwaysOnMode
                     if ( !hasFiredScrollEvent ) {
                         hasFiredScrollEvent = true
                         nextScrollThreshold = SCROLL_INITIATION + SCROLL_GRANULARITY
