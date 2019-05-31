@@ -7,7 +7,7 @@ import { quill } from './Services/quill.js'
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;
-var pushToBladeLock = true;    // if true => locked => push to blade.
+var pushToBladeLock = false;    // if true => locked => push to blade.
 
 export const getFeedbackConfiguration = () => feedbackConfiguration
 export const getLoadedText = () => loadedText
@@ -49,6 +49,8 @@ btn_tr2.addEventListener('click', (e) => { initMode(data.training[1], 'DISP_ALWA
 
 btn_test.addEventListener('click', (e) => { initMode(data.training[1], 'DEFAULT') })
 btn_read.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
+
+btn_t1.addEventListener('click', (e) => { initMode(data.training[0], 'AOD_SCROLL') })
 
 mic.addEventListener('click', (e) => {
     if (mic.checked)
