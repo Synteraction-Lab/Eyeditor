@@ -2,8 +2,8 @@ import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { getFeedbackConfiguration } from '../main.js'
-import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, getCurrentWorkingText, feedbackOnToggleDisplayState, fireDisplayOffRoutine } from '../Engines/FeedbackHandler.js'
-import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading, readFromIndex } from '../Engines/AudioFeedbackHandler.js';
+import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState } from '../Engines/FeedbackHandler.js'
+import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
 import { getBargeinIndex } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 
@@ -358,10 +358,7 @@ const handleControllerEvent = (event) => {
             break;
 
         case 'TOGGLE_READ_STATE':
-            if ( isDisplayON() )
-                fireDisplayOffRoutine(true)
-            if ( !wasTTSReading )
-                readFromIndex( getCurrentWorkingText().startIndex )
+            feedbackOnToggleReadState()
             break;
 
         case 'TOGGLE_DISPLAY_STATE':

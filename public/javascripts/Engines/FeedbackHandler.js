@@ -5,7 +5,7 @@ import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js'
 import { getWorkingTextFromReadIndex } from './UtteranceParser.js';
-import { resumeReadAfterDisplayTimeout } from './AudioFeedbackHandler.js';
+import { resumeReadAfterDisplayTimeout, readFromIndex } from './AudioFeedbackHandler.js';
 import { markupSentenceForHighlight } from '../Utils/HTMLParser.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
@@ -266,11 +266,11 @@ export const setCurrentWorkingText = (sentenceIndex) => {
 }
 
 export const feedbackOnToggleDisplayState = () => {
-    if (displayON)
+    if ( displayON )
         fireDisplayOffRoutine(true)
     else {
         let workingText
-        if (getWasTTSReading()) 
+        if ( getWasTTSReading() ) 
             workingText = getWorkingTextFromReadIndex()
         else
             workingText = currentWorkingText
@@ -278,4 +278,11 @@ export const feedbackOnToggleDisplayState = () => {
         feedbackOfWorkingTextOnNavigation(workingText)
         fireDisplayOnRoutine()
     }
+}
+
+export const feedbackOnToggleReadState = () => {
+    if ( displayON )
+        fireDisplayOffRoutine(true)
+    if ( !getWasTTSReading() )
+        readFromIndex(currentWorkingText.startIndex)
 }

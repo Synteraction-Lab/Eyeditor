@@ -4,12 +4,14 @@ import { findInText } from '../../Utils/stringutils.js'
 import { handleError } from '../ErrorHandler.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 import { readNextSentence, readPrevSentence, repeatSentence, stopReading } from '../AudioFeedbackHandler.js';
-import { navigateContext, isDisplayON, fireDisplayOffRoutine, navigateWorkingText } from '../FeedbackHandler.js';
+import { navigateContext, isDisplayON, fireDisplayOffRoutine, navigateWorkingText, feedbackOnToggleDisplayState, feedbackOnToggleReadState } from '../FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../../main.js';
 
 export const handleCommand = (keyword, arg, workingText, isControllerRequest) => {
     let updateParameter;
     isControllerRequest = isControllerRequest || false;
+
+    let feedbackConfig;
 
     try {
         switch ( keyword ) {
@@ -58,12 +60,14 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
 
             case 'previous':
-                if ( getFeedbackConfiguration() === 'AOD_SCROLL' ) {
+                feedbackConfig = getFeedbackConfiguration()
+
+                if ( feedbackConfig === 'AOD_SCROLL' || feedbackConfig === 'ODD_FLEXI' && isDisplayON() ) {
                     navigateWorkingText('PREV')
                     return;
                 }
                 else {
-                    if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
+                    if ( feedbackConfig === 'DISP_ON_DEMAND' && isDisplayON() )
                         fireDisplayOffRoutine(true)
                 
                     readPrevSentence(true)
@@ -71,12 +75,14 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
             
             case 'next':
-                if (getFeedbackConfiguration() === 'AOD_SCROLL') {
+                feedbackConfig = getFeedbackConfiguration()
+
+                if ( feedbackConfig === 'AOD_SCROLL' || feedbackConfig === 'ODD_FLEXI' && isDisplayON() ) {
                     navigateWorkingText('NEXT')
                     return;
                 }
                 else {
-                    if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
+                    if ( feedbackConfig === 'DISP_ON_DEMAND' && isDisplayON() )
                         fireDisplayOffRoutine(true)
 
                     readNextSentence(true)
@@ -88,7 +94,15 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
 
             case 'cancel':
-                stopReading()
+                if ( getFeedbackConfiguration() === 'ODD_FLEXI' && isDisplayON() )
+                    feedbackOnToggleReadState()
+                else
+                    stopReading()
+                break;
+
+            case 'show':
+                if ( getFeedbackConfiguration() === 'ODD_FLEXI' )
+                    feedbackOnToggleDisplayState()
                 break;
         }
     }
