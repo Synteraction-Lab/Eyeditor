@@ -52,7 +52,7 @@ export const fireDisplayOffRoutine = (suppressRead) => {
 }
 
 const fireDisplayOnRoutine = () => {
-    if ( getFeedbackConfiguration() === 'DISPLAY_ON_DEMAND' )
+    if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' )
         timer.start({ countdown: true, startValues: { seconds: MAX_DISPLAY_ON_TIME } })
         
     displayON = true

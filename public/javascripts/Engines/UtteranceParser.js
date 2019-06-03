@@ -51,8 +51,13 @@ export const handleUtterance = (utterance) => {
                     isTextShowing = isDisplayON()
                     if (isTextShowing)
                         workingText = getCurrentWorkingText()
-                    else    // end of final sentence when TTS not reading, display not showing 
-                        workingText = getCurrentWorkingText( setCurrentWorkingText(getSentenceCount(quill.getText()) - 1) )
+                    else {    // end of final sentence when TTS not reading and display not showing or before reading has started
+                        let sentenceIndex
+                        if ( !tts.getTTSReadStartedFlag() )
+                                sentenceIndex = 0
+                        else    sentenceIndex = getSentenceCount(quill.getText()) - 1
+                        workingText = getCurrentWorkingText( setCurrentWorkingText(sentenceIndex) )
+                    }
                     if (!isTextShowing)
                         feedbackOfWorkingTextOnUserUtterance(workingText)
                     parseUtterance(utterance, workingText)
