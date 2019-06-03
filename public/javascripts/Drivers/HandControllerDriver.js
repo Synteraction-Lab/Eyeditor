@@ -2,8 +2,8 @@ import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { getFeedbackConfiguration } from '../main.js'
-import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext } from '../Engines/FeedbackHandler.js'
-import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
+import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, getCurrentWorkingText, feedbackOnToggleDisplayState, fireDisplayOffRoutine } from '../Engines/FeedbackHandler.js'
+import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading, readFromIndex } from '../Engines/AudioFeedbackHandler.js';
 import { getBargeinIndex } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 
@@ -22,6 +22,7 @@ const undoKeyCodes = [UNDO_KEY_CODE_1, UNDO_KEY_CODE_2]
 const SCROLL_INITIATION = 3         // measured in no. of keypresses
 const SCROLL_GRANULARITY = 7       // measured in no. of keypresses
 const AUTOSCROLL_CHUNK_SIZE = 2     // scroll up/down if navigating backward/forward by 2 sentences.
+const feedbackModesThatSupportUndoRedoLongPressEvent = ['DISP_ON_DEMAND', 'AOD_SCROLL', 'ODD_FLEXI']
 
 const KEY_PRESS_EVENT_TYPES = {
     short: 0,
@@ -76,7 +77,7 @@ document.addEventListener('keydown', function(e) {
     feedbackConfig = getFeedbackConfiguration()
 
     /* reject multiple undos/redos */
-    if ( ['DISP_ON_DEMAND', 'AOD_SCROLL'].includes(feedbackConfig) && keyStatus[e.keyCode] && keysThatSupportLongPressEvent.includes(e.keyCode) && keyStatus[e.keyCode] === SWITCH.on )
+    if ( feedbackModesThatSupportUndoRedoLongPressEvent.includes(feedbackConfig) && keyStatus[e.keyCode] && keysThatSupportLongPressEvent.includes(e.keyCode) && keyStatus[e.keyCode] === SWITCH.on )
         return;
 
     accKeyPresses = accKeyPresses + 1
@@ -126,6 +127,18 @@ document.addEventListener('keydown', function(e) {
             else
                 handleControllerEvent(classifyControllerEvent())
             break;
+
+        case 'ODD_FLEXI':
+            wasTTSReading = tts.isReading()
+            tts.pause()
+
+            initKeysThatSupportLongPressEvent()
+
+            if (keysThatSupportLongPressEvent.includes(e.keyCode))
+                longPressTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: LONG_PRESS_TRIGGER_DELAY } });
+            else
+                handleControllerEvent(classifyControllerEvent())
+            break;
     }
 })
 
@@ -133,7 +146,7 @@ document.addEventListener('keyup', function (e) {
     keyStatus[e.keyCode] = SWITCH.off
     // console.log('::::::::: accKeyPresses', accKeyPresses)
     
-    if ( isDispOnDemandMode || feedbackConfig === 'AOD_SCROLL' ) {
+    if ( feedbackModesThatSupportUndoRedoLongPressEvent.includes(feedbackConfig) ) {
         if ( keyPressEventStatus[e.keyCode] === KEY_PRESS_EVENT_TYPES.short )
             handleControllerEvent(classifyControllerEvent())
     
@@ -171,30 +184,53 @@ const classifyControllerEvent = () => {
 
     switch(lastKeyPressCode) {
         case LEFT_KEY_CODE:
-            if (!isDispAlwaysOnMode)
-                if ( isDispOnDemandMode && isDisplayON() || feedbackConfig === 'AOD_SCROLL' )
+            if (!isDispAlwaysOnMode) {
+                if ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() || feedbackConfig === 'AOD_SCROLL' )
                     controllerEvent = 'WORKING_TEXT_PREV'
-                else
+                else if ( feedbackConfig === 'ODD_FLEXI' ) {
+                    if ( accKeyPresses >= MIN_KEY_PRESSES_FOR_READ_FROM_START )
+                            controllerEvent = 'READ_FROM_BEGINNING'
+                    else    controllerEvent = 'READ_PREV'
+                }
+                else {
                     if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() || accKeyPresses >= MIN_KEY_PRESSES_FOR_READ_FROM_START )
                             controllerEvent = 'READ_FROM_BEGINNING'
                     else    controllerEvent = 'READ_PREV'
-            else    controllerEvent = 'CONTEXT_PREV'
+                }
+            }
+            else    
+                controllerEvent = 'CONTEXT_PREV'
             break;
 
         case RIGHT_KEY_CODE:
-            if (!isDispAlwaysOnMode)
-                if ( isDispOnDemandMode && isDisplayON() || feedbackConfig === 'AOD_SCROLL' )
+            if (!isDispAlwaysOnMode) {
+                if ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() || feedbackConfig === 'AOD_SCROLL' )
                     controllerEvent = 'WORKING_TEXT_NEXT'
-                else
+                else if ( feedbackConfig === 'ODD_FLEXI' )
+                    controllerEvent = 'READ_NEXT'
+                else {
                     if ( interruptIndex == 0 && !tts.getTTSReadStartedFlag() )
                             controllerEvent = 'READ_FROM_BEGINNING'
                     else    controllerEvent = 'READ_NEXT'
-            else    controllerEvent = 'CONTEXT_NEXT'
+                }
+            }
+            else    
+                controllerEvent = 'CONTEXT_NEXT'
             break;
 
         case UNDO_KEY_CODE_1:
         case UNDO_KEY_CODE_2:
-            if ( !isDispAlwaysOnMode )
+            if (feedbackConfig === 'ODD_FLEXI') {
+                switch (keyPressEventStatus[lastKeyPressCode]) {
+                    case KEY_PRESS_EVENT_TYPES.short:
+                        controllerEvent = 'TOGGLE_READ_STATE'
+                        break;
+                    case KEY_PRESS_EVENT_TYPES.longPressed:
+                        controllerEvent = 'UNDO'
+                        break;
+                }
+            }
+            else if ( !isDispAlwaysOnMode )
                 controllerEvent = 'UNDO'
             else if ( accKeyPresses > SCROLL_INITIATION ) {
                 if ( !hasFiredScrollEvent ) {
@@ -212,13 +248,13 @@ const classifyControllerEvent = () => {
             if ( !quill.hasFocus() ) {
                 if ( ['AOD_SCROLL', 'EYES_FREE'].includes(feedbackConfig) )
                     controllerEvent = 'REDO'
-                else if (isDispOnDemandMode)
+                else if ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) )
                     switch ( keyPressEventStatus[REDO_KEY_CODE] ) {
                         case KEY_PRESS_EVENT_TYPES.short:
-                            controllerEvent = 'REDO'
+                            controllerEvent = (isDispOnDemandMode) ? 'REDO' : 'TOGGLE_DISPLAY_STATE'
                             break;
                         case KEY_PRESS_EVENT_TYPES.longPressed:
-                            controllerEvent = 'PUSH_TO_TALK_ENGAGED'
+                            controllerEvent = (isDispOnDemandMode) ? 'PUSH_TO_TALK_ENGAGED' : 'REDO'
                             break;
                         case KEY_PRESS_EVENT_TYPES.longReleased:
                             controllerEvent = 'PUSH_TO_TALK_RELEASED'
@@ -238,7 +274,7 @@ const classifyControllerEvent = () => {
             break;
     }
 
-    // console.log('controllerEvent', controllerEvent)
+    console.log('controllerEvent', controllerEvent)
     return controllerEvent;
 }
 
@@ -319,6 +355,17 @@ const handleControllerEvent = (event) => {
         case 'SCROLL_DOWN':
             // console.log('SCROLL_DOWN Event Fired.')
             sendScrollEvent('DOWN')
+            break;
+
+        case 'TOGGLE_READ_STATE':
+            if ( isDisplayON() )
+                fireDisplayOffRoutine(true)
+            if ( !wasTTSReading )
+                readFromIndex( getCurrentWorkingText().startIndex )
+            break;
+
+        case 'TOGGLE_DISPLAY_STATE':
+            feedbackOnToggleDisplayState()
             break;
 
         default:

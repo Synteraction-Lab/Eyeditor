@@ -22,6 +22,7 @@ let exemptedTriggerKeywords = ['previous', 'next', 'cancel']
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText
 export const getCurrentWorkingTextSentenceIndex = () => workingTextSentenceIndex || 0
+export const setCurrentWorkingTextSentenceIndex = (sentenceIndex) => { workingTextSentenceIndex = sentenceIndex };
 export const getCurrentContext = () => currentContext
 
 const getCurrentText = () => currentText
@@ -51,7 +52,9 @@ export const fireDisplayOffRoutine = (suppressRead) => {
 }
 
 const fireDisplayOnRoutine = () => {
-    timer.start({ countdown: true, startValues: { seconds: MAX_DISPLAY_ON_TIME } })
+    if ( getFeedbackConfiguration() === 'DISPLAY_ON_DEMAND' )
+        timer.start({ countdown: true, startValues: { seconds: MAX_DISPLAY_ON_TIME } })
+        
     displayON = true
 }
 
@@ -82,7 +85,14 @@ const renderBladeDisplay = (text, utterance) => {
         case 'EYES_FREE':
             pushTextToBlade(text, utterance)
             break;
-
+        
+        case 'ODD_FLEXI':
+            if (!displayON && isReceivedTextNull)
+                pushTextToBlade(null, utterance)
+            else
+                pushTextToBlade(text, utterance)
+            break;
+        
         case 'DISP_ON_DEMAND':
             if (!utterance)
                 pushTextToBlade(text, null)
@@ -114,12 +124,20 @@ export const feedbackOnTextLoad = () => {
             feedbackOnContextNavigation(0, 'ON_TEXT_LOAD')
             break;
         case 'DISP_ON_DEMAND':
+        case 'EYES_FREE':
             renderBladeDisplayBlank()
             break;
         case 'AOD_SCROLL':
             setTimeout( () => {
                 setCurrentWorkingText()
                 feedbackOfWorkingTextOnNavigation()
+            }, 50)
+            break;
+        case 'ODD_FLEXI':
+            setTimeout(() => {
+                setCurrentWorkingText()
+                feedbackOfWorkingTextOnNavigation()
+                fireDisplayOnRoutine()
             }, 50)
             break;
     }
@@ -132,6 +150,7 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText, callString) =>
         case 'DEFAULT':
         case 'DISP_ALWAYS_ON':
         case 'AOD_SCROLL':
+        case 'ODD_FLEXI':
             break;
         case 'DISP_ON_DEMAND':
             currentWorkingText = Object.assign({}, workingText)
@@ -147,7 +166,7 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText, callString) =>
 
 const feedbackOfWorkingTextOnNavigation = () => {
     renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), currentWorkingText.text ), 'forceClear' )
-    if (getFeedbackConfiguration() !== 'AOD_SCROLL')
+    if (getFeedbackConfiguration() === 'DISP_ON_DEMAND')
         timer.reset()   // at this point display and hence, timer was on, so reset, and do not need to set displayON
 }
 
@@ -165,6 +184,12 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
         case 'AOD_SCROLL':
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
             setCurrentWorkingText()
+            break;
+        case 'ODD_FLEXI':
+            if (displayON) {
+                renderBladeDisplay(getColorCodedTextHTML(getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex), updatedSentence))
+                setCurrentWorkingText()
+            }
             break;
     }
 }
@@ -237,5 +262,20 @@ export const setCurrentWorkingText = (sentenceIndex) => {
     currentWorkingText = {
         text: getSentenceGivenSentenceIndex(quill.getText(), sentenceIndex),
         startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), sentenceIndex).start
+    }
+}
+
+export const feedbackOnToggleDisplayState = () => {
+    if (displayON)
+        fireDisplayOffRoutine(true)
+    else {
+        let workingText
+        if (getWasTTSReading()) 
+            workingText = getWorkingTextFromReadIndex()
+        else
+            workingText = currentWorkingText
+
+        feedbackOfWorkingTextOnNavigation(workingText)
+        fireDisplayOnRoutine()
     }
 }

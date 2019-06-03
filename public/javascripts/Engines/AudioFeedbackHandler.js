@@ -23,7 +23,7 @@ export const readTextOnUpdate = (updateParameter) => {
     let feedbackConfig = getFeedbackConfiguration()
     if (    feedbackConfig === 'DISP_ALWAYS_ON'
         ||  feedbackConfig === 'AOD_SCROLL'
-        || (feedbackConfig === 'DISP_ON_DEMAND' && isDisplayON())
+        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )
         ||  getPTTStatus() === 'PTT_ON' )
         return;
     else
@@ -34,7 +34,7 @@ export const readTextOnFailedUpdate = () => {
     let feedbackConfig = getFeedbackConfiguration()
     if (    feedbackConfig === 'DISP_ALWAYS_ON'
         ||  feedbackConfig === 'AOD_SCROLL'
-        || (feedbackConfig === 'DISP_ON_DEMAND' && isDisplayON())
+        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )
         ||  getPTTStatus() === 'PTT_ON' )
         return;
     else 
@@ -61,7 +61,7 @@ export const readPrevSentence = (isVoiceRequest) => {
             currentSentenceIndices = getSentenceIndices(quill.getText(), currentSentenceIndices.start - 2)
         tts.read(currentSentenceIndices.start)
     }
-    else if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' ) {
+    else if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' || getFeedbackConfiguration() === 'ODD_FLEXI' ) {
         let workingTextSentenceIndex = getCurrentWorkingTextSentenceIndex() - 1
         if (workingTextSentenceIndex < 0)   workingTextSentenceIndex = 0
         tts.read(getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start)
@@ -80,7 +80,7 @@ export const readNextSentence = (isVoiceRequest) => {
         }
         tts.read(currentSentenceIndices.start)
     }
-    else if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' )
+    else if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' || getFeedbackConfiguration() === 'ODD_FLEXI' )
         resumeReadAfterDisplayTimeout()
 }
 
@@ -90,8 +90,6 @@ export const repeatSentence = () => {
     tts.read(currentSentenceIndices.start)
 }
 
-export const readFromStart = () => {
-    tts.read(READ_RESTART_INDEX)
-}
-
 export const stopReading = () => { tts.pause() }
+export const readFromStart = () => { tts.read(READ_RESTART_INDEX) }
+export const readFromIndex = (index) => { tts.read(index) }

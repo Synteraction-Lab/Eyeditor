@@ -1,4 +1,6 @@
 import { quill } from './quill.js'
+import { setCurrentWorkingText, setCurrentWorkingTextSentenceIndex } from '../Engines/FeedbackHandler.js';
+import { getSentenceIndexGivenCharIndexPosition } from '../Utils/stringutils.js';
 
 // global variables
 var voice;
@@ -10,6 +12,8 @@ var TTSRelativeReadIndex
 var TTSAbsoluteReadIndex
 var TTSReadStartedFlag = false
 var TTSReadFlag
+
+let lastSentenceIndexRead; 
 
 /* Speech synthesizer setup */
 export function setup() {
@@ -71,9 +75,21 @@ synthUtterance.onend = function(event) {
 };
 
 synthUtterance.onboundary = function(event) {
-    if (event.target.rate.toFixed(1) == TEXT_READ_RATE)
+    if (event.target.rate.toFixed(1) == TEXT_READ_RATE) {
+        let interruptIndex, currentSentenceIndexReading;
+
         TTSRelativeReadIndex = event.charIndex
-};
+        interruptIndex = (TTSAbsoluteReadIndex + TTSRelativeReadIndex) || 0
+        currentSentenceIndexReading = getSentenceIndexGivenCharIndexPosition(quill.getText(), interruptIndex)
+
+        if (currentSentenceIndexReading !== lastSentenceIndexRead) {
+            // console.log('Current sentence index reading:', currentSentenceIndexReading)
+            lastSentenceIndexRead = currentSentenceIndexReading
+            setCurrentWorkingTextSentenceIndex(currentSentenceIndexReading)
+            setCurrentWorkingText(currentSentenceIndexReading)
+        }
+    }
+}
 
 synthUtterance.onerror = function(event) {
     console.log('An error has occurred with the speech synthesis: ' + event.error);

@@ -18,6 +18,7 @@ let quillSnapshotBeforeUpdate
 let TTSReadStateBeforeUtterance
 let TTSReadStates
 let workingText
+let isTextShowing
 
 export const getBargeinIndex = () => ( tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex() ) || 0;
 export const getQuillSnapshotBeforeUpdate = () => quillSnapshotBeforeUpdate;
@@ -47,7 +48,7 @@ export const handleUtterance = (utterance) => {
                     parseUtterance(utterance, workingText)
                 } 
                 else {
-                    let isTextShowing = isDisplayON()
+                    isTextShowing = isDisplayON()
                     if (isTextShowing)
                         workingText = getCurrentWorkingText()
                     else    // end of final sentence when TTS not reading, display not showing 
@@ -70,6 +71,22 @@ export const handleUtterance = (utterance) => {
                 startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), workingTextSentenceIndex).start
             }
             parseUtterance(utterance, workingText)
+            break;
+
+        case 'ODD_FLEXI':
+            if (TTSReadStateBeforeUtterance === TTSReadStates.READING) {
+                workingText = getWorkingTextFromReadIndex()
+                parseUtterance(utterance, workingText)
+            }
+            else {
+                isTextShowing = isDisplayON()
+                if (isTextShowing)
+                    workingText = getCurrentWorkingText()
+                else    // end of final sentence when TTS not reading, display not showing 
+                    workingText = getCurrentWorkingText(setCurrentWorkingText(getSentenceCount(quill.getText()) - 1))
+                
+                parseUtterance(utterance, workingText)
+            }
             break;
     }
 }
