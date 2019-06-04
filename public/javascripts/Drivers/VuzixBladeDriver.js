@@ -21,7 +21,7 @@ const LAYOUT_CONSTANTS = {
     FILL_VERTICAL: 112
 }
 
-const displayConfigsThatSupportVariableLayout = ['DISP_ON_DEMAND', 'AOD_SCROLL']
+const displayConfigsThatSupportVariableLayout = ['DISP_ON_DEMAND', 'AOD_SCROLL', 'ODD_FLEXI']
 
 export const setDataObjectLayoutHeader = () => {
     if ( displayConfigsThatSupportVariableLayout.includes(getFeedbackConfiguration()) )
