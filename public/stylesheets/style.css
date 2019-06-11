@@ -120,3 +120,16 @@ div.transcript {
   color: #f7ffd9;
   font-weight: 400; 
 } */
+
+canvas {
+	display: block;
+  margin: 0 auto;
+	border: 1px solid black;
+}
+
+#tracker {
+	position: absolute;
+	top: 0;
+	right: 10px;
+	background-color: white;
+}
