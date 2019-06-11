@@ -43,11 +43,13 @@ function lockChangeAlert() {
     if (document.pointerLockElement === canvas ||
         document.mozPointerLockElement === canvas) {
         console.log('The pointer lock status is now locked');
-        groupEventTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: GROUP_EVENT_WINDOW } });
-        document.addEventListener("mousemove", updatePosition, false);
+        groupEventTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: COMBINE_EVENTS_TIME_WINDOW } });
+        document.addEventListener("mousemove", updatePointerPosition, false);
+        document.addEventListener("wheel", updateScroll, false);
     } else {
         console.log('The pointer lock status is now unlocked');
-        document.removeEventListener("mousemove", updatePosition, false);
+        document.removeEventListener("mousemove", updatePointerPosition, false);
+        document.removeEventListener("wheel", updateScroll, false);
     }
 }
 
@@ -56,10 +58,12 @@ var tracker = document.getElementById('tracker');
 var animation;
 let groupEventTimer = new Timer();
 let positionArray = [];
-let rawPosX = x; 
+let rawPosX = x;
+let callScrollCounter = 0;
 
-let GROUP_EVENT_WINDOW = 1 // 100ms
-let MOVEMENT_THRESHOLD_FOR_CLASSIFICATION = canvas.width
+let COMBINE_EVENTS_TIME_WINDOW = 1;   // 100ms
+let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = canvas.width;
+let THRESHOLD_FOR_WHEEL_MOVEMENT_CLASSIFICATION = 20;
 
 groupEventTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('groupEventTimer ::', groupEventTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
@@ -68,20 +72,12 @@ groupEventTimer.addEventListener('secondTenthsUpdated', function (e) {
 groupEventTimer.addEventListener('targetAchieved', function (e) {
     groupEventTimer.stop()
     console.log('position array', positionArray)
-    classifyMovement()
+    classifyPointerMovement()
     positionArray = [];
     rawPosX = x;
 });
 
-function updatePosition(e) {
-    x += e.movementX;
-    y += e.movementY;
-
-    rawPosX += e.movementX
-
-    groupEventTimer.reset()
-    positionArray.push(rawPosX)
-
+function updateCanvas() {
     if (x > canvas.width + RADIUS) {
         x = -RADIUS;
     }
@@ -94,6 +90,7 @@ function updatePosition(e) {
     if (y < -RADIUS) {
         y = canvas.height + RADIUS;
     }
+
     tracker.textContent = "X position: " + x + ", Y position: " + y;
 
     if (!animation) {
@@ -104,12 +101,36 @@ function updatePosition(e) {
     }
 }
 
-const classifyMovement = () => {
-    let deltaMovement = positionArray[positionArray.length - 1] - positionArray[0]
-
-    if ( deltaMovement > MOVEMENT_THRESHOLD_FOR_CLASSIFICATION )
-        console.log('RIGHT', deltaMovement)
+function updatePointerPosition(e) {
+    x += e.movementX;
+    y += e.movementY;
+    updateCanvas();
     
-    if ( deltaMovement < -MOVEMENT_THRESHOLD_FOR_CLASSIFICATION )
+    groupEventTimer.reset()
+    rawPosX += e.movementX;
+    positionArray.push(rawPosX)
+}
+
+const classifyPointerMovement = () => {
+    let deltaMovement = positionArray[positionArray.length - 1] - positionArray[0]
+    console.log('deltaMovement', deltaMovement)
+
+    if ( deltaMovement > THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION )
+        console.log('RIGHT', deltaMovement)
+    else if ( deltaMovement < -THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION )
         console.log('LEFT', deltaMovement)
+}
+
+function updateScroll(e) {
+    x += e.deltaX;
+    y += e.deltaY;
+    updateCanvas();
+
+    if (e.deltaX !== 0)
+        callScrollCounter += 1;
+
+    if (e.deltaX > 0)
+        console.log(callScrollCounter, 'LEFT', e.deltaX)
+    else if (e.deltaX < 0)
+        console.log(callScrollCounter, 'RIGHT', e.deltaX)
 }
