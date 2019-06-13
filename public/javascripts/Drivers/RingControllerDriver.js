@@ -10,14 +10,18 @@ import { sendScrollEvent } from './VuzixBladeDriver.js';
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
 const RIGHT_KEY_CODE = 190
+const CENTER_KEY_CODE = 116
+
 const LONG_PRESS_TRIGGER_DELAY = 3 // 0.3 seconds = 300ms
 const MIN_KEY_PRESSES_FOR_READ_FROM_START = 4
-const keyStatus = {}    // on or off
-const keyPressEventStatus = {}    // short/long_pressed/long_released
-const keysThatSupportLongPressEvent = [RIGHT_KEY_CODE]
+
 const SCROLL_INITIATION = 3         // measured in no. of keypresses
 const SCROLL_GRANULARITY = 7       // measured in no. of keypresses
 const AUTOSCROLL_CHUNK_SIZE = 2     // scroll up/down if navigating backward/forward by 2 sentences.
+
+const keyStatus = {}    // on or off
+const keyPressEventStatus = {}    // short/long_pressed/long_released
+const keysThatSupportLongPressEvent = [RIGHT_KEY_CODE, CENTER_KEY_CODE]
 
 const KEY_PRESS_EVENT_TYPES = {
     short: 0,
@@ -43,6 +47,7 @@ let currentContext;
 let lastSavedContext = 0;
 let feedbackConfig;
 let controllerMode = 'DEFAULT';
+let feedbackModality = 'DISP';     // 'DISP', 'AUDIO'
 
 // export const getPTTStatus = () => {
 //     if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
@@ -52,11 +57,22 @@ let controllerMode = 'DEFAULT';
 // }
 
 export const getWasTTSReading = () => wasTTSReading;
+export const getControllerMode = () => controllerMode;
 export const toggleControllerMode = () => {
     controllerMode = (controllerMode === 'DEFAULT') ? 'EDIT' : 'DEFAULT'
     console.log('Controller Mode Changed ::', controllerMode)
 }
-export const getControllerMode = () => controllerMode;
+export const getFeedbackModality = () => feedbackModality;
+export const toggleFeedbackModality = () => { 
+    feedbackModality = (feedbackModality === 'DISP') ? 'AUDIO' : 'DISP' 
+    toggleFeedbackState();
+}
+export const toggleFeedbackState = () => {
+    if (feedbackModality === 'DISP')
+        feedbackOnToggleDisplayState();
+    else if (feedbackModality === 'AUDIO')
+        feedbackOnToggleReadState();
+}
 
 // longPressTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('longPressTimer ::', longPressTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
@@ -172,16 +188,55 @@ export const classifyControllerEvent = (trackPadEvent) => {
                 default:
                     switch(eventReceived) {
                         case 'TRACK_LEFT':
-                            controllerEvent = (isDisplayON()) ? 'WORKING_TEXT_PREV' : 'READ_PREV'
+                            wasTTSReading = tts.isReading()
+                            tts.pause()
+                            if (feedbackModality === 'DISP') {
+                                if (isDisplayON())
+                                    controllerEvent = 'WORKING_TEXT_PREV'
+                                else
+                                    controllerEvent = 'TOGGLE_FEEDBACK_STATE'
+                            }
+                            else if (feedbackModality === 'AUDIO')
+                                controllerEvent = 'READ_PREV'
                             break;
 
                         case UP_KEY_CODE:
-                            controllerEvent = (isDisplayON()) ? 'WORKING_TEXT_PREV' : ( (accKeyPresses >= MIN_KEY_PRESSES_FOR_READ_FROM_START) ? 'READ_FROM_BEGINNING' : 'READ_PREV' )
+                            if (feedbackModality === 'DISP') {
+                                if (isDisplayON())
+                                    controllerEvent = 'WORKING_TEXT_PREV'
+                                else
+                                    controllerEvent = 'TOGGLE_FEEDBACK_STATE'
+                            }
+                            else if (feedbackModality === 'AUDIO') {
+                                if (accKeyPresses >= MIN_KEY_PRESSES_FOR_READ_FROM_START)
+                                    controllerEvent = 'READ_FROM_BEGINNING'
+                                else 
+                                    controllerEvent = 'READ_PREV'
+                            }
                             break;
                         
                         case 'TRACK_RIGHT':
+                            wasTTSReading = tts.isReading()
+                            tts.pause()
+                            if (feedbackModality === 'DISP') {
+                                if (isDisplayON())
+                                    controllerEvent = 'WORKING_TEXT_NEXT'
+                                else
+                                    controllerEvent = 'TOGGLE_FEEDBACK_STATE'
+                            }
+                            else if (feedbackModality === 'AUDIO')
+                                controllerEvent = 'READ_NEXT'
+                            break;
+
                         case DOWN_KEY_CODE:
-                            controllerEvent = (isDisplayON()) ? 'WORKING_TEXT_NEXT' : 'READ_NEXT'
+                            if (feedbackModality === 'DISP') {
+                                if (isDisplayON())
+                                    controllerEvent = 'WORKING_TEXT_NEXT'
+                                else
+                                    controllerEvent = 'TOGGLE_FEEDBACK_STATE'
+                            }
+                            else if (feedbackModality === 'AUDIO')
+                                controllerEvent = 'READ_NEXT'
                             break;
 
                         case RIGHT_KEY_CODE:
@@ -190,6 +245,12 @@ export const classifyControllerEvent = (trackPadEvent) => {
                             else if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
                                 controllerEvent = 'REDO'
                             break;
+
+                        case CENTER_KEY_CODE:
+                            if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                                controllerEvent = 'TOGGLE_FEEDBACK_STATE'
+                            else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                                controllerEvent = 'TOGGLE_FEEDBACK_MODALITY'
                     }
                     break;
             }
@@ -305,12 +366,12 @@ export const handleControllerEvent = (event) => {
             sendScrollEvent('DOWN')
             break;
 
-        case 'TOGGLE_READ_STATE':
-            feedbackOnToggleReadState()
+        case 'TOGGLE_FEEDBACK_MODALITY':
+            toggleFeedbackModality();
             break;
 
-        case 'TOGGLE_DISPLAY_STATE':
-            feedbackOnToggleDisplayState()
+        case 'TOGGLE_FEEDBACK_STATE':
+            toggleFeedbackState();
             break;
 
         default:

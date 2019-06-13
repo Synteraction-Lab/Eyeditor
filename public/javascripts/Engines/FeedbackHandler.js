@@ -44,12 +44,12 @@ export const fireDisplayOffRoutine = (suppressRead) => {
     suppressRead = suppressRead || false
 
     timer.stop()
-    if ( getPTTStatus() !== 'PTT_ON' ) {
+    // if ( getPTTStatus() !== 'PTT_ON' ) {
         renderBladeDisplayBlank();
         displayON = false
         if (!suppressRead)
             resumeReadAfterDisplayTimeout()
-    }
+    // }
 }
 
 const fireDisplayOnRoutine = () => {
@@ -267,8 +267,10 @@ export const setCurrentWorkingText = (sentenceIndex) => {
 }
 
 export const feedbackOnToggleDisplayState = () => {
-    if ( displayON )
+    if ( displayON ) {
         fireDisplayOffRoutine(true)
+        renderStatusOnBladeDisplay('Display Paused.')
+    }
     else {
         let workingText
         if ( getWasTTSReading() ) 
@@ -284,6 +286,14 @@ export const feedbackOnToggleDisplayState = () => {
 export const feedbackOnToggleReadState = () => {
     if ( displayON )
         fireDisplayOffRoutine(true)
-    if ( !getWasTTSReading() )
+    if ( !getWasTTSReading() ) {
         readFromIndex(currentWorkingText.startIndex)
+        renderStatusOnBladeDisplay(null)
+    }
+    else
+        renderStatusOnBladeDisplay('Reading Paused.')
+}
+
+const renderStatusOnBladeDisplay = (status) => {
+    pushTextToBlade(null, null, status)
 }

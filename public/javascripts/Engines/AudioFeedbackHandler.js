@@ -24,8 +24,8 @@ export const readTextOnUpdate = (updateParameter) => {
     let feedbackConfig = getFeedbackConfiguration()
     if (    feedbackConfig === 'DISP_ALWAYS_ON'
         ||  feedbackConfig === 'AOD_SCROLL'
-        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )
-        ||  getPTTStatus() === 'PTT_ON' )
+        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )    )
+        // ||  getPTTStatus() === 'PTT_ON' )
         return;
     else
         tts.read(getIndexOfLastPunctuation( quill.getText(), updateParameter.startIndex ) + 2)
@@ -35,8 +35,8 @@ export const readTextOnFailedUpdate = () => {
     let feedbackConfig = getFeedbackConfiguration()
     if (    feedbackConfig === 'DISP_ALWAYS_ON'
         ||  feedbackConfig === 'AOD_SCROLL'
-        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )
-        ||  getPTTStatus() === 'PTT_ON' )
+        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )    )
+        // ||  getPTTStatus() === 'PTT_ON' )
         return;
     else 
         tts.read(getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)

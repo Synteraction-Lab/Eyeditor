@@ -30,8 +30,9 @@ export const setDataObjectLayoutHeader = () => {
         dataObject.heading = `${LAYOUT_CONSTANTS.NO_GRAVITY},${LAYOUT_CONSTANTS.NO_GRAVITY}`
 }
 
-export const pushTextToBlade = (text, utterance) => {
+export const pushTextToBlade = (text, utterance, status) => {
     dataObject.html = true;
+    dataObject.status = status || null;
     dataObject.subheading = text || null;
     dataObject.content = utterance || null;
 
