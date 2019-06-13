@@ -7,7 +7,7 @@ import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, 
 import { getWasTTSReading } from '../Drivers/RingControllerDriver.js'
 import { getWorkingTextFromReadIndex } from './UtteranceParser.js';
 import { resumeReadAfterDisplayTimeout, readFromIndex } from './AudioFeedbackHandler.js';
-import { markupSentenceForHighlight } from '../Utils/HTMLParser.js';
+import { markupForPrioritizedSentence } from '../Utils/HTMLParser.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
 
@@ -200,7 +200,7 @@ const feedbackOnContextNavigation = (currentContext, callString) => {
     // console.log('colorCodedTextHTML (feedbackHandler.js)', colorCodedTextHTML)
     let colorCodedTextHTMLSentences = generateSentencesList(colorCodedTextHTML, true)
     // console.log('colorCodedTextHTMLSentences (feedbackHandler.js)', colorCodedTextHTMLSentences)
-    let renderTextHTML = colorCodedTextHTMLSentences.map((sentence, index) => (index === currentContext) ? markupSentenceForHighlight(sentence) : sentence )
+    let renderTextHTML = colorCodedTextHTMLSentences.map((sentence, index) => (index === currentContext) ? markupForPrioritizedSentence(sentence) : sentence )
     
     if (callString === 'ON_TEXT_UPDATE')
         renderBladeDisplay(renderTextHTML.join(' '))
@@ -296,4 +296,8 @@ export const feedbackOnToggleReadState = () => {
 
 const renderStatusOnBladeDisplay = (status) => {
     pushTextToBlade(null, null, status)
+}
+
+export const feedbackOnTextSelection = (selection) => {
+    renderBladeDisplay(selection)
 }

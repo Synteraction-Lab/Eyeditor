@@ -213,3 +213,17 @@ const getPunctuationInsensitiveRegex = (searchString, caller) => {
         searchRegexString = `.*(${searchRegexString})`
     return new RegExp(searchRegexString, 'gi')
 }
+
+export const splitIntoWords = (text) => text.split(/\W+/g).filter(word => word);
+
+export const getWordFromWordIndex = (text, wordIndex) => {
+    let extractWordRegexString = `^(?:\\W*\\b\\w+\\b\\W*){${wordIndex}}(\\w+)`;
+    let extractWordRegex = new RegExp(extractWordRegexString, 'gi');
+    let match = extractWordRegex.exec(text)
+
+    return {
+        word: match[1],
+        charIndex: extractWordRegex.lastIndex - match[1].length,
+        length: match[1].length
+    }
+}

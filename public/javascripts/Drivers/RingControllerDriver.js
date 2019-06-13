@@ -6,6 +6,7 @@ import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext
 import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
 import { getBargeinIndex } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
+import { moveWordCursor } from '../Engines/WordEditHandler.js';
 
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
@@ -180,12 +181,11 @@ const handleLongPressEvent = () => {
 export const classifyControllerEvent = (trackPadEvent) => {
     let controllerEvent
     let eventReceived = trackPadEvent || lastKeyPressCode
-
+    
     switch(controllerMode) {
         case 'DEFAULT':
             switch (feedbackConfig) {
                 case 'ODD_FLEXI':
-                default:
                     switch(eventReceived) {
                         case 'TRACK_LEFT':
                             wasTTSReading = tts.isReading()
@@ -259,23 +259,31 @@ export const classifyControllerEvent = (trackPadEvent) => {
         case 'EDIT':
             switch (feedbackConfig) {
                 case 'ODD_FLEXI':
-                default:
                     switch (eventReceived) {
                         case 'TRACK_LEFT':
-                            console.log('Scroll Left Event Fired.')
+                            controllerEvent = 'MOVE_WORD_CURSOR_LEFT'
                             break;
 
                         case 'TRACK_RIGHT':
-                            console.log('Scroll Right Event Fired.')
+                            controllerEvent = 'MOVE_WORD_CURSOR_RIGHT'
                             break;
 
                         case UP_KEY_CODE:
+                            controllerEvent = 'MOVE_WORD_CURSOR_LEFT'
                             break;
 
                         case DOWN_KEY_CODE:
+                            controllerEvent = 'MOVE_WORD_CURSOR_RIGHT'
                             break;
 
                         case RIGHT_KEY_CODE:
+                            if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                                controllerEvent = 'UNDO'
+                            else if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                                controllerEvent = 'REDO'
+                            break;
+
+                        case CENTER_KEY_CODE:
                             break;
                     }
                     break;
@@ -372,6 +380,14 @@ export const handleControllerEvent = (event) => {
 
         case 'TOGGLE_FEEDBACK_STATE':
             toggleFeedbackState();
+            break;
+
+        case 'MOVE_WORD_CURSOR_LEFT':
+            moveWordCursor('LEFT')
+            break;
+        
+        case 'MOVE_WORD_CURSOR_RIGHT':
+            moveWordCursor('RIGHT')
             break;
 
         default:

@@ -3,15 +3,15 @@ const colorMap = {
         'insert': '#B3E7B7',
         'delete': '#774646',
         // 'delete': '#EEBBBB',
-        'highlight': '#F9BB56'
+        'highlight': '#B3E7B7'
     },
 
     'font': {
         'delete': '#8F8F8F',
         // 'delete': '#ADACAC',
         // 'deleteBasic': '#5E5E5E',
-        'insert': '#F7E511',
-        'highlight': '#F9BB56'
+        'insert': 'black',
+        'highlight': 'black'
     }
 }
 
@@ -32,12 +32,11 @@ export const flattenHTML = (htmlString) => {
     return htmlString
 }
 
-
 export const markupForDeletion = (text) =>
     `<span style="background-color:${colorMap.background.delete}; color:${colorMap.font.delete}"><strike>${text}</strike></span>`
 
 export const markupForInsertion = (text) =>
-    `<span style="background-color:${colorMap.background.insert}; color:black">${text}</span>`
+    `<span style="background-color:${colorMap.background.insert}; color:${colorMap.font.insert}">${text}</span>`
 
 // export const markupForDeletionBasic = (text) =>
 //     `<span style="color:${colorMap.font.deleteBasic}">${text}</span>`
@@ -45,5 +44,8 @@ export const markupForInsertion = (text) =>
 // export const markupForInsertionBasic = (text) =>
 //     `<span style="color:${colorMap.font.insert}">${text}</span>`
 
-export const markupSentenceForHighlight = (sentence) =>
+export const markupForPrioritizedSentence = (sentence) =>
     `<b><u>${sentence}</u></b>`
+
+export const markupForSelection = (selection) =>
+    `<span style="background-color:${colorMap.background.highlight}; color:${colorMap.font.highlight}">${selection}</span>`
