@@ -1,3 +1,5 @@
+import { toggleControllerMode, handleControllerEvent, classifyControllerEvent } from "./RingControllerDriver.js";
+
 const RADIUS = 10;
 
 function degToRad(degrees) {
@@ -54,16 +56,16 @@ function lockChangeAlert() {
 }
 
 var tracker = document.getElementById('tracker');
-
 var animation;
+
 let groupEventTimer = new Timer();
 let positionArray = [];
 let rawPosX = x;
 let callScrollCounter = 0;
+let isPointerMode = true;
 
 let COMBINE_EVENTS_TIME_WINDOW = 1;   // 100ms
 let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = canvas.width;
-let THRESHOLD_FOR_WHEEL_MOVEMENT_CLASSIFICATION = 20;
 
 groupEventTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('groupEventTimer ::', groupEventTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
@@ -102,6 +104,12 @@ function updateCanvas() {
 }
 
 function updatePointerPosition(e) {
+    if (!isPointerMode) {
+        isPointerMode = true;
+        toggleControllerMode();
+        console.log('####### Switched to Pointer Mode #######')
+    }
+
     x += e.movementX;
     y += e.movementY;
     updateCanvas();
@@ -115,13 +123,23 @@ const classifyPointerMovement = () => {
     let deltaMovement = positionArray[positionArray.length - 1] - positionArray[0]
     console.log('deltaMovement', deltaMovement)
 
-    if ( deltaMovement > THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION )
+    if ( deltaMovement > THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION ) {
         console.log('RIGHT', deltaMovement)
-    else if ( deltaMovement < -THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION )
+        handleControllerEvent(classifyControllerEvent('TRACK_RIGHT'));
+    }
+    else if ( deltaMovement < -THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION ) {
         console.log('LEFT', deltaMovement)
+        handleControllerEvent(classifyControllerEvent('TRACK_LEFT'));
+    }
 }
 
 function updateScroll(e) {
+    if (isPointerMode) {
+        isPointerMode = false;
+        toggleControllerMode();
+        console.log('####### Switched to Wheel Mode #######')
+    }
+
     x += e.deltaX;
     y += e.deltaY;
     updateCanvas();
@@ -129,8 +147,12 @@ function updateScroll(e) {
     if (e.deltaX !== 0)
         callScrollCounter += 1;
 
-    if (e.deltaX > 0)
+    if (e.deltaX > 0) {
         console.log(callScrollCounter, 'LEFT', e.deltaX)
-    else if (e.deltaX < 0)
+        handleControllerEvent(classifyControllerEvent('TRACK_LEFT'));
+    }
+    else if (e.deltaX < 0) {
         console.log(callScrollCounter, 'RIGHT', e.deltaX)
+        handleControllerEvent(classifyControllerEvent('TRACK_RIGHT'));
+    }
 }

@@ -3,7 +3,8 @@ import { pushTextToBlade, setDataObjectLayoutHeader } from '../Drivers/VuzixBlad
 import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
-import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js'
+// import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js'
+import { getWasTTSReading } from '../Drivers/RingControllerDriver.js'
 import { getWorkingTextFromReadIndex } from './UtteranceParser.js';
 import { resumeReadAfterDisplayTimeout, readFromIndex } from './AudioFeedbackHandler.js';
 import { markupSentenceForHighlight } from '../Utils/HTMLParser.js';

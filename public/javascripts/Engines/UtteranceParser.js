@@ -7,7 +7,8 @@ import { handleRedictation } from './EditInstructionHandler/Redictation.js';
 import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex, isDisplayON, setCurrentWorkingText } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from './ErrorHandler.js'
-import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
+// import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
+// import { getPTTStatus } from '../Drivers/RingControllerDriver.js';
 import { getTTSReadStates, getTTSReadState, setTTSReadState } from '../Services/speechrecognizer.js';
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 20 // in chars

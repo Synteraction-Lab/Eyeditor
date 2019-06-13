@@ -3,7 +3,8 @@ import { quill } from '../Services/quill.js'
 import { getBargeinIndex, getWasTTSReadingBeforeUtterance } from './UtteranceParser.js'
 import { getIndexOfLastPunctuation, getSentenceIndices, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { getFeedbackConfiguration } from '../main.js';
-import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js';
+// import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js';
+import { getWasTTSReading } from '../Drivers/RingControllerDriver.js';
 import { isDisplayON, getCurrentWorkingTextSentenceIndex } from './FeedbackHandler.js';
 
 const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 12 chars of current sentence, TTS reads the prev. sentence.
