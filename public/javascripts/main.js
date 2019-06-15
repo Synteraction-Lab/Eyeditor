@@ -4,6 +4,7 @@ import { recognition } from './Services/speechrecognizer.js';
 import * as editor from './Engines/TextEditor.js'
 import { generateFuzzySetForCommands } from './Utils/fuzzymatcher.js';
 import { quill } from './Services/quill.js'
+import { setFeedbackConfigVariable } from './Drivers/RingControllerDriver.js';
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;
@@ -29,6 +30,7 @@ const initLoad = (text) => {
 
 const initMode = (data, config) => {
     feedbackConfiguration = config
+    setFeedbackConfigVariable(config)
     initLoad(data.textToCorrect)
 }
 

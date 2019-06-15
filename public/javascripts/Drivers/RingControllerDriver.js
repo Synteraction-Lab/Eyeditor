@@ -1,12 +1,11 @@
 import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
-import { getFeedbackConfiguration } from '../main.js'
 import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
 import { getBargeinIndex } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
-import { moveWordCursor } from '../Engines/WordEditHandler.js';
+import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange } from '../Engines/WordEditHandler.js';
 
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
@@ -49,6 +48,7 @@ let lastSavedContext = 0;
 let feedbackConfig;
 let controllerMode = 'DEFAULT';
 let feedbackModality = 'DISP';     // 'DISP', 'AUDIO'
+let rangeSelectionMode = false;
 
 // export const getPTTStatus = () => {
 //     if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
@@ -56,23 +56,37 @@ let feedbackModality = 'DISP';     // 'DISP', 'AUDIO'
 //     else if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longReleased )
 //         return 'PTT_OFF'
 // }
+export const setFeedbackConfigVariable = (config) => { feedbackConfig = config };
 
 export const getWasTTSReading = () => wasTTSReading;
 export const getControllerMode = () => controllerMode;
 export const toggleControllerMode = () => {
     controllerMode = (controllerMode === 'DEFAULT') ? 'EDIT' : 'DEFAULT'
     console.log('Controller Mode Changed ::', controllerMode)
+
+    if (controllerMode === 'EDIT') {
+        initEditMode();
+        if (rangeSelectionMode)
+            rangeSelectionMode = !rangeSelectionMode
+    }
 }
-export const getFeedbackModality = () => feedbackModality;
-export const toggleFeedbackModality = () => { 
+// export const getFeedbackModality = () => feedbackModality;
+const toggleFeedbackModality = () => { 
     feedbackModality = (feedbackModality === 'DISP') ? 'AUDIO' : 'DISP' 
     toggleFeedbackState();
 }
-export const toggleFeedbackState = () => {
+const toggleFeedbackState = () => {
     if (feedbackModality === 'DISP')
         feedbackOnToggleDisplayState();
     else if (feedbackModality === 'AUDIO')
         feedbackOnToggleReadState();
+}
+const toggleRangeSelectionMode = () => { 
+    rangeSelectionMode = !rangeSelectionMode
+    if (rangeSelectionMode)
+        initRange();
+    else
+        clearRange();
 }
 
 // longPressTimer.addEventListener('secondTenthsUpdated', function (e) {
@@ -89,8 +103,6 @@ const initKeysThatSupportLongPressEvent = () => {
 }
 
 document.addEventListener('keydown', function(e) {
-    feedbackConfig = getFeedbackConfiguration()
-
     /* reject multiple undos/redos */
     if ( keyStatus[e.keyCode] && keysThatSupportLongPressEvent.includes(e.keyCode) && keyStatus[e.keyCode] === SWITCH.on )
         return;
@@ -181,7 +193,11 @@ const handleLongPressEvent = () => {
 export const classifyControllerEvent = (trackPadEvent) => {
     let controllerEvent
     let eventReceived = trackPadEvent || lastKeyPressCode
-    
+
+    // console.log(`*********** Controller Mode  :: ${controllerMode} ***********`)
+    // console.log(`*********** Event Received   :: ${eventReceived} ***********`)
+    // console.log(`*********** Feedback Config  :: ${feedbackConfig} ***********`)
+
     switch(controllerMode) {
         case 'DEFAULT':
             switch (feedbackConfig) {
@@ -261,19 +277,19 @@ export const classifyControllerEvent = (trackPadEvent) => {
                 case 'ODD_FLEXI':
                     switch (eventReceived) {
                         case 'TRACK_LEFT':
-                            controllerEvent = 'MOVE_WORD_CURSOR_LEFT'
+                            controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_LEFT' : 'MOVE_WORD_CURSOR_LEFT'
                             break;
 
                         case 'TRACK_RIGHT':
-                            controllerEvent = 'MOVE_WORD_CURSOR_RIGHT'
+                            controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_RIGHT' : 'MOVE_WORD_CURSOR_RIGHT'
                             break;
 
                         case UP_KEY_CODE:
-                            controllerEvent = 'MOVE_WORD_CURSOR_LEFT'
+                            controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_LEFT' : 'MOVE_WORD_CURSOR_LEFT'
                             break;
 
                         case DOWN_KEY_CODE:
-                            controllerEvent = 'MOVE_WORD_CURSOR_RIGHT'
+                            controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_RIGHT' : 'MOVE_WORD_CURSOR_RIGHT'
                             break;
 
                         case RIGHT_KEY_CODE:
@@ -284,6 +300,8 @@ export const classifyControllerEvent = (trackPadEvent) => {
                             break;
 
                         case CENTER_KEY_CODE:
+                            if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                                controllerEvent = 'TOGGLE_RANGE_SELECTION_MODE'
                             break;
                     }
                     break;
@@ -383,11 +401,23 @@ export const handleControllerEvent = (event) => {
             break;
 
         case 'MOVE_WORD_CURSOR_LEFT':
-            moveWordCursor('LEFT')
+            moveWordCursor('LEFT');
             break;
         
         case 'MOVE_WORD_CURSOR_RIGHT':
-            moveWordCursor('RIGHT')
+            moveWordCursor('RIGHT');
+            break;
+
+        case 'TOGGLE_RANGE_SELECTION_MODE':
+            toggleRangeSelectionMode();
+            break;
+
+        case 'ALTER_SELECTION_LEFT':
+            alterSelection('LEFT');
+            break;
+
+        case 'ALTER_SELECTION_RIGHT':
+            alterSelection('RIGHT');
             break;
 
         default:

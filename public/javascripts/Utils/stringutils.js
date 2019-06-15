@@ -222,8 +222,7 @@ export const getWordFromWordIndex = (text, wordIndex) => {
     let match = extractWordRegex.exec(text)
 
     return {
-        word: match[1],
         charIndex: extractWordRegex.lastIndex - match[1].length,
-        length: match[1].length
+        charLength: match[1].length
     }
 }
