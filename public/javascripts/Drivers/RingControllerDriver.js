@@ -3,7 +3,7 @@ import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
-import { getBargeinIndex } from '../Engines/UtteranceParser.js';
+import { getBargeinIndex, handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange } from '../Engines/WordEditHandler.js';
 
@@ -302,6 +302,8 @@ export const classifyControllerEvent = (trackPadEvent) => {
                         case CENTER_KEY_CODE:
                             if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
                                 controllerEvent = 'TOGGLE_RANGE_SELECTION_MODE'
+                            else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                                controllerEvent = 'REMOVE_SELECTED_TEXT'
                             break;
                     }
                     break;
@@ -418,6 +420,10 @@ export const handleControllerEvent = (event) => {
 
         case 'ALTER_SELECTION_RIGHT':
             alterSelection('RIGHT');
+            break;
+
+        case 'REMOVE_SELECTED_TEXT':
+            handleUtteranceInEditMode('delete')
             break;
 
         default:

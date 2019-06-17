@@ -86,7 +86,8 @@ export const alterSelection = (dir) => {
 export const renderTextPostUpdate = (utterance) => {
     setWorkingText();
     // console.log('(post update) rangeStartWordIndex', rangeStartWordIndex)
-    wordCursorPosition = rangeStartWordIndex;
-    selectRange(rangeStartWordIndex + splitIntoWords(utterance).length - 1);
+    // console.log('(post update) wordCount', wordCount)
+    wordCursorPosition = (rangeStartWordIndex < wordCount) ? rangeStartWordIndex : rangeStartWordIndex - 1;
+    selectRange(wordCursorPosition + splitIntoWords(utterance).length - 1);
     setRangeSelectionMode(false);
 }

@@ -209,7 +209,7 @@ const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
     }
 }
 
-const handleUtteranceInEditMode = (utterance) => {
+export const handleUtteranceInEditMode = (utterance) => {
     let rangeObject = getSelectionRangeAbsCharIndices();
     let updateParameter;
 
