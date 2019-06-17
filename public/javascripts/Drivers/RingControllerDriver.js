@@ -88,7 +88,7 @@ const toggleRangeSelectionMode = () => {
     else
         clearRange();
 }
-
+export const setRangeSelectionMode = (state) => { rangeSelectionMode = state };
 // longPressTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('longPressTimer ::', longPressTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
 // });

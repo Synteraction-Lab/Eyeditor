@@ -8,6 +8,7 @@ import { getWasTTSReading } from '../Drivers/RingControllerDriver.js'
 import { getWorkingTextFromReadIndex } from './UtteranceParser.js';
 import { resumeReadAfterDisplayTimeout, readFromIndex } from './AudioFeedbackHandler.js';
 import { markupForPrioritizedSentence } from '../Utils/HTMLParser.js';
+import { renderTextPostUpdate } from './WordEditHandler.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
 
@@ -298,6 +299,13 @@ const renderStatusOnBladeDisplay = (status) => {
     pushTextToBlade(null, null, status)
 }
 
-export const feedbackOnTextSelection = (selection) => {
-    renderBladeDisplay(selection)
+export const feedbackOnTextSelection = (renderHTML) => {
+    renderBladeDisplay(renderHTML)
+}
+
+export const feedbackOnTextUpdateInEditMode = (utterance) => {
+    setCurrentWorkingText()
+    renderTextPostUpdate(utterance);
+    // console.log('updated Working Text', currentWorkingText.text)
+    // renderBladeDisplay(currentWorkingText.text)
 }

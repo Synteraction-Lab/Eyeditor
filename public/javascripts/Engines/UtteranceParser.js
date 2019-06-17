@@ -4,12 +4,15 @@ import * as fuzzy from '../Utils/fuzzymatcher.js'
 import { handleCommand, handleCommandPrioritizedWorkingText } from './EditInstructionHandler/Commanding.js'
 import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceGivenSentenceIndex, getSentenceCharIndicesGivenSentenceIndex, getSentenceCount } from '../Utils/stringutils.js'
 import { handleRedictation } from './EditInstructionHandler/Redictation.js';
-import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex, isDisplayON, setCurrentWorkingText } from './FeedbackHandler.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex, isDisplayON, setCurrentWorkingText, feedbackOnTextUpdateInEditMode } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from './ErrorHandler.js'
 // import { getPTTStatus } from '../Drivers/HandControllerDriver.js';
 // import { getPTTStatus } from '../Drivers/RingControllerDriver.js';
 import { getTTSReadStates, getTTSReadState, setTTSReadState } from '../Services/speechrecognizer.js';
+import { getControllerMode } from '../Drivers/RingControllerDriver.js';
+import { getSelectionRangeAbsCharIndices } from './WordEditHandler.js';
+import { deleteText, replaceText, refreshText } from './TextEditor.js';
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 20 // in chars
 const cropSelectionToBargeinIndex = false // either crop or full sentence.
@@ -27,6 +30,11 @@ export const getWorkingTextFromReadIndex = () => extractWorkingText(getBargeinIn
 export const getWasTTSReadingBeforeUtterance = () => ( TTSReadStateBeforeUtterance === TTSReadStates.READING ) ? true : false;
 
 export const handleUtterance = (utterance) => {
+    if (getControllerMode() === 'EDIT') {
+        handleUtteranceInEditMode(utterance)
+        return;
+    }
+
     TTSReadStateBeforeUtterance = getTTSReadState()
     TTSReadStates = getTTSReadStates()
     setTTSReadState( TTSReadStates.NOT_SET )
@@ -199,4 +207,31 @@ const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
         if (!isCommandComplete)
             handleError('NO_UPDATE')
     }
+}
+
+const handleUtteranceInEditMode = (utterance) => {
+    let rangeObject = getSelectionRangeAbsCharIndices();
+    let updateParameter;
+
+    if (utterance === 'delete') {
+        updateParameter = {
+            startIndex: rangeObject.startIndex,
+            length: rangeObject.endIndex - rangeObject.startIndex
+        }
+
+        deleteText(updateParameter)
+        .then(refreshText(quill.getText()));
+    }
+    else {
+        updateParameter = {
+            startIndex: rangeObject.startIndex,
+            length: rangeObject.endIndex - rangeObject.startIndex,
+            updateText: utterance
+        }
+
+        replaceText(updateParameter)
+        .then(refreshText(quill.getText()));
+    }
+
+    feedbackOnTextUpdateInEditMode(utterance);
 }
