@@ -300,12 +300,16 @@ const renderStatusOnBladeDisplay = (status) => {
 }
 
 export const feedbackOnTextSelection = (renderHTML) => {
-    renderBladeDisplay(renderHTML)
+    renderBladeDisplay(renderHTML, 'forceClear')
 }
 
 export const feedbackOnTextUpdateInEditMode = (utterance) => {
     setCurrentWorkingText()
     renderTextPostUpdate(utterance);
-    // console.log('updated Working Text', currentWorkingText.text)
-    // renderBladeDisplay(currentWorkingText.text)
+}
+
+export const feedbackOfWorkingTextAfterExitFromEditMode = () => { feedbackOfWorkingTextOnNavigation(); }
+export const feedbackOnUndoRedoInEditMode = () => {
+    setCurrentWorkingText();
+    renderTextPostUpdate(null, true);
 }

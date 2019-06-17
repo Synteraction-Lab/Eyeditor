@@ -38,8 +38,6 @@ export const moveWordCursor = (dir) => {
 }
 
 const selectRange = (selectionEndWordIndex) => {
-    // console.log('received selectionEndWordIndex', (selectionEndWordIndex==null))
-    
     let selectionStartWordIndex = wordCursorPosition;
     selectionEndWordIndex = (selectionEndWordIndex != null) ? selectionEndWordIndex : null;
 
@@ -61,7 +59,6 @@ const selectRange = (selectionEndWordIndex) => {
     // console.log('set rangeStartWordIndex', rangeStartWordIndex )
     // console.log('set rangeEndWordIndex', rangeEndWordIndex )
 
-    // console.log('sentenceRenderHTML', sentenceRenderHTML)
     feedbackOnTextSelection(sentenceRenderHTML)
 }
 
@@ -83,11 +80,14 @@ export const alterSelection = (dir) => {
     selectRange(workingEndWordIndex)
 }
 
-export const renderTextPostUpdate = (utterance) => {
+export const renderTextPostUpdate = (utterance, suppressRangeSelect) => {
     setWorkingText();
-    // console.log('(post update) rangeStartWordIndex', rangeStartWordIndex)
-    // console.log('(post update) wordCount', wordCount)
     wordCursorPosition = (rangeStartWordIndex < wordCount) ? rangeStartWordIndex : rangeStartWordIndex - 1;
-    selectRange(wordCursorPosition + splitIntoWords(utterance).length - 1);
+    
+    if (suppressRangeSelect)
+        selectRange()
+    else
+        selectRange(wordCursorPosition + splitIntoWords(utterance).length - 1);
+
     setRangeSelectionMode(false);
 }

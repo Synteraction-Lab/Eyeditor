@@ -38,6 +38,7 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
             case 'undo':
                 let indexOfUndo = editor.undo()
                 updateParameter = {startIndex: indexOfUndo}
+                // console.log('index of undo', indexOfUndo)
                 
                 if (indexOfUndo >= 0)   provideSuccessFeedback('Undone', updateParameter)
                     else                provideFailureFeedback('There is nothing more to undo.')
@@ -47,15 +48,17 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
             case 'redo':
                 let indexOfRedo = editor.redo()
                 updateParameter = {startIndex: indexOfRedo}
+                // console.log('index of redo', indexOfRedo)
                 
-                if (indexOfRedo >= 0)   
-                    provideSuccessFeedback('Redone', updateParameter)
-                else {
-                    if ( isControllerRequest && getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
-                        fireDisplayOffRoutine()
-                    else
-                        provideFailureFeedback('There is nothing more to redo.')
-                }
+                if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter)
+                    else                provideFailureFeedback('There is nothing more to redo.')
+
+                // else {
+                //     if ( isControllerRequest && getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
+                //         fireDisplayOffRoutine()
+                //     else
+                //         provideFailureFeedback('There is nothing more to redo.')
+                // }
                     
                 break;
 

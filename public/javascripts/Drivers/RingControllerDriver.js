@@ -1,7 +1,7 @@
 import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
-import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState } from '../Engines/FeedbackHandler.js'
+import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
 import { getBargeinIndex, handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
@@ -69,6 +69,9 @@ export const toggleControllerMode = () => {
         if (rangeSelectionMode)
             rangeSelectionMode = !rangeSelectionMode
     }
+    else
+        feedbackOfWorkingTextAfterExitFromEditMode();
+        
 }
 // export const getFeedbackModality = () => feedbackModality;
 const toggleFeedbackModality = () => { 
@@ -89,6 +92,7 @@ const toggleRangeSelectionMode = () => {
         clearRange();
 }
 export const setRangeSelectionMode = (state) => { rangeSelectionMode = state };
+
 // longPressTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('longPressTimer ::', longPressTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
 // });
@@ -335,10 +339,14 @@ export const handleControllerEvent = (event) => {
         
         case 'UNDO':
             handleCommand('undo');
+            if (controllerMode === 'EDIT')
+                feedbackOnUndoRedoInEditMode()
             break;
 
         case 'REDO':
             handleCommand('redo', null, null, true);
+            if (controllerMode === 'EDIT')
+                feedbackOnUndoRedoInEditMode()
             break;
 
         case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display
@@ -428,5 +436,16 @@ export const handleControllerEvent = (event) => {
 
         default:
             break;
+    }
+}
+
+export const isEditModeSupported = () => {
+    switch(feedbackConfig) {
+        case 'ODD_FLEXI':
+            if (!isDisplayON())
+                return false;
+            return true;
+        default:
+            return true;
     }
 }

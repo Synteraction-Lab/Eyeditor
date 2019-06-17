@@ -14,5 +14,8 @@ export const handleError = (code, arg) => {
         case 'NO_UPDATE':
             speakFeedback(`Nothing to update.`, TYPE_ERROR_FEEDBACK)
             break
+        case 'EDIT_MODE_NOT_SUPPORTED':
+            speakFeedback(`Edit Mode not supported in this configuration. Please switch back to the default mode.`, TYPE_ERROR_FEEDBACK)
+            break;
     }
 }

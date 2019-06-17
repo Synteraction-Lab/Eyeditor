@@ -1,4 +1,6 @@
-import { toggleControllerMode, handleControllerEvent, classifyControllerEvent } from "./RingControllerDriver.js";
+import { toggleControllerMode, handleControllerEvent, classifyControllerEvent, isEditModeSupported } from "./RingControllerDriver.js";
+import { handleError } from "../Engines/ErrorHandler.js";
+import * as tts from '../Services/tts.js'
 
 const RADIUS = 10;
 
@@ -134,6 +136,12 @@ const classifyPointerMovement = () => {
 }
 
 function updateScroll(e) {
+    if (!isEditModeSupported()) {
+        tts.pause();
+        handleError('EDIT_MODE_NOT_SUPPORTED');
+        return;
+    }
+
     if (isPointerMode) {
         isPointerMode = false;
         toggleControllerMode();
