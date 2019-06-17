@@ -3,7 +3,7 @@ const colorMap = {
         'insert': '#B3E7B7',
         'delete': '#774646',
         // 'delete': '#EEBBBB',
-        'highlight': '#B3E7B7'
+        'highlight': '#EFE02F'
     },
 
     'font': {

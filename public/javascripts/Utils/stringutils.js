@@ -8,7 +8,7 @@ export const removeLeadingNonWordChars = (text) => {
     return text
 }
 
-export const removingNonWordCharsBeforeSentenceDelimiters = (text) => {
+export const removeNonWordCharsBeforeSentenceDelimiters = (text) => {
     text = text.replace(/(\W+)([.?!])/g, '$2')
     return text
 }
@@ -29,13 +29,19 @@ export const forceFirstCharOfSentenceToUpperCase = (text) => {
     return text
 }
 
+export const forceDelimiterThenSpaceFormatOnSentenceBoundaries = (text) => {
+    text = text.replace(/(?<=[.?!])\W+(?=\s\b)/g, '')
+    return text
+}
+
 export const formatText = (text) => {
     text = text.trim()
     text = removeLeadingNonWordChars(text)
     text = appendPeriodIfMissing(text)
     text = forceMonoSpacing(text)
     text = forceFirstCharOfSentenceToUpperCase(text)
-    text = removingNonWordCharsBeforeSentenceDelimiters(text)
+    text = removeNonWordCharsBeforeSentenceDelimiters(text)
+    text = forceDelimiterThenSpaceFormatOnSentenceBoundaries(text)
     return text
 }
 
