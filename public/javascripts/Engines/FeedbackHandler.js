@@ -18,7 +18,7 @@ var displayON = false
 var workingTextSentenceIndex = 0
 var currentWorkingText
 var currentContext = 0  // context captures the sentence number/index in DISP_ALWAYS_ON mode
-let exemptedTriggerKeywords = ['previous', 'next', 'cancel']
+let exemptedTriggerKeywords = ['previous', 'next']
 
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText

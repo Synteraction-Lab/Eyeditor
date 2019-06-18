@@ -53,13 +53,6 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter)
                     else                provideFailureFeedback('There is nothing more to redo.')
 
-                // else {
-                //     if ( isControllerRequest && getFeedbackConfiguration() === 'DISP_ON_DEMAND' && isDisplayON() )
-                //         fireDisplayOffRoutine()
-                //     else
-                //         provideFailureFeedback('There is nothing more to redo.')
-                // }
-                    
                 break;
 
             case 'previous':
@@ -96,16 +89,12 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 repeatSentence()
                 break;
 
-            case 'cancel':
-                if ( getFeedbackConfiguration() === 'ODD_FLEXI' && isDisplayON() )
-                    feedbackOnToggleReadState()
-                else
-                    stopReading()
-                break;
-
             case 'show':
                 if ( getFeedbackConfiguration() === 'ODD_FLEXI' )
                     feedbackOnToggleDisplayState()
+                break;
+
+            case 'read':
                 break;
         }
     }

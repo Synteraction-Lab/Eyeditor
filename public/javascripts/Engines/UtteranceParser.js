@@ -139,18 +139,14 @@ export const extractWorkingText = (index) => {
 const parseUtterance = (utterance, workingText) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
-    let suppressedFunctions = ['repeat', 'cancel', 'show', 'stop']
-    
+    let keywordsSupported = getListOfSupportedKeywords()
     quillSnapshotBeforeUpdate = quill.getText()
 
-    if ( getFeedbackConfiguration() === 'AOD_SCROLL' && suppressedFunctions.includes(keyword) )
-        handleRedictation(utterance, workingText)
-    else if (keyword) {
+    if ( keyword && keywordsSupported.includes(keyword) ) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let fuzzyArgument = fuzzy.matchFuzzyForArgument(restOfTheUtterance, workingText.text)
         let passArgument = fuzzyArgument || restOfTheUtterance
         feedbackOnUserUtterance(keyword + ' ' + passArgument)
-
         handleCommand(keyword, passArgument, workingText)
     } 
     else
@@ -179,8 +175,9 @@ const callManagerForAlwaysOnDisplay = (utterance) => {
 const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
-    let suppressedFunctions = ['repeat', 'cancel', 'show', 'stop']
-    if ( keyword && !suppressedFunctions.includes(keyword) ) {
+    let keywordsSupported = getListOfSupportedKeywords()
+
+    if ( keyword && keywordsSupported.includes(keyword) ) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let iter, fuzzyArgument, passArgument;
         let isCommandComplete;
@@ -233,4 +230,20 @@ export const handleUtteranceInEditMode = (utterance) => {
     }
 
     feedbackOnTextUpdateInEditMode(utterance);
+}
+
+const getListOfSupportedKeywords = () => {
+    switch (getFeedbackConfiguration()) {
+        case 'EYES_FREE':
+            return ['delete', 'previous', 'next', 'repeat', 'stop', 'read']
+        case 'ODD_FLEXI':
+        case 'DISP_ON_DEMAND':
+            if (isDisplayON())
+                return ['delete', 'previous', 'next', 'read']
+            else
+                return ['delete', 'previous', 'next', 'repeat', 'show', 'stop', 'read']
+        case 'AOD_SCROLL':
+        case 'DISP_ALWAYS_ON':
+            return ['delete', 'previous', 'next']
+    }
 }

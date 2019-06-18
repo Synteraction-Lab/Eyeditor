@@ -94,9 +94,14 @@ export const stopReading = () => { tts.pause() }
 export const readFromStart = () => { tts.read(READ_RESTART_INDEX) }
 export const readFromIndex = (index) => { tts.read(index) }
 
-export const toggleRead = () => {
-    if (!getWasTTSReading()) {
-        let charIndex = getCurrentWorkingText() && getCurrentWorkingText().startIndex || 0 
-        readFromIndex(charIndex)
-    }
+// export const toggleRead = () => {
+//     if (!getWasTTSReading()) {
+//         let charIndex = getCurrentWorkingText() && getCurrentWorkingText().startIndex || 0 
+//         readFromIndex(charIndex)
+//     }
+// }
+
+export const toggleReadEyesFree = () => {
+    if (!getWasTTSReading())
+        repeatSentence()
 }

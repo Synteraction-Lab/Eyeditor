@@ -1,7 +1,7 @@
 import * as tts from '../Services/tts.js'
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
 import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode, fireDisplayOffRoutine, toggleReadToDisp, stopDisplayTimer } from '../Engines/FeedbackHandler.js'
-import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
+import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, toggleReadEyesFree } from '../Engines/AudioFeedbackHandler.js';
 import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange } from '../Engines/WordEditHandler.js';
@@ -76,6 +76,7 @@ export const toggleControllerMode = () => {
         switch (feedbackConfig) {
             case 'ODD_FLEXI':
             case 'DISP_ON_DEMAND':
+            case 'AOD_SCROLL':
                 feedbackOfWorkingTextAfterExitFromEditMode();
                 break;
         }
@@ -335,6 +336,65 @@ export const classifyControllerEvent = (trackPadEvent) => {
                             break;
                     }
                     break;
+
+                case 'AOD_SCROLL':
+                    switch (eventReceived) {
+                        case 'TRACK_LEFT':
+                        case UP_KEY_CODE:
+                            controllerEvent = 'WORKING_TEXT_PREV'
+                            break;
+
+                        case 'TRACK_RIGHT':
+                        case DOWN_KEY_CODE:
+                            controllerEvent = 'WORKING_TEXT_NEXT'
+                            break;
+
+                        case RIGHT_KEY_CODE:
+                            if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                                controllerEvent = 'UNDO'
+                            else if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                                controllerEvent = 'REDO'
+                            break;
+
+                        case CENTER_KEY_CODE:
+                            break;
+                    }
+                    break;
+
+                case 'EYES_FREE':
+                    switch (eventReceived) {
+                        case 'TRACK_LEFT':
+                            wasTTSReading = tts.isReading()
+                            tts.pause()
+                            controllerEvent = (!tts.getTTSReadStartedFlag()) ? 'READ_FROM_BEGINNING' : 'READ_PREV'
+                            break;
+
+                        case 'TRACK_RIGHT':
+                            wasTTSReading = tts.isReading()
+                            tts.pause()
+                            controllerEvent = (!tts.getTTSReadStartedFlag()) ? 'READ_FROM_BEGINNING' : 'READ_NEXT'
+                            break;
+
+                        case UP_KEY_CODE:
+                            controllerEvent = (!tts.getTTSReadStartedFlag() || accKeyPresses >= MIN_KEY_PRESSES_FOR_READ_FROM_START) ? 'READ_FROM_BEGINNING' : 'READ_PREV'
+                            break;
+                        
+                        case DOWN_KEY_CODE:
+                            controllerEvent = (!tts.getTTSReadStartedFlag()) ? 'READ_FROM_BEGINNING' : 'READ_NEXT'
+                            break;
+
+                        case RIGHT_KEY_CODE:
+                            if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                                controllerEvent = 'UNDO'
+                            else if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                                controllerEvent = 'REDO'
+                            break;
+
+                        case CENTER_KEY_CODE:
+                            controllerEvent = 'TOGGLE_READ_EYES_FREE'
+                            break;
+                    }
+                    break;
                     
             }
             break;
@@ -392,13 +452,13 @@ export const handleControllerEvent = (event) => {
             readNextSentence()
             break;
         
-        case 'STOP_TTS_READ':
-            stopReading()
-            break;
-        
         // case 'TOGGLE_READ':
         //     toggleRead()
         //     break;
+        
+        case 'TOGGLE_READ_EYES_FREE':
+            toggleReadEyesFree()
+            break;
         
         case 'TOGGLE_READ_TO_DISP':
             toggleReadToDisp()
