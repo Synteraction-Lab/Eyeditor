@@ -23,7 +23,6 @@ let exemptedTriggerKeywords = ['previous', 'next', 'cancel']
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText
 export const getCurrentWorkingTextSentenceIndex = () => workingTextSentenceIndex || 0
-export const setCurrentWorkingTextSentenceIndex = (sentenceIndex) => { workingTextSentenceIndex = sentenceIndex };
 export const getCurrentContext = () => currentContext
 
 const getCurrentText = () => currentText
@@ -183,16 +182,19 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
         case 'DISP_ALWAYS_ON':
             feedbackOnContextNavigation(currentContext, 'ON_TEXT_UPDATE')
             break;
-        case 'DISP_ON_DEMAND':
         case 'AOD_SCROLL':
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
-            setCurrentWorkingText()
+            setCurrentWorkingText(updatedSentenceIndex)
+            break;
+        case 'DISP_ON_DEMAND':
+            renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
+            fireDisplayOnRoutine()
+            setCurrentWorkingText(updatedSentenceIndex)
             break;
         case 'ODD_FLEXI':
-            if (displayON) {
-                renderBladeDisplay(getColorCodedTextHTML(getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex), updatedSentence))
-                setCurrentWorkingText()
-            }
+            if (displayON)
+                renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex), updatedSentence ) )
+            setCurrentWorkingText(updatedSentenceIndex)
             break;
     }
 }
@@ -260,12 +262,14 @@ export const feedbackOnPushToTalk = () => {
 }
 
 export const setCurrentWorkingText = (sentenceIndex) => {
-    sentenceIndex = sentenceIndex || workingTextSentenceIndex
+    sentenceIndex = (sentenceIndex != null) ? sentenceIndex : workingTextSentenceIndex
 
     currentWorkingText = {
         text: getSentenceGivenSentenceIndex(quill.getText(), sentenceIndex),
         startIndex: getSentenceCharIndicesGivenSentenceIndex(quill.getText(), sentenceIndex).start
     }
+
+    workingTextSentenceIndex = sentenceIndex
 }
 
 export const feedbackOnToggleDisplayState = () => {

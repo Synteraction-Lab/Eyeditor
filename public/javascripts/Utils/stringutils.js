@@ -101,7 +101,7 @@ export const getSentenceIndices = (text, index) => {    // input: abs index; out
 
     return new Object({
         start: startIndex || 0,
-        end: endIndex || text.length
+        end: (endIndex != null) ? endIndex : text.length
     })
 }
 
