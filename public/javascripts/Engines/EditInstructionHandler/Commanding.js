@@ -89,13 +89,17 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 repeatSentence()
                 break;
 
+            case 'read':
+                break;
+
             case 'show':
                 if ( getFeedbackConfiguration() === 'ODD_FLEXI' )
                     feedbackOnToggleDisplayState()
                 break;
 
-            case 'read':
-                break;
+            case 'hide':
+
+            
         }
     }
 

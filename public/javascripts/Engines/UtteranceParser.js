@@ -239,7 +239,7 @@ const getListOfSupportedKeywords = () => {
         case 'ODD_FLEXI':
         case 'DISP_ON_DEMAND':
             if (isDisplayON())
-                return ['delete', 'previous', 'next', 'read']
+                return ['delete', 'previous', 'next', 'read', 'hide']
             else
                 return ['delete', 'previous', 'next', 'repeat', 'show', 'stop', 'read']
         case 'AOD_SCROLL':
