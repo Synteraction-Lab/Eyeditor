@@ -3,9 +3,8 @@ import { quill } from '../Services/quill.js'
 import { getBargeinIndex, getWasTTSReadingBeforeUtterance } from './UtteranceParser.js'
 import { getIndexOfLastPunctuation, getSentenceIndices, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { getFeedbackConfiguration } from '../main.js';
-// import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js';
-import { getWasTTSReading } from '../Drivers/RingControllerDriver.js';
-import { isDisplayON, getCurrentWorkingTextSentenceIndex } from './FeedbackHandler.js';
+import { getPTTStatus, getWasTTSReading } from '../Drivers/RingControllerDriver.js';
+import { isDisplayON, getCurrentWorkingTextSentenceIndex, getCurrentWorkingText } from './FeedbackHandler.js';
 
 const prevSentenceRequestDelta = 12 // if LEFT is clicked within first 12 chars of current sentence, TTS reads the prev. sentence.
 const feedbackRate = {
@@ -24,8 +23,8 @@ export const readTextOnUpdate = (updateParameter) => {
     let feedbackConfig = getFeedbackConfiguration()
     if (    feedbackConfig === 'DISP_ALWAYS_ON'
         ||  feedbackConfig === 'AOD_SCROLL'
-        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )    )
-        // ||  getPTTStatus() === 'PTT_ON' )
+        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )
+        ||  getPTTStatus() === 'PTT_ON'     )
         return;
     else
         tts.read(getIndexOfLastPunctuation( quill.getText(), updateParameter.startIndex ) + 2)
@@ -35,8 +34,8 @@ export const readTextOnFailedUpdate = () => {
     let feedbackConfig = getFeedbackConfiguration()
     if (    feedbackConfig === 'DISP_ALWAYS_ON'
         ||  feedbackConfig === 'AOD_SCROLL'
-        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )    )
-        // ||  getPTTStatus() === 'PTT_ON' )
+        || ( ['DISP_ON_DEMAND', 'ODD_FLEXI'].includes(feedbackConfig) && isDisplayON() )
+        ||  getPTTStatus() === 'PTT_ON'     )
         return;
     else 
         tts.read(getIndexOfLastPunctuation( quill.getText(), getBargeinIndex() ) + 2)
@@ -94,3 +93,10 @@ export const repeatSentence = () => {
 export const stopReading = () => { tts.pause() }
 export const readFromStart = () => { tts.read(READ_RESTART_INDEX) }
 export const readFromIndex = (index) => { tts.read(index) }
+
+export const toggleRead = () => {
+    if (!getWasTTSReading()) {
+        let charIndex = getCurrentWorkingText() && getCurrentWorkingText().startIndex || 0 
+        readFromIndex(charIndex)
+    }
+}

@@ -1,9 +1,8 @@
 import * as tts from '../Services/tts.js'
-import { quill } from '../Services/quill.js';
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
-import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode } from '../Engines/FeedbackHandler.js'
+import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode, fireDisplayOffRoutine, toggleReadToDisp, stopDisplayTimer } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, stopReading } from '../Engines/AudioFeedbackHandler.js';
-import { getBargeinIndex, handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
+import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange } from '../Engines/WordEditHandler.js';
 
@@ -22,6 +21,7 @@ const AUTOSCROLL_CHUNK_SIZE = 2     // scroll up/down if navigating backward/for
 const keyStatus = {}    // on or off
 const keyPressEventStatus = {}    // short/long_pressed/long_released
 const keysThatSupportLongPressEvent = [RIGHT_KEY_CODE, CENTER_KEY_CODE]
+const keysThatAcknowledgeKeyUpEvent = [CENTER_KEY_CODE]
 
 const KEY_PRESS_EVENT_TYPES = {
     short: 0,
@@ -36,9 +36,8 @@ const SWITCH = {
 }
 Object.freeze(SWITCH)
 
-var longPressTimer = new Timer()
-var lastKeyPressCode
-var interruptIndex
+let longPressTimer = new Timer()
+let lastKeyPressCode
 let wasTTSReading
 let accKeyPresses = 0
 let hasFiredScrollEvent = false
@@ -50,12 +49,13 @@ let controllerMode = 'DEFAULT';
 let feedbackModality = 'DISP';     // 'DISP', 'AUDIO'
 let rangeSelectionMode = false;
 
-// export const getPTTStatus = () => {
-//     if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
-//         return 'PTT_ON'
-//     else if ( keyPressEventStatus[REDO_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longReleased )
-//         return 'PTT_OFF'
-// }
+export const getPTTStatus = () => {
+    if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+        return 'PTT_ON'
+    else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longReleased )
+        return 'PTT_OFF'
+}
+
 export const setFeedbackConfigVariable = (config) => { feedbackConfig = config };
 
 export const getWasTTSReading = () => wasTTSReading;
@@ -68,11 +68,20 @@ export const toggleControllerMode = () => {
         initEditMode();
         if (rangeSelectionMode)
             rangeSelectionMode = !rangeSelectionMode
+
+        if (feedbackConfig === 'DISP_ON_DEMAND')
+            stopDisplayTimer();
     }
-    else
-        feedbackOfWorkingTextAfterExitFromEditMode();
-        
+    else {
+        switch (feedbackConfig) {
+            case 'ODD_FLEXI':
+            case 'DISP_ON_DEMAND':
+                feedbackOfWorkingTextAfterExitFromEditMode();
+                break;
+        }
+    }
 }
+
 // export const getFeedbackModality = () => feedbackModality;
 const toggleFeedbackModality = () => { 
     feedbackModality = (feedbackModality === 'DISP') ? 'AUDIO' : 'DISP' 
@@ -120,7 +129,6 @@ document.addEventListener('keydown', function(e) {
         case 'EYES_FREE':
             wasTTSReading = tts.isReading()
             tts.pause()
-            interruptIndex = getBargeinIndex()
             
             handleControllerEvent(classifyControllerEvent())
             break;
@@ -128,7 +136,6 @@ document.addEventListener('keydown', function(e) {
         case 'DISP_ON_DEMAND':
             wasTTSReading = tts.isReading()
             tts.pause()
-            interruptIndex = getBargeinIndex()
 
             initKeysThatSupportLongPressEvent()
 
@@ -173,6 +180,12 @@ document.addEventListener('keyup', function (e) {
             handleControllerEvent(classifyControllerEvent())
     }
 
+    if ( keysThatAcknowledgeKeyUpEvent.includes(e.keyCode) && feedbackConfig === 'DISP_ON_DEMAND' 
+        && keyPressEventStatus[e.keyCode] === KEY_PRESS_EVENT_TYPES.longPressed ) {
+        keyPressEventStatus[e.keyCode] = KEY_PRESS_EVENT_TYPES.longReleased
+        handleControllerEvent(classifyControllerEvent())
+    }
+
     // else if (isDispAlwaysOnMode) {
     //     if ( undoKeyCodes.includes(e.keyCode) || e.keyCode === REDO_KEY_CODE ) {
     //         if (accKeyPresses <= 2 && !hasFiredScrollEvent)
@@ -206,7 +219,7 @@ export const classifyControllerEvent = (trackPadEvent) => {
         case 'DEFAULT':
             switch (feedbackConfig) {
                 case 'ODD_FLEXI':
-                    switch(eventReceived) {
+                    switch (eventReceived) {
                         case 'TRACK_LEFT':
                             wasTTSReading = tts.isReading()
                             tts.pause()
@@ -218,6 +231,19 @@ export const classifyControllerEvent = (trackPadEvent) => {
                             }
                             else if (feedbackModality === 'AUDIO')
                                 controllerEvent = 'READ_PREV'
+                            break;
+
+                        case 'TRACK_RIGHT':
+                            wasTTSReading = tts.isReading()
+                            tts.pause()
+                            if (feedbackModality === 'DISP') {
+                                if (isDisplayON())
+                                    controllerEvent = 'WORKING_TEXT_NEXT'
+                                else
+                                    controllerEvent = 'TOGGLE_FEEDBACK_STATE'
+                            }
+                            else if (feedbackModality === 'AUDIO')
+                                controllerEvent = 'READ_NEXT'
                             break;
 
                         case UP_KEY_CODE:
@@ -235,19 +261,6 @@ export const classifyControllerEvent = (trackPadEvent) => {
                             }
                             break;
                         
-                        case 'TRACK_RIGHT':
-                            wasTTSReading = tts.isReading()
-                            tts.pause()
-                            if (feedbackModality === 'DISP') {
-                                if (isDisplayON())
-                                    controllerEvent = 'WORKING_TEXT_NEXT'
-                                else
-                                    controllerEvent = 'TOGGLE_FEEDBACK_STATE'
-                            }
-                            else if (feedbackModality === 'AUDIO')
-                                controllerEvent = 'READ_NEXT'
-                            break;
-
                         case DOWN_KEY_CODE:
                             if (feedbackModality === 'DISP') {
                                 if (isDisplayON())
@@ -273,29 +286,36 @@ export const classifyControllerEvent = (trackPadEvent) => {
                                 controllerEvent = 'TOGGLE_FEEDBACK_MODALITY'
                     }
                     break;
-            }
-            break;
-        
-        case 'EDIT':
-            switch (feedbackConfig) {
-                case 'ODD_FLEXI':
+
+                case 'DISP_ON_DEMAND':
                     switch (eventReceived) {
                         case 'TRACK_LEFT':
-                            controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_LEFT' : 'MOVE_WORD_CURSOR_LEFT'
-                            break;
+                            wasTTSReading = tts.isReading()
+                            tts.pause()
 
+                            controllerEvent = (isDisplayON()) ? 'WORKING_TEXT_PREV' : ( (!tts.getTTSReadStartedFlag()) ? 'READ_FROM_BEGINNING' : 'READ_PREV' )
+                            break;
+                        
                         case 'TRACK_RIGHT':
-                            controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_RIGHT' : 'MOVE_WORD_CURSOR_RIGHT'
-                            break;
+                            wasTTSReading = tts.isReading()
+                            tts.pause()
 
+                            controllerEvent = (isDisplayON()) ? 'WORKING_TEXT_NEXT' : ( (!tts.getTTSReadStartedFlag()) ? 'READ_FROM_BEGINNING' : 'READ_NEXT' )
+                            break;
+                        
                         case UP_KEY_CODE:
-                            controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_LEFT' : 'MOVE_WORD_CURSOR_LEFT'
+                            if (isDisplayON())
+                                controllerEvent = 'WORKING_TEXT_PREV'
+                            else if ( !tts.getTTSReadStartedFlag() || accKeyPresses >= MIN_KEY_PRESSES_FOR_READ_FROM_START )
+                                controllerEvent = 'READ_FROM_BEGINNING'
+                            else
+                                controllerEvent = 'READ_PREV'
                             break;
-
+                        
                         case DOWN_KEY_CODE:
-                            controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_RIGHT' : 'MOVE_WORD_CURSOR_RIGHT'
+                            controllerEvent = (isDisplayON()) ? 'WORKING_TEXT_NEXT' : ( (!tts.getTTSReadStartedFlag()) ? 'READ_FROM_BEGINNING' : 'READ_NEXT' )
                             break;
-
+                        
                         case RIGHT_KEY_CODE:
                             if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
                                 controllerEvent = 'UNDO'
@@ -304,12 +324,51 @@ export const classifyControllerEvent = (trackPadEvent) => {
                             break;
 
                         case CENTER_KEY_CODE:
-                            if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
-                                controllerEvent = 'TOGGLE_RANGE_SELECTION_MODE'
+                            if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short && isDisplayON())
+                                controllerEvent = 'QUICK_DISMISS'
+                            else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                                controllerEvent = 'TOGGLE_READ_TO_DISP'
                             else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
-                                controllerEvent = 'REMOVE_SELECTED_TEXT'
+                                controllerEvent = 'PUSH_TO_TALK_ENGAGED'
+                            else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longReleased )
+                                controllerEvent = 'PUSH_TO_TALK_RELEASED'
                             break;
                     }
+                    break;
+                    
+            }
+            break;
+        
+        case 'EDIT':
+            switch (eventReceived) {
+                case 'TRACK_LEFT':
+                    controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_LEFT' : 'MOVE_WORD_CURSOR_LEFT'
+                    break;
+
+                case 'TRACK_RIGHT':
+                    controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_RIGHT' : 'MOVE_WORD_CURSOR_RIGHT'
+                    break;
+
+                case UP_KEY_CODE:
+                    controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_LEFT' : 'MOVE_WORD_CURSOR_LEFT'
+                    break;
+
+                case DOWN_KEY_CODE:
+                    controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_RIGHT' : 'MOVE_WORD_CURSOR_RIGHT'
+                    break;
+
+                case RIGHT_KEY_CODE:
+                    if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                        controllerEvent = 'UNDO'
+                    else if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                        controllerEvent = 'REDO'
+                    break;
+
+                case CENTER_KEY_CODE:
+                    if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                        controllerEvent = 'TOGGLE_RANGE_SELECTION_MODE'
+                    else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                        controllerEvent = 'REMOVE_SELECTED_TEXT'
                     break;
             }
             break;
@@ -335,6 +394,14 @@ export const handleControllerEvent = (event) => {
         
         case 'STOP_TTS_READ':
             stopReading()
+            break;
+        
+        // case 'TOGGLE_READ':
+        //     toggleRead()
+        //     break;
+        
+        case 'TOGGLE_READ_TO_DISP':
+            toggleReadToDisp()
             break;
         
         case 'UNDO':
@@ -373,6 +440,10 @@ export const handleControllerEvent = (event) => {
 
         case 'WORKING_TEXT_NEXT':
             navigateWorkingText('NEXT')
+            break;
+
+        case 'QUICK_DISMISS':
+            fireDisplayOffRoutine();
             break;
 
         case 'PUSH_TO_TALK_ENGAGED':
@@ -442,9 +513,14 @@ export const handleControllerEvent = (event) => {
 export const isEditModeSupported = () => {
     switch(feedbackConfig) {
         case 'ODD_FLEXI':
+        case 'DISP_ON_DEMAND':
             if (!isDisplayON())
                 return false;
             return true;
+        case 'AOD_SCROLL':
+            return true;
+        case 'EYES_FREE':
+            return false;
         default:
             return true;
     }

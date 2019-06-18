@@ -29,7 +29,7 @@ export const forceFirstCharOfSentenceToUpperCase = (text) => {
     return text
 }
 
-export const forceDelimiterThenSpaceFormatOnSentenceBoundaries = (text) => {
+export const removeNonWordCharsExceptSingleSpaceAtSentenceBoundaries = (text) => {
     text = text.replace(/(?<=[.?!])\W+(?=\s\b)/g, '')
     return text
 }
@@ -41,7 +41,7 @@ export const formatText = (text) => {
     text = forceMonoSpacing(text)
     text = forceFirstCharOfSentenceToUpperCase(text)
     text = removeNonWordCharsBeforeSentenceDelimiters(text)
-    text = forceDelimiterThenSpaceFormatOnSentenceBoundaries(text)
+    text = removeNonWordCharsExceptSingleSpaceAtSentenceBoundaries(text)
     return text
 }
 

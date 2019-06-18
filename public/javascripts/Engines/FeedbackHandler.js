@@ -3,8 +3,7 @@ import { pushTextToBlade, setDataObjectLayoutHeader } from '../Drivers/VuzixBlad
 import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
-// import { getPTTStatus, getWasTTSReading } from '../Drivers/HandControllerDriver.js'
-import { getWasTTSReading } from '../Drivers/RingControllerDriver.js'
+import { getPTTStatus, getWasTTSReading } from '../Drivers/RingControllerDriver.js'
 import { getWorkingTextFromReadIndex } from './UtteranceParser.js';
 import { resumeReadAfterDisplayTimeout, readFromIndex } from './AudioFeedbackHandler.js';
 import { markupForPrioritizedSentence } from '../Utils/HTMLParser.js';
@@ -38,19 +37,21 @@ timer.addEventListener('secondsUpdated', function (e) {
 });
 
 timer.addEventListener('targetAchieved', function (e) {
+    console.log('Timer expired...');
     fireDisplayOffRoutine();
 })
 
+export const stopDisplayTimer = () => { timer.stop(); }
+
 export const fireDisplayOffRoutine = (suppressRead) => {
     suppressRead = suppressRead || false
-
     timer.stop()
-    // if ( getPTTStatus() !== 'PTT_ON' ) {
+    if ( getPTTStatus() !== 'PTT_ON' ) {
         renderBladeDisplayBlank();
         displayON = false
         if (!suppressRead)
             resumeReadAfterDisplayTimeout()
-    // }
+    }
 }
 
 const fireDisplayOnRoutine = () => {
@@ -312,4 +313,19 @@ export const feedbackOfWorkingTextAfterExitFromEditMode = () => { feedbackOfWork
 export const feedbackOnUndoRedoInEditMode = () => {
     setCurrentWorkingText();
     renderTextPostUpdate(null, true);
+}
+
+export const toggleReadToDisp = () => {
+    let workingText
+    if (getWasTTSReading())
+        workingText = getWorkingTextFromReadIndex()
+    else {
+        if (!currentWorkingText)
+            setCurrentWorkingText(0)
+        
+        workingText = currentWorkingText
+    }        
+
+    fireDisplayOnRoutine()
+    feedbackOfWorkingTextOnNavigation(workingText)
 }

@@ -110,4 +110,4 @@ export const read = (index) => {    // read() reads from the quill from a given 
 }
 
 export const getTTSReadStartedFlag = () => TTSReadStartedFlag;
-export const setTTSReadStartedFlag = (flagStatus) => { TTSAbsoluteReadIndex = flagStatus; }
+export const setTTSReadStartedFlag = (flagStatus) => { TTSReadStartedFlag = flagStatus; }
