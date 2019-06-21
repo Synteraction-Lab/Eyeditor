@@ -3,15 +3,17 @@ import { quill } from '../../Services/quill.js'
 import { findInText } from '../../Utils/stringutils.js'
 import { handleError } from '../ErrorHandler.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
-import { readNextSentence, readPrevSentence, repeatSentence, stopReading } from '../AudioFeedbackHandler.js';
-import { navigateContext, isDisplayON, fireDisplayOffRoutine, navigateWorkingText, feedbackOnToggleDisplayState, feedbackOnToggleReadState } from '../FeedbackHandler.js';
+import { readNextSentence, readPrevSentence, repeatSentence, readFromIndex } from '../AudioFeedbackHandler.js';
+import { navigateContext, isDisplayON, navigateWorkingText, getCurrentWorkingText, feedbackOfWorkingTextOnNavigation, fireDisplayOffRoutine, fireDisplayOnRoutine, renderStatusOnBladeDisplay } from '../FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../../main.js';
+import { setFeedbackModality, getFeedbackModality } from '../../Drivers/RingControllerDriver.js';
+import { getWorkingTextFromReadIndex } from '../UtteranceParser.js'
 
 export const handleCommand = (keyword, arg, workingText, isControllerRequest) => {
     let updateParameter;
     isControllerRequest = isControllerRequest || false;
 
-    let feedbackConfig;
+    let feedbackConfig = getFeedbackConfiguration();
 
     try {
         switch ( keyword ) {
@@ -56,8 +58,6 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
 
             case 'previous':
-                feedbackConfig = getFeedbackConfiguration()
-
                 if ( feedbackConfig === 'AOD_SCROLL' || feedbackConfig === 'ODD_FLEXI' && isDisplayON() ) {
                     navigateWorkingText('PREV')
                     return;
@@ -71,8 +71,6 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
             
             case 'next':
-                feedbackConfig = getFeedbackConfiguration()
-
                 if ( feedbackConfig === 'AOD_SCROLL' || feedbackConfig === 'ODD_FLEXI' && isDisplayON() ) {
                     navigateWorkingText('NEXT')
                     return;
@@ -90,16 +88,54 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
 
             case 'read':
+                if ( feedbackConfig === 'EYES_FREE' )
+                    repeatSentence()
+                else if ( feedbackConfig === 'ODD_FLEXI' ) {
+                    if (getFeedbackModality() === 'DISP') {
+                        setFeedbackModality('AUDIO')
+                        fireDisplayOffRoutine(true)
+                    }
+                    else
+                        renderStatusOnBladeDisplay(null)
+
+                    readFromIndex(getCurrentWorkingText().startIndex)
+                }
+                else if ( feedbackConfig === 'DISP_ON_DEMAND' ) {
+                    if (isDisplayON())
+                        fireDisplayOffRoutine()
+                    else
+                        repeatSentence()
+                }
+                break;
+
+            case 'stop':
+                if ( feedbackConfig === 'ODD_FLEXI' && getFeedbackModality() === 'AUDIO' )
+                    renderStatusOnBladeDisplay('Reading Paused.')
                 break;
 
             case 'show':
-                if ( getFeedbackConfiguration() === 'ODD_FLEXI' )
-                    feedbackOnToggleDisplayState()
+                let workingText;
+                if ( feedbackConfig === 'ODD_FLEXI' ) {
+                    if (getFeedbackModality() === 'AUDIO') {
+                        setFeedbackModality('DISP');
+                        workingText = getWorkingTextFromReadIndex()
+                    }
+                    else
+                        workingText = getCurrentWorkingText()
+                    
+                    feedbackOfWorkingTextOnNavigation()
+                    fireDisplayOnRoutine()
+                }
                 break;
 
             case 'hide':
-
-            
+                if ( feedbackConfig === 'ODD_FLEXI' && getFeedbackModality() === 'DISP' ) {
+                    fireDisplayOffRoutine(true)
+                    renderStatusOnBladeDisplay('Display Paused.')
+                }
+                else if ( feedbackConfig === 'DISP_ON_DEMAND')
+                    fireDisplayOffRoutine()
+                break;
         }
     }
 

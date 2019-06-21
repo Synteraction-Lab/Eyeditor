@@ -10,15 +10,17 @@ import { markupForPrioritizedSentence } from '../Utils/HTMLParser.js';
 import { renderTextPostUpdate } from './WordEditHandler.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
+const CLEAR = 'signal:clear'
+const HOLD = 'signal:hold'
+const keywordsThatShouldNotTriggerDisplay = ['previous', 'next', 'read']
 
-var currentText
-var lastUtterance
-var timer = new Timer()
-var displayON = false
-var workingTextSentenceIndex = 0
-var currentWorkingText
-var currentContext = 0  // context captures the sentence number/index in DISP_ALWAYS_ON mode
-let exemptedTriggerKeywords = ['previous', 'next']
+let currentText
+let lastUtterance
+let timer = new Timer()
+let displayON = false
+let workingTextSentenceIndex = 0
+let currentWorkingText
+let currentContext = 0  // context captures the sentence number/index in DISP_ALWAYS_ON mode
 
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText
@@ -45,6 +47,7 @@ export const stopDisplayTimer = () => { timer.stop(); }
 export const fireDisplayOffRoutine = (suppressRead) => {
     suppressRead = suppressRead || false
     timer.stop()
+    // console.log('PTT status', getPTTStatus())
     if ( getPTTStatus() !== 'PTT_ON' ) {
         renderBladeDisplayBlank();
         displayON = false
@@ -53,7 +56,7 @@ export const fireDisplayOffRoutine = (suppressRead) => {
     }
 }
 
-const fireDisplayOnRoutine = () => {
+export const fireDisplayOnRoutine = () => {
     if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' )
         timer.start({ countdown: true, startValues: { seconds: MAX_DISPLAY_ON_TIME } })
         
@@ -66,61 +69,37 @@ export const clearUserUtterance = () => {
     if (getFeedbackConfiguration() === 'DISP_ON_DEMAND' && !displayON)
         return;
     
-    feedbackOnUserUtterance('forceClear') 
+    feedbackOnUserUtterance(CLEAR) 
 }
 
 const renderBladeDisplay = (text, utterance) => {
-    let isReceivedTextNull = (text) ? false : true
+    if (!text || text === HOLD) 
+        text =  getCurrentText()
+        else    setCurrentText(text)
 
-    if (!text) text = getCurrentText()
-    else setCurrentText(text)
+    if (!utterance || utterance === HOLD)
+        utterance = getLastUtterance()
+        else        setLastUtterance(utterance)
+    
+    if (text === CLEAR)         text = null
+    if (utterance === CLEAR)    utterance = null
 
-    if (utterance === 'forceClear')
-        utterance = null;
-    else if (!utterance) utterance = getLastUtterance()
-    else setLastUtterance(utterance)
+    pushTextToBlade(text, utterance)
 
-    switch(getFeedbackConfiguration()) {
-        case 'DEFAULT':
-        case 'DISP_ALWAYS_ON':
-        case 'AOD_SCROLL':
-        case 'EYES_FREE':
-            pushTextToBlade(text, utterance)
-            break;
-        
-        case 'ODD_FLEXI':
-            if (!displayON && isReceivedTextNull)
-                pushTextToBlade(null, utterance)
-            else
-                pushTextToBlade(text, utterance)
-            break;
-        
-        case 'DISP_ON_DEMAND':
-            if (!utterance)
-                pushTextToBlade(text, null)
-            else if (exemptedTriggerKeywords.includes(utterance))
-                pushTextToBlade(null, utterance)
-            else if (!isReceivedTextNull) {     // when there is text pushed as working text or after command-execution
-                pushTextToBlade(text, utterance)
-                fireDisplayOnRoutine()
-            }
-            else if (displayON) {     // incoming text is null but display is still on i.e. streaming utterance coming in with display on
-                pushTextToBlade(text, utterance)    // text is the last saved text
-                timer.reset()
-            }
-            else    // incoming text null, display off.
-                pushTextToBlade(null, utterance)
-
-            break;
+    if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' ) {
+        if (!displayON && text)
+            fireDisplayOnRoutine()
+        else if (displayON && utterance)
+            timer.reset()
     }
 }
 
 export const feedbackOnTextLoad = () => {
     setDataObjectLayoutHeader()
     
-    switch(getFeedbackConfiguration()) {
+    switch (getFeedbackConfiguration()) {
         case 'DEFAULT':
-            renderBladeDisplay(quill.getText(), 'forceClear')
+            renderBladeDisplay(quill.getText(), CLEAR)
             break;
         case 'DISP_ALWAYS_ON':
             feedbackOnContextNavigation(0, 'ON_TEXT_LOAD')
@@ -145,9 +124,14 @@ export const feedbackOnTextLoad = () => {
     }
 }
 
-export const feedbackOnUserUtterance = (utterance) => { renderBladeDisplay(null, utterance) }
+export const feedbackOnUserUtterance = (utterance) => {
+    if ( shouldSuppressDisplay(utterance) )
+        renderBladeDisplay(CLEAR, utterance)
+    else
+        renderBladeDisplay(HOLD, utterance) 
+}
 
-export const feedbackOfWorkingTextOnUserUtterance = (workingText, callString) => {
+export const feedbackOfWorkingTextOnUserUtterance = (utterance, workingText, callString) => {
     switch(getFeedbackConfiguration()) {
         case 'DEFAULT':
         case 'DISP_ALWAYS_ON':
@@ -158,21 +142,24 @@ export const feedbackOfWorkingTextOnUserUtterance = (workingText, callString) =>
             currentWorkingText = Object.assign({}, workingText)
             workingTextSentenceIndex = getSentenceIndexGivenCharIndexPosition(quill.getText(), workingText.startIndex)
             // console.log('(feedbackOfWorkingTextOnUserUtterance) Setting workingTextSentenceIndex :', workingTextSentenceIndex)
-            if (callString === 'PTT')
-                renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ), 'forceClear' )
+
+            if ( utterance && !displayON && keywordsThatShouldNotTriggerDisplay.includes(utterance) )
+                renderBladeDisplay(CLEAR)
+            else if (callString === 'PTT')
+                renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ), CLEAR )
             else
                 renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), workingText.text ) )
             break;
     }
 }
 
-const feedbackOfWorkingTextOnNavigation = () => {
-    renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), currentWorkingText.text ), 'forceClear' )
+export const feedbackOfWorkingTextOnNavigation = () => {
+    renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), workingTextSentenceIndex), currentWorkingText.text ), CLEAR )
     if (getFeedbackConfiguration() === 'DISP_ON_DEMAND')
         timer.reset()   // at this point display and hence, timer was on, so reset, and do not need to set displayON
 }
 
-const feedbackOfWorkingTextOnPushToTalk = () => { feedbackOfWorkingTextOnUserUtterance(currentWorkingText, 'PTT') }
+const feedbackOfWorkingTextOnPushToTalk = () => { feedbackOfWorkingTextOnUserUtterance(null, currentWorkingText, 'PTT') }
 
 export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex) => {
     switch(getFeedbackConfiguration()) {
@@ -209,7 +196,7 @@ const feedbackOnContextNavigation = (currentContext, callString) => {
     if (callString === 'ON_TEXT_UPDATE')
         renderBladeDisplay(renderTextHTML.join(' '))
     else
-        renderBladeDisplay(renderTextHTML.join(' '), 'forceClear')
+        renderBladeDisplay(renderTextHTML.join(' '), CLEAR)
 }
 
 export const navigateWorkingText = (dir) => {
@@ -284,7 +271,7 @@ export const feedbackOnToggleDisplayState = () => {
         else
             workingText = currentWorkingText
 
-        feedbackOfWorkingTextOnNavigation(workingText)
+        feedbackOfWorkingTextOnNavigation()
         fireDisplayOnRoutine()
     }
 }
@@ -300,12 +287,12 @@ export const feedbackOnToggleReadState = () => {
         renderStatusOnBladeDisplay('Reading Paused.')
 }
 
-const renderStatusOnBladeDisplay = (status) => {
+export const renderStatusOnBladeDisplay = (status) => {
     pushTextToBlade(null, null, status)
 }
 
 export const feedbackOnTextSelection = (renderHTML) => {
-    renderBladeDisplay(renderHTML, 'forceClear')
+    renderBladeDisplay(renderHTML, CLEAR)
 }
 
 export const feedbackOnTextUpdateInEditMode = (utterance) => {
@@ -331,5 +318,17 @@ export const toggleReadToDisp = () => {
     }        
 
     fireDisplayOnRoutine()
-    feedbackOfWorkingTextOnNavigation(workingText)
+    feedbackOfWorkingTextOnNavigation()
+}
+
+export const shouldSuppressDisplay = (utterance) => {
+    switch (getFeedbackConfiguration()) {
+        case 'DISP_ON_DEMAND':
+        case 'ODD_FLEXI':
+            if ( !displayON && utterance )
+                return true;
+            return false;
+        default:
+            return false;
+    }
 }

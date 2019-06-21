@@ -22,6 +22,7 @@ let TTSReadStateBeforeUtterance
 let TTSReadStates
 let workingText
 let isTextShowing
+let validKeywords
 
 export const getBargeinIndex = () => ( tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex() ) || 0;
 export const getQuillSnapshotBeforeUpdate = () => quillSnapshotBeforeUpdate;
@@ -37,6 +38,8 @@ export const handleUtterance = (utterance) => {
     TTSReadStateBeforeUtterance = getTTSReadState()
     TTSReadStates = getTTSReadStates()
     setTTSReadState( TTSReadStates.NOT_SET )
+    
+    validKeywords = getListOfSupportedKeywords()
 
     switch ( getFeedbackConfiguration() ) {
         case 'DEFAULT':
@@ -52,7 +55,7 @@ export const handleUtterance = (utterance) => {
             else {
                 if ( TTSReadStateBeforeUtterance === TTSReadStates.READING ) {
                     workingText = getWorkingTextFromReadIndex()
-                    feedbackOfWorkingTextOnUserUtterance(workingText)
+                    feedbackOfWorkingTextOnUserUtterance(utterance, workingText)
                     parseUtterance(utterance, workingText)
                 } 
                 else {
@@ -67,7 +70,7 @@ export const handleUtterance = (utterance) => {
                         workingText = getCurrentWorkingText( setCurrentWorkingText(sentenceIndex) )
                     }
                     if (!isTextShowing)
-                        feedbackOfWorkingTextOnUserUtterance(workingText)
+                        feedbackOfWorkingTextOnUserUtterance(utterance, workingText)
                     parseUtterance(utterance, workingText)
                 }
             }
@@ -139,10 +142,10 @@ export const extractWorkingText = (index) => {
 const parseUtterance = (utterance, workingText) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
-    let keywordsSupported = getListOfSupportedKeywords()
+
     quillSnapshotBeforeUpdate = quill.getText()
 
-    if ( keyword && keywordsSupported.includes(keyword) ) {
+    if ( keyword && validKeywords.includes(keyword) ) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let fuzzyArgument = fuzzy.matchFuzzyForArgument(restOfTheUtterance, workingText.text)
         let passArgument = fuzzyArgument || restOfTheUtterance
@@ -175,9 +178,8 @@ const callManagerForAlwaysOnDisplay = (utterance) => {
 const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
-    let keywordsSupported = getListOfSupportedKeywords()
 
-    if ( keyword && keywordsSupported.includes(keyword) ) {
+    if ( keyword && validKeywords.includes(keyword) ) {
         restOfTheUtterance = restOfTheUtterance.join(' ')
         let iter, fuzzyArgument, passArgument;
         let isCommandComplete;

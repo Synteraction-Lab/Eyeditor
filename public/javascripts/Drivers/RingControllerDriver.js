@@ -50,6 +50,8 @@ let feedbackModality = 'DISP';     // 'DISP', 'AUDIO'
 let rangeSelectionMode = false;
 
 export const getPTTStatus = () => {
+    if (feedbackConfig !== 'DISP_ON_DEMAND')
+        return null;
     if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
         return 'PTT_ON'
     else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longReleased )
@@ -57,8 +59,8 @@ export const getPTTStatus = () => {
 }
 
 export const setFeedbackConfigVariable = (config) => { feedbackConfig = config };
-
 export const getWasTTSReading = () => wasTTSReading;
+
 export const getControllerMode = () => controllerMode;
 export const toggleControllerMode = () => {
     controllerMode = (controllerMode === 'DEFAULT') ? 'EDIT' : 'DEFAULT'
@@ -83,17 +85,21 @@ export const toggleControllerMode = () => {
     }
 }
 
-// export const getFeedbackModality = () => feedbackModality;
+export const getFeedbackModality = () => feedbackModality;
+export const setFeedbackModality = (modality) => { feedbackModality = modality; }
+
 const toggleFeedbackModality = () => { 
     feedbackModality = (feedbackModality === 'DISP') ? 'AUDIO' : 'DISP' 
     toggleFeedbackState();
 }
+
 const toggleFeedbackState = () => {
     if (feedbackModality === 'DISP')
         feedbackOnToggleDisplayState();
     else if (feedbackModality === 'AUDIO')
         feedbackOnToggleReadState();
 }
+
 const toggleRangeSelectionMode = () => { 
     rangeSelectionMode = !rangeSelectionMode
     if (rangeSelectionMode)
