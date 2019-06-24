@@ -4,7 +4,7 @@ import { quill } from '../Services/quill.js'
 import { getColorCodedTextHTML } from '../Utils/stringdiff.js';
 import { getSentenceGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceCharIndicesGivenSentenceIndex } from '../Utils/stringutils.js'
 import { getPTTStatus, getWasTTSReading } from '../Drivers/RingControllerDriver.js'
-import { getWorkingTextFromReadIndex } from './UtteranceParser.js';
+import { getSentenceIndexFromBargeinIndex } from './UtteranceParser.js';
 import { resumeReadAfterDisplayTimeout, readFromIndex } from './AudioFeedbackHandler.js';
 import { markupForPrioritizedSentence } from '../Utils/HTMLParser.js';
 import { renderTextPostUpdate } from './WordEditHandler.js';
@@ -110,13 +110,13 @@ export const feedbackOnTextLoad = () => {
             break;
         case 'AOD_SCROLL':
             setTimeout( () => {
-                setCurrentWorkingText()
+                setCurrentWorkingTextFromSentenceIndex()
                 feedbackOfWorkingTextOnNavigation()
             }, 50)
             break;
         case 'ODD_FLEXI':
             setTimeout(() => {
-                setCurrentWorkingText()
+                setCurrentWorkingTextFromSentenceIndex()
                 feedbackOfWorkingTextOnNavigation()
                 fireDisplayOnRoutine()
             }, 50)
@@ -139,9 +139,8 @@ export const feedbackOfWorkingTextOnUserUtterance = (utterance, workingText, cal
         case 'ODD_FLEXI':
             break;
         case 'DISP_ON_DEMAND':
-            currentWorkingText = Object.assign({}, workingText)
-            workingTextSentenceIndex = getSentenceIndexGivenCharIndexPosition(quill.getText(), workingText.startIndex)
-            // console.log('(feedbackOfWorkingTextOnUserUtterance) Setting workingTextSentenceIndex :', workingTextSentenceIndex)
+            if (callString !== 'PTT')
+                setCurrentWorkingTextFromPassedWorkingText(workingText)
 
             if ( utterance && !displayON && keywordsThatShouldNotTriggerDisplay.includes(utterance) )
                 renderBladeDisplay(CLEAR)
@@ -171,17 +170,17 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
             break;
         case 'AOD_SCROLL':
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
-            setCurrentWorkingText(updatedSentenceIndex)
+            setCurrentWorkingTextFromSentenceIndex(updatedSentenceIndex)
             break;
         case 'DISP_ON_DEMAND':
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
             fireDisplayOnRoutine()
-            setCurrentWorkingText(updatedSentenceIndex)
+            setCurrentWorkingTextFromSentenceIndex(updatedSentenceIndex)
             break;
         case 'ODD_FLEXI':
             if (displayON)
                 renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex), updatedSentence ) )
-            setCurrentWorkingText(updatedSentenceIndex)
+            setCurrentWorkingTextFromSentenceIndex(updatedSentenceIndex)
             break;
     }
 }
@@ -211,7 +210,7 @@ export const navigateWorkingText = (dir) => {
             workingTextSentenceIndex = sentenceDelimiterIndices.length - 1
     }
 
-    setCurrentWorkingText()
+    setCurrentWorkingTextFromSentenceIndex()
     feedbackOfWorkingTextOnNavigation()
 }
 
@@ -239,7 +238,7 @@ export const feedbackOnPushToTalk = () => {
     if (PTTStatus === 'PTT_ON') {
         if (!displayON) {
             if (getWasTTSReading() || !currentWorkingText)
-                currentWorkingText = getWorkingTextFromReadIndex()
+                setCurrentWorkingTextFromSentenceIndex(getSentenceIndexFromBargeinIndex())
             fireDisplayOnRoutine()
             feedbackOfWorkingTextOnPushToTalk()
         }
@@ -248,7 +247,7 @@ export const feedbackOnPushToTalk = () => {
         fireDisplayOffRoutine()
 }
 
-export const setCurrentWorkingText = (sentenceIndex) => {
+export const setCurrentWorkingTextFromSentenceIndex = (sentenceIndex) => {
     sentenceIndex = (sentenceIndex != null) ? sentenceIndex : workingTextSentenceIndex
 
     currentWorkingText = {
@@ -259,17 +258,19 @@ export const setCurrentWorkingText = (sentenceIndex) => {
     workingTextSentenceIndex = sentenceIndex
 }
 
+export const setCurrentWorkingTextFromPassedWorkingText = (workingText) => {
+    currentWorkingText = Object.assign( {}, workingText )
+    workingTextSentenceIndex = getSentenceIndexGivenCharIndexPosition( quill.getText(), workingText.startIndex )
+}
+
 export const feedbackOnToggleDisplayState = () => {
     if ( displayON ) {
         fireDisplayOffRoutine(true)
         renderStatusOnBladeDisplay('Display Paused.')
     }
     else {
-        let workingText
-        if ( getWasTTSReading() ) 
-            workingText = getWorkingTextFromReadIndex()
-        else
-            workingText = currentWorkingText
+        if (getWasTTSReading() || !currentWorkingText)
+            setCurrentWorkingTextFromSentenceIndex(getSentenceIndexFromBargeinIndex())
 
         feedbackOfWorkingTextOnNavigation()
         fireDisplayOnRoutine()
@@ -296,29 +297,22 @@ export const feedbackOnTextSelection = (renderHTML) => {
 }
 
 export const feedbackOnTextUpdateInEditMode = (utterance) => {
-    setCurrentWorkingText()
+    setCurrentWorkingTextFromSentenceIndex()
     renderTextPostUpdate(utterance);
 }
 
 export const feedbackOfWorkingTextAfterExitFromEditMode = () => { feedbackOfWorkingTextOnNavigation(); }
 export const feedbackOnUndoRedoInEditMode = () => {
-    setCurrentWorkingText();
+    setCurrentWorkingTextFromSentenceIndex();
     renderTextPostUpdate(null, true);
 }
 
 export const toggleReadToDisp = () => {
-    let workingText
-    if (getWasTTSReading())
-        workingText = getWorkingTextFromReadIndex()
-    else {
-        if (!currentWorkingText)
-            setCurrentWorkingText(0)
-        
-        workingText = currentWorkingText
-    }        
+    if (getWasTTSReading() || !currentWorkingText)
+        setCurrentWorkingTextFromSentenceIndex(getSentenceIndexFromBargeinIndex())
 
-    fireDisplayOnRoutine()
     feedbackOfWorkingTextOnNavigation()
+    fireDisplayOnRoutine()
 }
 
 export const shouldSuppressDisplay = (utterance) => {

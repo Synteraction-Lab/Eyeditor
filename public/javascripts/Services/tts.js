@@ -1,5 +1,5 @@
 import { quill } from './quill.js'
-import { setCurrentWorkingText } from '../Engines/FeedbackHandler.js';
+import { setCurrentWorkingTextFromSentenceIndex } from '../Engines/FeedbackHandler.js';
 import { getSentenceIndexGivenCharIndexPosition } from '../Utils/stringutils.js';
 
 // global variables
@@ -85,7 +85,7 @@ synthUtterance.onboundary = function(event) {
         if (currentSentenceIndexReading !== lastSentenceIndexRead) {
             // console.log('Current sentence index reading:', currentSentenceIndexReading)
             lastSentenceIndexRead = currentSentenceIndexReading
-            setCurrentWorkingText(currentSentenceIndexReading)
+            setCurrentWorkingTextFromSentenceIndex(currentSentenceIndexReading)
         }
     }
 }

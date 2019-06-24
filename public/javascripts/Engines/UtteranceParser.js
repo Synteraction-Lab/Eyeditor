@@ -2,9 +2,9 @@ import * as tts from '../Services/tts.js'
 import { quill } from '../Services/quill.js'
 import * as fuzzy from '../Utils/fuzzymatcher.js'
 import { handleCommand, handleCommandPrioritizedWorkingText } from './EditInstructionHandler/Commanding.js'
-import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceGivenSentenceIndex, getSentenceCharIndicesGivenSentenceIndex, getSentenceCount } from '../Utils/stringutils.js'
+import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceGivenSentenceIndex, getSentenceCharIndicesGivenSentenceIndex, getSentenceCount, getSentenceIndexGivenCharIndexPosition } from '../Utils/stringutils.js'
 import { handleRedictation } from './EditInstructionHandler/Redictation.js';
-import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex, isDisplayON, setCurrentWorkingText, feedbackOnTextUpdateInEditMode } from './FeedbackHandler.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex, isDisplayON, setCurrentWorkingTextFromSentenceIndex, feedbackOnTextUpdateInEditMode } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from './ErrorHandler.js'
 import { getPTTStatus } from '../Drivers/RingControllerDriver.js';
@@ -49,11 +49,11 @@ export const handleUtterance = (utterance) => {
         
         case 'DISP_ON_DEMAND':
             if (getPTTStatus() === 'PTT_ON') {
-                workingText = getCurrentWorkingText() || getWorkingTextFromReadIndex()
+                workingText = getCurrentWorkingText()
                 parseUtterance(utterance, workingText)
             }
             else {
-                if ( TTSReadStateBeforeUtterance === TTSReadStates.READING ) {
+                if ( getWasTTSReadingBeforeUtterance() ) {
                     workingText = getWorkingTextFromReadIndex()
                     feedbackOfWorkingTextOnUserUtterance(utterance, workingText)
                     parseUtterance(utterance, workingText)
@@ -67,7 +67,7 @@ export const handleUtterance = (utterance) => {
                         if ( !tts.getTTSReadStartedFlag() )
                                 sentenceIndex = 0
                         else    sentenceIndex = getSentenceCount(quill.getText()) - 1
-                        workingText = getCurrentWorkingText( setCurrentWorkingText(sentenceIndex) )
+                        workingText = getCurrentWorkingText( setCurrentWorkingTextFromSentenceIndex(sentenceIndex) )
                     }
                     if (!isTextShowing)
                         feedbackOfWorkingTextOnUserUtterance(utterance, workingText)
@@ -90,7 +90,7 @@ export const handleUtterance = (utterance) => {
             break;
 
         case 'ODD_FLEXI':
-            if (TTSReadStateBeforeUtterance === TTSReadStates.READING) {
+            if ( getWasTTSReadingBeforeUtterance() ) {
                 workingText = getWorkingTextFromReadIndex()
                 parseUtterance(utterance, workingText)
             }
@@ -99,7 +99,7 @@ export const handleUtterance = (utterance) => {
                 if (isTextShowing)
                     workingText = getCurrentWorkingText()
                 else    // end of final sentence when TTS not reading, display not showing 
-                    workingText = getCurrentWorkingText(setCurrentWorkingText(getSentenceCount(quill.getText()) - 1))
+                    workingText = getCurrentWorkingText( setCurrentWorkingTextFromSentenceIndex(getSentenceCount(quill.getText()) - 1) )
                 
                 parseUtterance(utterance, workingText)
             }
@@ -137,6 +137,18 @@ export const extractWorkingText = (index) => {
     }
 
     return workingText
+}
+
+export const getSentenceIndexFromBargeinIndex = () => {
+    let bargeinIndex = getBargeinIndex()
+    let sentenceIndices = getSentenceIndices(quill.getText(), bargeinIndex)
+    let endIndex = getIndexOfNextSpace(quill.getText(), bargeinIndex)
+
+    let sentenceIndex = getSentenceIndexGivenCharIndexPosition(quill.getText(), bargeinIndex)
+    if ( sentenceIndices.start > 0 && (endIndex - sentenceIndices.start < MAX_REACTION_TEXT_WINDOW_SIZE) )
+        sentenceIndex = sentenceIndex - 1
+
+    return sentenceIndex;
 }
 
 const parseUtterance = (utterance, workingText) => {

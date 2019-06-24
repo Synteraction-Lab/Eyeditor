@@ -4,10 +4,10 @@ import { findInText } from '../../Utils/stringutils.js'
 import { handleError } from '../ErrorHandler.js';
 import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 import { readNextSentence, readPrevSentence, repeatSentence, readFromIndex } from '../AudioFeedbackHandler.js';
-import { navigateContext, isDisplayON, navigateWorkingText, getCurrentWorkingText, feedbackOfWorkingTextOnNavigation, fireDisplayOffRoutine, fireDisplayOnRoutine, renderStatusOnBladeDisplay } from '../FeedbackHandler.js';
+import { navigateContext, isDisplayON, navigateWorkingText, getCurrentWorkingText, feedbackOfWorkingTextOnNavigation, fireDisplayOffRoutine, fireDisplayOnRoutine, renderStatusOnBladeDisplay, setCurrentWorkingTextFromSentenceIndex } from '../FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../../main.js';
 import { setFeedbackModality, getFeedbackModality } from '../../Drivers/RingControllerDriver.js';
-import { getWorkingTextFromReadIndex } from '../UtteranceParser.js'
+import { getSentenceIndexFromBargeinIndex } from '../UtteranceParser.js'
 
 export const handleCommand = (keyword, arg, workingText, isControllerRequest) => {
     let updateParameter;
@@ -114,14 +114,11 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
 
             case 'show':
-                let workingText;
                 if ( feedbackConfig === 'ODD_FLEXI' ) {
                     if (getFeedbackModality() === 'AUDIO') {
                         setFeedbackModality('DISP');
-                        workingText = getWorkingTextFromReadIndex()
+                        setCurrentWorkingTextFromSentenceIndex( getSentenceIndexFromBargeinIndex() )
                     }
-                    else
-                        workingText = getCurrentWorkingText()
                     
                     feedbackOfWorkingTextOnNavigation()
                     fireDisplayOnRoutine()
