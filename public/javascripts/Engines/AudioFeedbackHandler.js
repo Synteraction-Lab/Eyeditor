@@ -85,10 +85,14 @@ export const readNextSentence = (isVoiceRequest) => {
 }
 
 export const repeatSentence = () => {
-    let interruptIndex = getBargeinIndex()
-    let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
-    tts.read(currentSentenceIndices.start)
+    tts.read(getSentenceCharIndicesGivenSentenceIndex(quill.getText(), getCurrentWorkingTextSentenceIndex()).start)
 }
+
+// export const repeatSentence = () => {
+//     let interruptIndex = getBargeinIndex()
+//     let currentSentenceIndices = getSentenceIndices(quill.getText(), interruptIndex)
+//     tts.read(currentSentenceIndices.start)
+// }
 
 export const stopReading = () => { tts.pause() }
 export const readFromStart = () => { tts.read(READ_RESTART_INDEX) }
