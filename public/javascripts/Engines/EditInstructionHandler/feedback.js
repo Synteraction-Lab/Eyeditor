@@ -4,8 +4,9 @@ import { feedbackOnCommandExecution } from '../FeedbackHandler.js';
 import { speakFeedback, readTextOnUpdate, readTextOnFailedUpdate } from '../AudioFeedbackHandler.js';
 import { getQuillSnapshotBeforeUpdate } from '../UtteranceParser.js';
 
-export const provideSuccessFeedback = (audioFeedbackMeta, updateParameter) => {
-    let updatedSentenceIndex = getSentenceIndexGivenCharIndexPosition( getQuillSnapshotBeforeUpdate(), updateParameter.startIndex )
+export const provideSuccessFeedback = (audioFeedbackMeta, updateParameter, quillSnapshotBeforeUpdate) => {
+    quillSnapshotBeforeUpdate = quillSnapshotBeforeUpdate || getQuillSnapshotBeforeUpdate();
+    let updatedSentenceIndex = getSentenceIndexGivenCharIndexPosition( quillSnapshotBeforeUpdate, updateParameter.startIndex )
     let updatedSentence = getSentenceSnippetBetweenIndices( quill.getText(), getSentenceCharIndicesGivenSentenceIndex(quill.getText(), updatedSentenceIndex) )
 
     feedbackOnCommandExecution(updatedSentence, updatedSentenceIndex)

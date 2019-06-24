@@ -471,7 +471,7 @@ export const handleControllerEvent = (event) => {
             break;
         
         case 'UNDO':
-            handleCommand('undo');
+            handleCommand('undo', null, null, true);
             if (controllerMode === 'EDIT')
                 feedbackOnUndoRedoInEditMode()
             break;

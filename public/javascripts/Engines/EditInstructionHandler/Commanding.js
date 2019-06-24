@@ -14,6 +14,7 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
     isControllerRequest = isControllerRequest || false;
 
     let feedbackConfig = getFeedbackConfiguration();
+    let quillSnapshotBeforeUpdate;
 
     try {
         switch ( keyword ) {
@@ -38,21 +39,25 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
             
             case 'undo':
+                quillSnapshotBeforeUpdate = (isControllerRequest) ? quill.getText() : undefined
+
                 let indexOfUndo = editor.undo()
                 updateParameter = {startIndex: indexOfUndo}
                 // console.log('index of undo', indexOfUndo)
                 
-                if (indexOfUndo >= 0)   provideSuccessFeedback('Undone', updateParameter)
+                if (indexOfUndo >= 0)   provideSuccessFeedback('Undone', updateParameter, quillSnapshotBeforeUpdate)
                     else                provideFailureFeedback('There is nothing more to undo.')
                     
                 break;
 
             case 'redo':
+                quillSnapshotBeforeUpdate = (isControllerRequest) ? quill.getText() : undefined
+
                 let indexOfRedo = editor.redo()
                 updateParameter = {startIndex: indexOfRedo}
                 // console.log('index of redo', indexOfRedo)
                 
-                if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter)
+                if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter, quillSnapshotBeforeUpdate)
                     else                provideFailureFeedback('There is nothing more to redo.')
 
                 break;
