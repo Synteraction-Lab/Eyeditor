@@ -105,6 +105,11 @@ export const feedbackOnTextLoad = () => {
             feedbackOnContextNavigation(0, 'ON_TEXT_LOAD')
             break;
         case 'DISP_ON_DEMAND':
+            setTimeout(() => {
+                setCurrentWorkingTextFromSentenceIndex()
+                renderBladeDisplayBlank()
+            }, 50)
+            break;
         case 'EYES_FREE':
             renderBladeDisplayBlank()
             break;

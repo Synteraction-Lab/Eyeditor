@@ -55,7 +55,7 @@ export const getIndexOfLastPunctuation = (text, index) => {   // index: absolute
     let regex = /.+[.!?,;:]/g
     regex.exec(text.substr(0, index-1))
 
-    if ( index - (regex.lastIndex-1) == 2 ) {     // if the update position (esp. delete) is just after a punc. then go back 2 more char positions, else it's difficult to get the context.
+    if ( index - (regex.lastIndex-1) == 2 && !/^[.!?]\s/.test( text.substr(index-2, 2) ) ) {     // if the update position (esp. delete) is just after a punc. then go back 2 more char positions, else it's difficult to get the context.
         regex = /.+[.!?,;:]/g
         regex.exec(text.substr(0, index-3))
     }
