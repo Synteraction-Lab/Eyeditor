@@ -4,7 +4,7 @@ import * as fuzzy from '../Utils/fuzzymatcher.js'
 import { handleCommand, handleCommandPrioritizedWorkingText } from './EditInstructionHandler/Commanding.js'
 import { getIndexOfNextSpace, getSentenceIndices, getSentenceSnippetBetweenIndices, generateSentencesList, generateSentenceDelimiterIndicesList, getSentenceGivenSentenceIndex, getSentenceCharIndicesGivenSentenceIndex, getSentenceIndexGivenCharIndexPosition } from '../Utils/stringutils.js'
 import { handleRedictation } from './EditInstructionHandler/Redictation.js';
-import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentContext, getCurrentWorkingTextSentenceIndex, isDisplayON, feedbackOnTextUpdateInEditMode } from './FeedbackHandler.js';
+import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentWorkingTextSentenceIndex, isDisplayON, feedbackOnTextUpdateInEditMode } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from './ErrorHandler.js'
 import { getPTTStatus } from '../Drivers/RingControllerDriver.js';
@@ -152,7 +152,7 @@ const parseUtterance = (utterance, workingText) => {
 }
 
 const callManagerForAlwaysOnDisplay = (utterance) => {
-    let currentContext = getCurrentContext()
+    let currentContext = getCurrentWorkingTextSentenceIndex()
     let sentenceList = generateSentencesList(quill.getText())
     let sentenceDelimiterList = generateSentenceDelimiterIndicesList(quill.getText())
 
@@ -173,6 +173,8 @@ const callManagerForAlwaysOnDisplay = (utterance) => {
 const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
     let [firstWord, ...restOfTheUtterance] = utterance.split(' ')
     let keyword = fuzzy.matchFuzzyForCommand(firstWord, restOfTheUtterance)
+
+    quillSnapshotBeforeUpdate = quill.getText()
 
     if ( keyword && validKeywords.includes(keyword) ) {
         restOfTheUtterance = restOfTheUtterance.join(' ')

@@ -1,7 +1,7 @@
 import * as tts from '../Services/tts.js'
 import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
-import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, getCurrentContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode, fireDisplayOffRoutine, toggleReadToDisp, stopDisplayTimer } from '../Engines/FeedbackHandler.js'
-import { readPrevSentence, readNextSentence, speakFeedback, readFromStart, resumeReadAfterGeneralInterrupt, toggleReadEyesFree } from '../Engines/AudioFeedbackHandler.js';
+import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode, fireDisplayOffRoutine, toggleReadToDisp, stopDisplayTimer, getCurrentWorkingTextSentenceIndex } from '../Engines/FeedbackHandler.js'
+import { readPrevSentence, readNextSentence, readFromStart, toggleReadEyesFree } from '../Engines/AudioFeedbackHandler.js';
 import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange } from '../Engines/WordEditHandler.js';
@@ -14,8 +14,6 @@ const CENTER_KEY_CODE = 116
 const LONG_PRESS_TRIGGER_DELAY = 3 // 0.3 seconds = 300ms
 const MIN_KEY_PRESSES_FOR_READ_FROM_START = 4
 
-const SCROLL_INITIATION = 3         // measured in no. of keypresses
-const SCROLL_GRANULARITY = 7       // measured in no. of keypresses
 const AUTOSCROLL_CHUNK_SIZE = 2     // scroll up/down if navigating backward/forward by 2 sentences.
 
 const keyStatus = {}    // on or off
@@ -40,8 +38,6 @@ let longPressTimer = new Timer()
 let lastKeyPressCode
 let wasTTSReading
 let accKeyPresses = 0
-let hasFiredScrollEvent = false
-let nextScrollThreshold;
 let currentContext;
 let lastSavedContext = 0;
 let feedbackConfig;
@@ -79,6 +75,7 @@ export const toggleControllerMode = () => {
             case 'ODD_FLEXI':
             case 'DISP_ON_DEMAND':
             case 'AOD_SCROLL':
+            case 'DISP_ALWAYS_ON':
                 feedbackOfWorkingTextAfterExitFromEditMode();
                 break;
         }
@@ -153,9 +150,6 @@ document.addEventListener('keydown', function(e) {
             break;
 
         case 'DISP_ALWAYS_ON':
-            handleControllerEvent(classifyControllerEvent())
-            break;
-
         case 'AOD_SCROLL':
             initKeysThatSupportLongPressEvent()
             if ( keysThatSupportLongPressEvent.includes(e.keyCode) )
@@ -192,17 +186,6 @@ document.addEventListener('keyup', function (e) {
         keyPressEventStatus[e.keyCode] = KEY_PRESS_EVENT_TYPES.longReleased
         handleControllerEvent(classifyControllerEvent())
     }
-
-    // else if (isDispAlwaysOnMode) {
-    //     if ( undoKeyCodes.includes(e.keyCode) || e.keyCode === REDO_KEY_CODE ) {
-    //         if (accKeyPresses <= 2 && !hasFiredScrollEvent)
-    //             if (undoKeyCodes.includes(e.keyCode))
-    //                     handleControllerEvent('SCROLL_UP')      //handleControllerEvent('UNDO')
-    //             else    handleControllerEvent('SCROLL_DOWN')    //handleControllerEvent('REDO')
-
-    //         hasFiredScrollEvent = false;
-    //     }
-    // } 
 
     accKeyPresses = 0
 })
@@ -366,6 +349,36 @@ export const classifyControllerEvent = (trackPadEvent) => {
                             break;
                     }
                     break;
+                
+                case 'DISP_ALWAYS_ON':
+                    switch (eventReceived) {
+                        case 'TRACK_LEFT':
+                            controllerEvent = 'SCROLL_UP'
+                            break;
+
+                        case 'TRACK_RIGHT':
+                            controllerEvent = 'SCROLL_DOWN'
+                            break;
+                        
+                        case UP_KEY_CODE:
+                            controllerEvent = 'CONTEXT_PREV'
+                            break;
+                        
+                        case DOWN_KEY_CODE:
+                            controllerEvent = 'CONTEXT_NEXT'
+                            break;
+
+                        case RIGHT_KEY_CODE:
+                            if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                                controllerEvent = 'UNDO'
+                            else if ( keyPressEventStatus[RIGHT_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                                controllerEvent = 'REDO'
+                            break;
+
+                        case CENTER_KEY_CODE:
+                            break;
+                    }
+                    break;
 
                 case 'EYES_FREE':
                     switch (eventReceived) {
@@ -484,7 +497,7 @@ export const handleControllerEvent = (event) => {
 
         case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display
             navigateContext('PREV')
-            currentContext = getCurrentContext()
+            currentContext = getCurrentWorkingTextSentenceIndex()
             if ( currentContext - lastSavedContext == -AUTOSCROLL_CHUNK_SIZE ) {
                 sendScrollEvent('UP')
                 lastSavedContext = currentContext
@@ -493,7 +506,7 @@ export const handleControllerEvent = (event) => {
 
         case 'CONTEXT_NEXT':
             navigateContext('NEXT');
-            currentContext = getCurrentContext()
+            currentContext = getCurrentWorkingTextSentenceIndex()
             if ( currentContext - lastSavedContext == AUTOSCROLL_CHUNK_SIZE ) {
                 sendScrollEvent('DOWN')
                 lastSavedContext = currentContext
@@ -520,22 +533,20 @@ export const handleControllerEvent = (event) => {
             feedbackOnPushToTalk()
             break;
 
-        case 'MIC_SWITCH_TOGGLE':
-            mic.click()
-            if (mic.checked) speakFeedback ('Mic On.')
-                else         speakFeedback('Mic Off.')
+        // case 'MIC_SWITCH_TOGGLE':
+        //     mic.click()
+        //     if (mic.checked) speakFeedback ('Mic On.')
+        //         else         speakFeedback('Mic Off.')
 
-            if (wasTTSReading)
-                resumeReadAfterGeneralInterrupt()
-            break;
+        //     if (wasTTSReading)
+        //         resumeReadAfterGeneralInterrupt()
+        //     break;
         
         case 'SCROLL_UP':
-            // console.log('SCROLL_UP Event Fired.')
             sendScrollEvent('UP')
             break;
         
         case 'SCROLL_DOWN':
-            // console.log('SCROLL_DOWN Event Fired.')
             sendScrollEvent('DOWN')
             break;
 
@@ -584,6 +595,7 @@ export const isEditModeSupported = () => {
                 return false;
             return true;
         case 'AOD_SCROLL':
+        case 'DISP_ALWAYS_ON':
             return true;
         case 'EYES_FREE':
             return false;

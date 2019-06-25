@@ -20,12 +20,10 @@ let timer = new Timer()
 let displayON = false
 let workingTextSentenceIndex = 0
 let currentWorkingText
-let currentContext = 0  // context captures the sentence number/index in DISP_ALWAYS_ON mode
 
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText
 export const getCurrentWorkingTextSentenceIndex = () => workingTextSentenceIndex || 0
-export const getCurrentContext = () => currentContext
 
 const getCurrentText = () => currentText
 const setCurrentText = (text) => { currentText = text }
@@ -102,7 +100,10 @@ export const feedbackOnTextLoad = () => {
             renderBladeDisplay(quill.getText(), CLEAR)
             break;
         case 'DISP_ALWAYS_ON':
-            feedbackOnContextNavigation(0, 'ON_TEXT_LOAD')
+            setTimeout(() => {
+                setCurrentWorkingTextFromSentenceIndex()
+                feedbackOnContextNavigation(0, 'ON_TEXT_LOAD')
+            }, 50)
             break;
         case 'DISP_ON_DEMAND':
             setTimeout(() => {
@@ -171,7 +172,8 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
             renderBladeDisplay(getColorCodedTextHTML( getLoadedText(), quill.getText() ).replace(/&para.*/g, ''))
             break;
         case 'DISP_ALWAYS_ON':
-            feedbackOnContextNavigation(currentContext, 'ON_TEXT_UPDATE')
+            feedbackOnContextNavigation(updatedSentenceIndex, 'ON_TEXT_UPDATE')
+            setCurrentWorkingTextFromSentenceIndex(updatedSentenceIndex)
             break;
         case 'AOD_SCROLL':
             renderBladeDisplay( getColorCodedTextHTML( getSentenceGivenSentenceIndex(getLoadedText(), updatedSentenceIndex) , updatedSentence ) )
@@ -190,7 +192,7 @@ export const feedbackOnCommandExecution = (updatedSentence, updatedSentenceIndex
     }
 }
 
-const feedbackOnContextNavigation = (currentContext, callString) => {
+const feedbackOnContextNavigation = (currentContext, callString) => {   // current context is highlighted and sets the scope for the working text
     let colorCodedTextHTML = (callString === 'ON_TEXT_LOAD') ? quill.getText() : getColorCodedTextHTML( getLoadedText(), quill.getText() )
     // console.log('colorCodedTextHTML (feedbackHandler.js)', colorCodedTextHTML)
     let colorCodedTextHTMLSentences = generateSentencesList(colorCodedTextHTML, true)
@@ -221,20 +223,18 @@ export const navigateWorkingText = (dir) => {
 
 export const navigateContext = (dir) => {
     if (dir === 'PREV') {
-        currentContext = currentContext - 1
-        if (currentContext < 0)
-            currentContext = 0
-        
-        feedbackOnContextNavigation(currentContext)
+        workingTextSentenceIndex = workingTextSentenceIndex - 1
+        if (workingTextSentenceIndex < 0)
+            workingTextSentenceIndex = 0
     } else if (dir === 'NEXT') {
         let sentenceDelimiterIndices = generateSentenceDelimiterIndicesList(quill.getText())
-
-        currentContext = currentContext + 1
-        if (currentContext >= sentenceDelimiterIndices.length)
-            currentContext = sentenceDelimiterIndices.length - 1
-
-        feedbackOnContextNavigation(currentContext)
+        workingTextSentenceIndex = workingTextSentenceIndex + 1
+        if (workingTextSentenceIndex >= sentenceDelimiterIndices.length)
+            workingTextSentenceIndex = sentenceDelimiterIndices.length - 1
     }
+
+    setCurrentWorkingTextFromSentenceIndex()
+    feedbackOnContextNavigation(workingTextSentenceIndex)
 }
 
 export const feedbackOnPushToTalk = () => {
@@ -306,7 +306,13 @@ export const feedbackOnTextUpdateInEditMode = (utterance) => {
     renderTextPostUpdate(utterance);
 }
 
-export const feedbackOfWorkingTextAfterExitFromEditMode = () => { feedbackOfWorkingTextOnNavigation(); }
+export const feedbackOfWorkingTextAfterExitFromEditMode = () => {
+    if (getFeedbackConfiguration() === 'DISP_ALWAYS_ON')
+        feedbackOnContextNavigation(workingTextSentenceIndex)
+    else
+        feedbackOfWorkingTextOnNavigation(); 
+}
+
 export const feedbackOnUndoRedoInEditMode = () => {
     setCurrentWorkingTextFromSentenceIndex();
     renderTextPostUpdate(null, true);
