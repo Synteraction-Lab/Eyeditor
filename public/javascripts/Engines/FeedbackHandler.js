@@ -7,7 +7,7 @@ import { getPTTStatus, getWasTTSReading } from '../Drivers/RingControllerDriver.
 import { getSentenceIndexFromBargeinIndex } from './UtteranceParser.js';
 import { resumeReadAfterDisplayTimeout, readFromIndex } from './AudioFeedbackHandler.js';
 import { markupForPrioritizedSentence } from '../Utils/HTMLParser.js';
-import { renderTextPostUpdate } from './WordEditHandler.js';
+import { renderTextPostUpdate, renderTextPostInsertion, renderTextOnUndoRedoInEditInsertMode } from './WordEditHandler.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
 const CLEAR = 'signal:clear'
@@ -301,9 +301,12 @@ export const feedbackOnTextSelection = (renderHTML) => {
     renderBladeDisplay(renderHTML, CLEAR)
 }
 
-export const feedbackOnTextUpdateInEditMode = (utterance) => {
+export const feedbackOnTextUpdateInEditMode = (utterance, isInsertMode) => {
     setCurrentWorkingTextFromSentenceIndex()
-    renderTextPostUpdate(utterance);
+    if (isInsertMode)
+        renderTextPostInsertion(utterance);
+    else
+        renderTextPostUpdate(utterance);
 }
 
 export const feedbackOfWorkingTextAfterExitFromEditMode = () => {
@@ -313,9 +316,12 @@ export const feedbackOfWorkingTextAfterExitFromEditMode = () => {
         feedbackOfWorkingTextOnNavigation(); 
 }
 
-export const feedbackOnUndoRedoInEditMode = () => {
+export const feedbackOnUndoRedoInEditMode = (isInsertMode) => {
     setCurrentWorkingTextFromSentenceIndex();
-    renderTextPostUpdate(null, true);
+    if (isInsertMode)
+        renderTextOnUndoRedoInEditInsertMode();
+    else
+        renderTextPostUpdate(null, true);
 }
 
 export const toggleReadToDisp = () => {

@@ -7,11 +7,11 @@ import { handleRedictation } from './EditInstructionHandler/Redictation.js';
 import { feedbackOnUserUtterance, feedbackOfWorkingTextOnUserUtterance, getCurrentWorkingText, getCurrentWorkingTextSentenceIndex, isDisplayON, feedbackOnTextUpdateInEditMode } from './FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../main.js'
 import { handleError } from './ErrorHandler.js'
-import { getPTTStatus } from '../Drivers/RingControllerDriver.js';
+import { getPTTStatus, getIsInsertMode } from '../Drivers/RingControllerDriver.js';
 import { getTTSReadStates, getTTSReadState, setTTSReadState } from '../Services/speechrecognizer.js';
 import { getControllerMode } from '../Drivers/RingControllerDriver.js';
-import { getSelectionRangeAbsCharIndices } from './WordEditHandler.js';
-import { deleteText, replaceText, refreshText } from './TextEditor.js';
+import { getSelectionRangeAbsCharIndices, getInsertionObject } from './WordEditHandler.js';
+import { insertText, deleteText, replaceText, refreshText } from './TextEditor.js';
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 20 // in chars
 const cropSelectionToBargeinIndex = false // either crop or full sentence.
@@ -205,30 +205,53 @@ const parseUtterancePrioritizedWorkingText = (utterance, workingTextArray) => {
 }
 
 export const handleUtteranceInEditMode = (utterance) => {
-    let rangeObject = getSelectionRangeAbsCharIndices();
     let updateParameter;
+    let isInsertMode = getIsInsertMode();
 
-    if (utterance === 'delete') {
+    if (isInsertMode) {
+        let insertionObj = getInsertionObject()
+        let insertionText
+
+        if (insertionObj.direction === 'LEFT')
+            insertionText = utterance
+        else if (insertionObj.direction === 'RIGHT')
+            insertionText = ' ' + utterance
+        
         updateParameter = {
-            startIndex: rangeObject.startIndex,
-            length: rangeObject.endIndex - rangeObject.startIndex
+            startIndex: insertionObj.index,
+            length: 0,
+            updateText: insertionText
         }
 
-        deleteText(updateParameter)
+        insertText(updateParameter)
         .then(refreshText(quill.getText()));
     }
+
     else {
-        updateParameter = {
-            startIndex: rangeObject.startIndex,
-            length: rangeObject.endIndex - rangeObject.startIndex,
-            updateText: utterance
-        }
+        let rangeObject = getSelectionRangeAbsCharIndices();
 
-        replaceText(updateParameter)
-        .then(refreshText(quill.getText()));
+        if (utterance === 'delete') {
+            updateParameter = {
+                startIndex: rangeObject.startIndex,
+                length: rangeObject.endIndex - rangeObject.startIndex
+            }
+
+            deleteText(updateParameter)
+            .then(refreshText(quill.getText()));
+        }
+        else {
+            updateParameter = {
+                startIndex: rangeObject.startIndex,
+                length: rangeObject.endIndex - rangeObject.startIndex,
+                updateText: utterance
+            }
+
+            replaceText(updateParameter)
+            .then(refreshText(quill.getText()));
+        }
     }
 
-    feedbackOnTextUpdateInEditMode(utterance);
+    feedbackOnTextUpdateInEditMode(utterance, isInsertMode);
 }
 
 const getListOfSupportedKeywords = () => {

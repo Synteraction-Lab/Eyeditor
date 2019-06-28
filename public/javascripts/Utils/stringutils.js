@@ -1,51 +1,70 @@
-export const stripPunctuations = (text) => {
+import { Contractions } from "./contraction.js";
+
+const stripPunctuations = (text) => {
     text = text.replace(/[^\w\s]/g, '')
     return text
 }
 
-export const removeLeadingNonWordChars = (text) => {
+const removeLeadingNonWordChars = (text) => {
     text = text.replace(/^\W+/g, '')
     return text
 }
 
-export const removeNonWordCharsBeforeSentenceDelimiters = (text) => {
+const removeNonWordCharsBeforeSentenceDelimiters = (text) => {
     text = text.replace(/(\W+)([.?!])/g, '$2')
     return text
 }
 
-export const forceMonoSpacing = (text) => {     // <Text.Text    text  ?> => <Text. Text text?>
+const forceMonoSpacing = (text) => {     // <Text.Text    text  ?> => <Text. Text text?>
     text = text.replace(/([^\w\s]\b)/g, '$1 ')
     text = text.replace(/\s(?!\b)/g, '')
     return text
 }
 
-export const appendPeriodIfMissing = (text) => {
+const appendPeriodIfMissing = (text) => {
     text = text.replace(/(\b|\s+)$/g, '.')
     return text
 }
 
-export const forceFirstCharOfSentenceToUpperCase = (text) => {
+const forceFirstCharOfSentenceToUpperCase = (text) => {
     text = text.replace(/(?<=^|[.?!]\s)(.)/g, firstCharacter => firstCharacter.toUpperCase())
     return text
 }
 
-export const removeNonWordCharsExceptSingleSpaceAtSentenceBoundaries = (text) => {
+const removeNonWordCharsExceptSingleSpaceAtSentenceBoundaries = (text) => {
     text = text.replace(/(?<=[.?!])\W+(?=\s\b)/g, '')
     return text
 }
 
-export const formatText = (text) => {
+export const splitHyphenatedWords = (text) => {
+    text = text.replace(/(\w+)-(\w+)/g, '$1 $2')
+    return text
+}
+
+export const expandContractions = (text) => {
+    let contractions = new Contractions()
+    return contractions.expand(text);
+}
+
+export const formatText = (text, isTextLoad) => {
     text = text.trim()
+
+    if (isTextLoad) {
+        text = splitHyphenatedWords(text)
+        text = expandContractions(text)
+    }
+
     text = removeLeadingNonWordChars(text)
     text = appendPeriodIfMissing(text)
     text = forceMonoSpacing(text)
     text = forceFirstCharOfSentenceToUpperCase(text)
     text = removeNonWordCharsBeforeSentenceDelimiters(text)
     text = removeNonWordCharsExceptSingleSpaceAtSentenceBoundaries(text)
-    return text
+
+    return text;
 }
 
-export const removeFormatting = (text) => {
+const removeFormatting = (text) => {
     text = stripPunctuations(text)
     text = forceMonoSpacing(text)
     return text
@@ -222,7 +241,7 @@ const getPunctuationInsensitiveRegex = (searchString, caller) => {
 
 export const splitIntoWords = (text) => text.split(/\W+/g).filter(word => word);
 
-export const getWordFromWordIndex = (text, wordIndex) => {
+export const getWordAtWordIndex = (text, wordIndex) => {
     let extractWordRegexString = `^(?:\\W*\\b\\w+\\b\\W*){${wordIndex}}(\\w+)`;
     let extractWordRegex = new RegExp(extractWordRegexString, 'gi');
     let match = extractWordRegex.exec(text)
@@ -231,4 +250,43 @@ export const getWordFromWordIndex = (text, wordIndex) => {
         charIndex: extractWordRegex.lastIndex - match[1].length,
         charLength: match[1].length
     }
+}
+
+export const getWordIndexFromCharIndex = (text, charIndex) => {
+    let match = text.substring(0, charIndex).match(/\b\s/g)
+    return match && match.length || 0
+}
+
+export const getWhichWordBoudary = (text, charIndex) => {
+    if (charIndex === 0 || text.substr(charIndex - 1, 1) === ' ')
+        return 'LEFT'
+    else if (/\W/g.test(text.substr(charIndex + 1, 1)))
+        return 'RIGHT'
+    else
+        return null;
+}
+
+export const getCharIndexOfWordBoundary = (text, charIndex, boundaryDir) => {
+    switch (boundaryDir) {
+        case 'LEFT':
+            // console.log('substring', text.substr(0, charIndex+1))
+            if (charIndex === 0)
+                return 0;
+            else
+                return text.substr(0, charIndex).lastIndexOf(' ') + 1;
+
+        case 'RIGHT':
+            // console.log('substring', text.substr(charIndex))
+            if (/\W/g.test(text.charAt(charIndex)))
+                charIndex = getNextWordCharIndex(text, charIndex)
+            let regex = /\W.*/g
+            let match = regex.exec(text.substr(charIndex))
+            return charIndex + match.index - 1;
+    }
+}
+
+export const getNextWordCharIndex = (text, charIndex) => {
+    let regex = /\w.*/g
+    let match = regex.exec(text.substr(charIndex))
+    return charIndex + match.index;
 }

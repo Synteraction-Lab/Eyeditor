@@ -1,7 +1,7 @@
 import * as tts from './tts.js'
 import * as parser from '../Engines/UtteranceParser.js'
 import { feedbackOnUserUtterance, clearUserUtterance } from '../Engines/FeedbackHandler.js'
-import { forceNumberToWords } from '../Utils/stringutils.js';
+import { forceNumberToWords, splitHyphenatedWords, expandContractions } from '../Utils/stringutils.js';
 
 /* Speech recognizer setup */
 var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
@@ -29,6 +29,13 @@ export const getTTSReadState = () => TTSReadState;
 export const setTTSReadState = (readState) => { TTSReadState = readState }
 export const getTTSReadStates = () => TTSReadStates;
 
+const preprocessHypothesis = (hypo) => {
+    hypo = forceNumberToWords(hypo)
+    hypo = splitHyphenatedWords(hypo)
+    hypo = expandContractions(hypo)
+    return hypo;
+}
+
 /* Recognition Events */
 recognition.onresult = function(event) {
     var last = event.results.length - 1;
@@ -47,7 +54,7 @@ recognition.onresult = function(event) {
     if (event.results[last].isFinal) {
         clearTimeout(userUtteranceDisplayTimer)
 
-        hypothesis = forceNumberToWords(hypothesis)
+        hypothesis = preprocessHypothesis(hypothesis)
         feedbackOnUserUtterance(hypothesis)
 
         userUtteranceDisplayTimer = setTimeout(clearUserUtterance, USER_UTTERANCE_DISPLAY_TIMEOUT)

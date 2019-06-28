@@ -21,9 +21,8 @@ tts.setup()
 generateFuzzySetForCommands()
 
 const initLoad = (text) => {
-    let isLoading = true
     mic.checked = false
-    editor.refreshText(text, isLoading)
+    editor.refreshText(text, true)
     loadedText = quill.getText()
     tts.setTTSReadStartedFlag(false)
 }

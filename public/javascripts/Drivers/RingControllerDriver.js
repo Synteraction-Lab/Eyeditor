@@ -4,7 +4,7 @@ import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext
 import { readPrevSentence, readNextSentence, readFromStart, toggleReadEyesFree } from '../Engines/AudioFeedbackHandler.js';
 import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
-import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange } from '../Engines/WordEditHandler.js';
+import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange, insertInEditMode, exitInsertMode } from '../Engines/WordEditHandler.js';
 
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
@@ -44,6 +44,7 @@ let feedbackConfig;
 let controllerMode = 'DEFAULT';
 let feedbackModality = 'DISP';     // 'DISP', 'AUDIO'
 let rangeSelectionMode = false;
+let isInsertMode = false;
 
 export const getPTTStatus = () => {
     if (feedbackConfig !== 'DISP_ON_DEMAND')
@@ -104,7 +105,11 @@ const toggleRangeSelectionMode = () => {
     else
         clearRange();
 }
-export const setRangeSelectionMode = (state) => { rangeSelectionMode = state };
+
+export const setRangeSelectionMode = (state) => { rangeSelectionMode = state; }
+
+export const getIsInsertMode = () => isInsertMode;
+export const setInsertMode = (state) => { isInsertMode = state; }
 
 // longPressTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('longPressTimer ::', longPressTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
@@ -429,11 +434,11 @@ export const classifyControllerEvent = (trackPadEvent) => {
                     break;
 
                 case UP_KEY_CODE:
-                    controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_LEFT' : 'MOVE_WORD_CURSOR_LEFT'
+                    controllerEvent = (!isInsertMode) ? 'INSERT_LEFT' : 'CONT_INSERT_LEFT'
                     break;
 
                 case DOWN_KEY_CODE:
-                    controllerEvent = (rangeSelectionMode) ? 'ALTER_SELECTION_RIGHT' : 'MOVE_WORD_CURSOR_RIGHT'
+                    controllerEvent = (!isInsertMode) ? 'INSERT_RIGHT' : 'CONT_INSERT_RIGHT'
                     break;
 
                 case RIGHT_KEY_CODE:
@@ -444,10 +449,14 @@ export const classifyControllerEvent = (trackPadEvent) => {
                     break;
 
                 case CENTER_KEY_CODE:
-                    if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
-                        controllerEvent = 'TOGGLE_RANGE_SELECTION_MODE'
-                    else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
-                        controllerEvent = 'REMOVE_SELECTED_TEXT'
+                    if (!isInsertMode) {
+                        if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                            controllerEvent = 'TOGGLE_RANGE_SELECTION_MODE'
+                        else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                            controllerEvent = 'REMOVE_SELECTED_TEXT'
+                    }
+                    else
+                        controllerEvent = 'EXIT_INSERT_MODE'
                     break;
             }
             break;
@@ -486,13 +495,13 @@ export const handleControllerEvent = (event) => {
         case 'UNDO':
             handleCommand('undo', null, null, true);
             if (controllerMode === 'EDIT')
-                feedbackOnUndoRedoInEditMode()
+                feedbackOnUndoRedoInEditMode(isInsertMode)
             break;
 
         case 'REDO':
             handleCommand('redo', null, null, true);
             if (controllerMode === 'EDIT')
-                feedbackOnUndoRedoInEditMode()
+                feedbackOnUndoRedoInEditMode(isInsertMode)
             break;
 
         case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display
@@ -558,16 +567,18 @@ export const handleControllerEvent = (event) => {
             toggleFeedbackState();
             break;
 
+        case 'TOGGLE_RANGE_SELECTION_MODE':
+            toggleRangeSelectionMode();
+            break;
+
         case 'MOVE_WORD_CURSOR_LEFT':
+            setInsertMode(false);
             moveWordCursor('LEFT');
             break;
         
         case 'MOVE_WORD_CURSOR_RIGHT':
+            setInsertMode(false);
             moveWordCursor('RIGHT');
-            break;
-
-        case 'TOGGLE_RANGE_SELECTION_MODE':
-            toggleRangeSelectionMode();
             break;
 
         case 'ALTER_SELECTION_LEFT':
@@ -578,9 +589,30 @@ export const handleControllerEvent = (event) => {
             alterSelection('RIGHT');
             break;
 
+        case 'INSERT_LEFT':
+            setInsertMode(true);
+            insertInEditMode('LEFT');
+            break;
+
+        case 'INSERT_RIGHT':
+            setInsertMode(true);
+            insertInEditMode('RIGHT');
+            break;
+        
+        case 'CONT_INSERT_LEFT':
+            insertInEditMode('LEFT', true)
+            break;
+        
+        case 'CONT_INSERT_RIGHT':
+            insertInEditMode('RIGHT', true)
+            break;
+
         case 'REMOVE_SELECTED_TEXT':
             handleUtteranceInEditMode('delete')
             break;
+
+        case 'EXIT_INSERT_MODE':
+            exitInsertMode();
 
         default:
             break;

@@ -1,14 +1,21 @@
-import { splitIntoWords, getWordFromWordIndex } from "../Utils/stringutils.js";
-import { markupForSelection } from "../Utils/HTMLParser.js";
+import { splitIntoWords, getWordAtWordIndex, getWordIndexFromCharIndex, getWhichWordBoudary, getCharIndexOfWordBoundary, getNextWordCharIndex } from "../Utils/stringutils.js";
+import { markupForSelection, markupForInsertionInEditMode } from "../Utils/HTMLParser.js";
 import { feedbackOnTextSelection, getCurrentWorkingText } from "./FeedbackHandler.js";
-import { setRangeSelectionMode } from "../Drivers/RingControllerDriver.js";
+import { setRangeSelectionMode, setInsertMode } from "../Drivers/RingControllerDriver.js";
 
 let wordCursorPosition;
 let workingText;
 let wordCount;
-let rangeStartWordIndex, rangeEndWordIndex;
-let rangeStartCharIndex, rangeEndCharIndex;
+let rangeStartWordIndex, rangeEndWordIndex;     // relative to workingText
+let rangeStartCharIndex, rangeEndCharIndex;     // relative to workingText
 let workingEndWordIndex;
+
+let insertionObject = {     // all indices are char indices relative to workingText
+    markerIndex: undefined,
+    insertionIndex: undefined,
+    nextInsertionBaseIndex: undefined,
+    direction: undefined
+};
 
 export const initRange = () => { workingEndWordIndex = wordCursorPosition }
 export const clearRange = () => {
@@ -21,6 +28,47 @@ export const initEditMode = () => {
     wordCursorPosition = 0;
     setWorkingText();
     selectRange();
+}
+
+const initInsertInEditMode = (dir) => {
+    setRangeSelectionMode(false);
+
+    if (dir === 'LEFT') {
+        setInsertionParameters(rangeStartCharIndex, dir)
+        wordCursorPosition = getWordIndexFromCharIndex(workingText.text, rangeStartCharIndex)
+    }
+    else if (dir === 'RIGHT') {
+        setInsertionParameters(rangeEndCharIndex - 1, dir)
+        wordCursorPosition = getWordIndexFromCharIndex(workingText.text, rangeEndCharIndex)
+    }
+}
+
+const getInsertionParametersForContinuedInsertion = (dir) => {
+    let currentMarkerIndex = insertionObject.markerIndex
+    let currentText = workingText.text
+    let wordBoundaryDir = getWhichWordBoudary(currentText, currentMarkerIndex)
+    if (dir === 'LEFT') {
+        if (wordBoundaryDir === 'LEFT' && wordCursorPosition > 0) {
+            wordCursorPosition = wordCursorPosition - 1
+            currentMarkerIndex = currentMarkerIndex - 1
+        }
+        currentMarkerIndex = getCharIndexOfWordBoundary(currentText, currentMarkerIndex, dir)
+    }
+    else if (dir === 'RIGHT') {
+        if ( (wordBoundaryDir === 'RIGHT' || getWordAtWordIndex(currentText, wordCursorPosition).charLength === 1) && wordCursorPosition < wordCount - 1 ) {
+            wordCursorPosition = wordCursorPosition + 1
+            currentMarkerIndex = getNextWordCharIndex(currentText, currentMarkerIndex + 1)
+        }
+        currentMarkerIndex = getCharIndexOfWordBoundary(currentText, currentMarkerIndex, dir)
+    }
+    setInsertionParameters(currentMarkerIndex, dir)
+}
+
+// const toggleDirection = (dir) => (dir === 'LEFT') ? 'RIGHT' : 'LEFT';
+
+export const exitInsertMode = () => { 
+    setInsertMode(false);
+    selectRange(); 
 }
 
 const setWorkingText = () => {
@@ -47,8 +95,8 @@ const selectRange = (selectionEndWordIndex) => {
     if (selectionEndWordIndex != null && selectionEndWordIndex < selectionStartWordIndex)
         [selectionStartWordIndex, selectionEndWordIndex] = [selectionEndWordIndex, selectionStartWordIndex]
     
-    let selectionStart = getWordFromWordIndex(workingText.text, selectionStartWordIndex)
-    let selectionEnd = (selectionEndWordIndex != null) ? getWordFromWordIndex(workingText.text, selectionEndWordIndex) : selectionStart
+    let selectionStart = getWordAtWordIndex(workingText.text, selectionStartWordIndex)
+    let selectionEnd = (selectionEndWordIndex != null) ? getWordAtWordIndex(workingText.text, selectionEndWordIndex) : selectionStart
     let sentenceRenderHTML =  workingText.text.substr(0, selectionStart.charIndex)
                             + markupForSelection( workingText.text.substring(selectionStart.charIndex, selectionEnd.charIndex + selectionEnd.charLength) )
                             + workingText.text.substr(selectionEnd.charIndex + selectionEnd.charLength)
@@ -80,6 +128,43 @@ export const alterSelection = (dir) => {
     selectRange(workingEndWordIndex)
 }
 
+export const insertInEditMode = (dir, isContinuedInsertion) => {
+    if (!isContinuedInsertion)
+        initInsertInEditMode(dir);
+    else
+        getInsertionParametersForContinuedInsertion(dir)
+    renderTextWithInsertionMarker(dir);
+}
+
+export const getInsertionObject = () => (
+    {
+        'index': workingText.startIndex + insertionObject.insertionIndex,
+        'direction': insertionObject.direction
+    }
+)
+
+const setInsertionParameters = (markerIndex, dir) => {
+    insertionObject.markerIndex = markerIndex
+    insertionObject.direction = dir
+
+    if (dir === 'LEFT') {
+        insertionObject.insertionIndex = insertionObject.markerIndex
+        insertionObject.nextInsertionBaseIndex = insertionObject.insertionIndex
+    }
+    else if (dir === 'RIGHT') {
+        insertionObject.insertionIndex = insertionObject.markerIndex + 1
+        insertionObject.nextInsertionBaseIndex = insertionObject.insertionIndex + 1
+    }
+}
+
+const renderTextWithInsertionMarker = (dir) => {
+    let sentenceRenderHTML =  workingText.text.substr(0, insertionObject.markerIndex)
+                            + markupForInsertionInEditMode(workingText.text.substr(insertionObject.markerIndex, 1), dir)
+                            + workingText.text.substr(insertionObject.markerIndex + 1)
+
+    feedbackOnTextSelection(sentenceRenderHTML)
+}
+
 export const renderTextPostUpdate = (utterance, suppressRangeSelect) => {
     setWorkingText();
     wordCursorPosition = (rangeStartWordIndex < wordCount) ? rangeStartWordIndex : rangeStartWordIndex - 1;
@@ -90,4 +175,17 @@ export const renderTextPostUpdate = (utterance, suppressRangeSelect) => {
         selectRange(wordCursorPosition + splitIntoWords(utterance).length - 1);
 
     setRangeSelectionMode(false);
+}
+
+export const renderTextPostInsertion = (utterance) => {
+    setWorkingText();
+    setInsertionParameters(insertionObject.nextInsertionBaseIndex + utterance.length - 1, 'RIGHT');
+    renderTextWithInsertionMarker('RIGHT');
+    wordCursorPosition = getWordIndexFromCharIndex(workingText.text, insertionObject.insertionIndex)
+}
+
+export const renderTextOnUndoRedoInEditInsertMode = () => {
+    setWorkingText();
+    wordCursorPosition = getWordIndexFromCharIndex(workingText.text, rangeStartCharIndex);
+    exitInsertMode();
 }

@@ -3,7 +3,9 @@ const colorMap = {
         'insert': '#B3E7B7',
         'delete': '#774646',
         // 'delete': '#EEBBBB',
-        'highlight': '#EFE02F'
+        'highlight': '#EFE02F',
+        'insertLeft': '#6AC7F2',
+        'insertRight': '#00FF7C',
     },
 
     'font': {
@@ -11,7 +13,9 @@ const colorMap = {
         // 'delete': '#ADACAC',
         // 'deleteBasic': '#5E5E5E',
         'insert': 'black',
-        'highlight': 'black'
+        'highlight': 'black',
+        // 'insertEditMode': '#32FA0A',
+        'insertEditMode': 'black',
     }
 }
 
@@ -49,3 +53,8 @@ export const markupForPrioritizedSentence = (sentence) =>
 
 export const markupForSelection = (selection) =>
     `<span style="background-color:${colorMap.background.highlight}; color:${colorMap.font.highlight}">${selection}</span>`
+
+export const markupForInsertionInEditMode = (selection, dir) => {
+    let insertMarkerColor = (dir === 'LEFT') ? colorMap.background.insertLeft : colorMap.background.insertRight
+    return `<span style="background-color:${insertMarkerColor}; color:${colorMap.font.insertEditMode}">${selection}</span>`
+}

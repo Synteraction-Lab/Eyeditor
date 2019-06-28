@@ -23,10 +23,9 @@ editor.addEventListener('dblclick', (e) => {
 })
 
 export const refreshText = (text, isTextLoad) => {
-    quill.setText( formatText(text) )
-
-    isTextLoad = isTextLoad || false
-    if (isTextLoad) feedbackOnTextLoad()
+    quill.setText(formatText(text, isTextLoad))
+    if (isTextLoad) 
+        feedbackOnTextLoad()
 }
 
 const updateCompleted = () => {
