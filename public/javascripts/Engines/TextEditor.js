@@ -78,33 +78,37 @@ export const insertText = (updateParam) => {
 }
 
 export const undo = () => {
-    if (quill.history.stack.undo.length > 1) {
-        let lastUndoStackEntryDelta = quill.history.stack.undo[quill.history.stack.undo.length-1].undo.ops[0]
-        let indexOfUndo
-        
-        if (lastUndoStackEntryDelta)
-            indexOfUndo = lastUndoStackEntryDelta.retain || 0
-        
+    let historyObject = { op: 'undo', index: undefined, length: undefined };
+    
+    if ( quill.history.stack.undo.length > 1 ) {
+        let lastUndoStackEntryDelta = quill.history.stack.undo[quill.history.stack.undo.length - 1].undo.ops
+        if (lastUndoStackEntryDelta) {
+            historyObject.index =  ("retain" in lastUndoStackEntryDelta[0]) ? lastUndoStackEntryDelta[0].retain : undefined
+            historyObject.length = ("delete" in lastUndoStackEntryDelta[1]) ? lastUndoStackEntryDelta[1].delete : undefined
+        }
+
         quill.enable()
         quill.history.undo()
         quill.disable()
-        
-        return indexOfUndo;
     }
+
+    return historyObject;
 }
 
 export const redo = () => {
-    if (quill.history.stack.redo.length > 0) {
-        let lastRedoStackEntryDelta = quill.history.stack.redo[quill.history.stack.redo.length-1].undo.ops[0]
-        let indexOfRedo
+    let historyObject = { op: 'redo', index: undefined, length: undefined };
 
-        if (lastRedoStackEntryDelta)
-            indexOfRedo = lastRedoStackEntryDelta.retain || 0
+    if ( quill.history.stack.redo.length > 0 ) {
+        let lastRedoStackEntryDelta = quill.history.stack.redo[quill.history.stack.redo.length - 1].undo.ops
+        if (lastRedoStackEntryDelta) {
+            historyObject.index =  ("retain" in lastRedoStackEntryDelta[0]) ? lastRedoStackEntryDelta[0].retain : undefined
+            historyObject.length = ("delete" in lastRedoStackEntryDelta[1]) ? lastRedoStackEntryDelta[1].delete : undefined
+        }
 
         quill.enable()
         quill.history.redo()
         quill.disable()
-        
-        return indexOfRedo;
     }
+    
+    return historyObject;
 }

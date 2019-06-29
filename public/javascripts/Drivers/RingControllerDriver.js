@@ -1,5 +1,5 @@
 import * as tts from '../Services/tts.js'
-import { handleCommand } from '../Engines/EditInstructionHandler/Commanding.js';
+import { handleCommand, getHistoryObject } from '../Engines/EditInstructionHandler/Commanding.js';
 import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode, fireDisplayOffRoutine, toggleReadToDisp, stopDisplayTimer, getCurrentWorkingTextSentenceIndex } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence, readFromStart, toggleReadEyesFree } from '../Engines/AudioFeedbackHandler.js';
 import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
@@ -495,13 +495,13 @@ export const handleControllerEvent = (event) => {
         case 'UNDO':
             handleCommand('undo', null, null, true);
             if (controllerMode === 'EDIT')
-                feedbackOnUndoRedoInEditMode(isInsertMode)
+                feedbackOnUndoRedoInEditMode(isInsertMode, getHistoryObject())
             break;
 
         case 'REDO':
             handleCommand('redo', null, null, true);
             if (controllerMode === 'EDIT')
-                feedbackOnUndoRedoInEditMode(isInsertMode)
+                feedbackOnUndoRedoInEditMode(isInsertMode, getHistoryObject())
             break;
 
         case 'CONTEXT_PREV':    // both context_prev and context_next are only for always-on display

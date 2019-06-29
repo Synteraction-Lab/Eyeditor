@@ -316,10 +316,12 @@ export const feedbackOfWorkingTextAfterExitFromEditMode = () => {
         feedbackOfWorkingTextOnNavigation(); 
 }
 
-export const feedbackOnUndoRedoInEditMode = (isInsertMode) => {
+export const feedbackOnUndoRedoInEditMode = (isInsertMode, historyObject) => {
     setCurrentWorkingTextFromSentenceIndex();
-    if (isInsertMode)
-        renderTextOnUndoRedoInEditInsertMode();
+    if (isInsertMode) {
+        if ( historyObject.index >= 0 )
+            renderTextOnUndoRedoInEditInsertMode(historyObject);
+    }
     else
         renderTextPostUpdate(null, true);
 }

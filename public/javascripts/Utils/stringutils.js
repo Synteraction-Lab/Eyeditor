@@ -278,15 +278,27 @@ export const getCharIndexOfWordBoundary = (text, charIndex, boundaryDir) => {
         case 'RIGHT':
             // console.log('substring', text.substr(charIndex))
             if (/\W/g.test(text.charAt(charIndex)))
-                charIndex = getNextWordCharIndex(text, charIndex)
+                charIndex = getNextWordFirstCharIndex(text, charIndex)
             let regex = /\W.*/g
             let match = regex.exec(text.substr(charIndex))
             return charIndex + match.index - 1;
     }
 }
 
-export const getNextWordCharIndex = (text, charIndex) => {
+export const getNextWordFirstCharIndex = (text, charIndex) => {
     let regex = /\w.*/g
     let match = regex.exec(text.substr(charIndex))
-    return charIndex + match.index;
+    if (match)
+        return charIndex + match.index;
+    else
+        return charIndex;
+}
+
+export const getPrevWordLastCharIndex = (text, charIndex) => {
+    let regex = /.*\w/g
+    let match = regex.exec(text.substr(0, charIndex))
+    if (match)
+        return regex.lastIndex - 1;
+    else
+        return charIndex;
 }

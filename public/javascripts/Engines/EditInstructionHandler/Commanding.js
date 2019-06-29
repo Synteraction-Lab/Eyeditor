@@ -9,13 +9,16 @@ import { getFeedbackConfiguration } from '../../main.js';
 import { setFeedbackModality, getFeedbackModality } from '../../Drivers/RingControllerDriver.js';
 import { getSentenceIndexFromBargeinIndex } from '../UtteranceParser.js'
 
+let historyObject = { op: undefined, index: undefined, length: undefined };
+export const getHistoryObject = () => historyObject;
+
 export const handleCommand = (keyword, arg, workingText, isControllerRequest) => {
     let updateParameter;
     isControllerRequest = isControllerRequest || false;
 
     let feedbackConfig = getFeedbackConfiguration();
     let quillSnapshotBeforeUpdate;
-
+    
     try {
         switch ( keyword ) {
             case 'delete': 
@@ -41,25 +44,25 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
             case 'undo':
                 quillSnapshotBeforeUpdate = (isControllerRequest) ? quill.getText() : undefined
 
-                let indexOfUndo = editor.undo()
-                updateParameter = {startIndex: indexOfUndo}
-                // console.log('index of undo', indexOfUndo)
+                historyObject = Object.assign( {}, editor.undo() )
+                updateParameter = { startIndex: historyObject.index }
                 
-                if (indexOfUndo >= 0)   provideSuccessFeedback('Undone', updateParameter, quillSnapshotBeforeUpdate)
-                    else                provideFailureFeedback('There is nothing more to undo.')
-                    
+                if ( historyObject.index >= 0 )
+                    provideSuccessFeedback('Undone', updateParameter, quillSnapshotBeforeUpdate)
+                else                
+                    provideFailureFeedback('There is nothing more to undo.')
                 break;
 
             case 'redo':
                 quillSnapshotBeforeUpdate = (isControllerRequest) ? quill.getText() : undefined
 
-                let indexOfRedo = editor.redo()
-                updateParameter = {startIndex: indexOfRedo}
-                // console.log('index of redo', indexOfRedo)
+                historyObject = Object.assign( {}, editor.redo() )
+                updateParameter = { startIndex: historyObject.index }
                 
-                if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter, quillSnapshotBeforeUpdate)
-                    else                provideFailureFeedback('There is nothing more to redo.')
-
+                if ( historyObject.index >= 0 )
+                    provideSuccessFeedback('Redone', updateParameter, quillSnapshotBeforeUpdate)
+                else                
+                    provideFailureFeedback('There is nothing more to redo.')
                 break;
 
             case 'previous':
@@ -184,7 +187,7 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
         
         case 'undo':
             let indexOfUndo = editor.undo()
-            updateParameter = {startIndex: indexOfUndo}
+            updateParameter = { startIndex: indexOfUndo }
             
             if (indexOfUndo >= 0)   provideSuccessFeedback('Undone', updateParameter)
                 else                provideFailureFeedback('There is nothing more to undo.')
@@ -193,7 +196,7 @@ export const handleCommandPrioritizedWorkingText = (keyword, arg, workingText) =
 
         case 'redo':
             let indexOfRedo = editor.redo()
-            updateParameter = {startIndex: indexOfRedo}
+            updateParameter = { startIndex: indexOfRedo }
             
             if (indexOfRedo >= 0)   provideSuccessFeedback('Redone', updateParameter)
                 else                provideFailureFeedback('There is nothing more to redo.')

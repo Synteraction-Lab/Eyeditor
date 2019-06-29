@@ -1,4 +1,4 @@
-import { splitIntoWords, getWordAtWordIndex, getWordIndexFromCharIndex, getWhichWordBoudary, getCharIndexOfWordBoundary, getNextWordCharIndex } from "../Utils/stringutils.js";
+import { splitIntoWords, getWordAtWordIndex, getWordIndexFromCharIndex, getWhichWordBoudary, getCharIndexOfWordBoundary, getNextWordFirstCharIndex, getPrevWordLastCharIndex } from "../Utils/stringutils.js";
 import { markupForSelection, markupForInsertionInEditMode } from "../Utils/HTMLParser.js";
 import { feedbackOnTextSelection, getCurrentWorkingText } from "./FeedbackHandler.js";
 import { setRangeSelectionMode, setInsertMode } from "../Drivers/RingControllerDriver.js";
@@ -57,7 +57,7 @@ const getInsertionParametersForContinuedInsertion = (dir) => {
     else if (dir === 'RIGHT') {
         if ( (wordBoundaryDir === 'RIGHT' || getWordAtWordIndex(currentText, wordCursorPosition).charLength === 1) && wordCursorPosition < wordCount - 1 ) {
             wordCursorPosition = wordCursorPosition + 1
-            currentMarkerIndex = getNextWordCharIndex(currentText, currentMarkerIndex + 1)
+            currentMarkerIndex = getNextWordFirstCharIndex(currentText, currentMarkerIndex + 1)
         }
         currentMarkerIndex = getCharIndexOfWordBoundary(currentText, currentMarkerIndex, dir)
     }
@@ -184,8 +184,20 @@ export const renderTextPostInsertion = (utterance) => {
     wordCursorPosition = getWordIndexFromCharIndex(workingText.text, insertionObject.insertionIndex)
 }
 
-export const renderTextOnUndoRedoInEditInsertMode = () => {
+export const renderTextOnUndoRedoInEditInsertMode = (historyObject) => {
     setWorkingText();
-    wordCursorPosition = getWordIndexFromCharIndex(workingText.text, rangeStartCharIndex);
-    exitInsertMode();
+
+    let markerIndex; 
+    let currentText = workingText.text;
+    let historyIndexRelative = historyObject.index - workingText.startIndex;
+
+    if (historyObject.op === 'undo')
+        markerIndex = getPrevWordLastCharIndex(currentText, historyIndexRelative);
+    else if (historyObject.op === 'redo')
+        markerIndex = getPrevWordLastCharIndex(currentText, historyIndexRelative + historyObject.length);
+
+    setInsertionParameters(markerIndex, getWhichWordBoudary(currentText, markerIndex));
+    
+    renderTextWithInsertionMarker(getWhichWordBoudary(currentText, insertionObject.markerIndex));
+    wordCursorPosition = getWordIndexFromCharIndex(currentText, insertionObject.insertionIndex);
 }
