@@ -6,7 +6,8 @@ import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange, insertInEditMode, exitInsertMode } from '../Engines/WordEditHandler.js';
 import { markupForStatusInEditMode, markupForStatusInDefaultMode } from '../Utils/HTMLParser.js';
-import { getFileIOSocket } from '../Utils/createLog.js';
+import { getSocket } from '../Services/socket.js';
+import { getTaskTimerValue } from '../Utils/createLog.js';
 
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
@@ -36,6 +37,7 @@ const SWITCH = {
 }
 Object.freeze(SWITCH)
 
+let socket = getSocket()
 let longPressTimer = new Timer()
 let lastKeyPressCode
 let wasTTSReading
@@ -529,10 +531,12 @@ export const handleControllerEvent = (event) => {
 
         case 'WORKING_TEXT_PREV':
             navigateWorkingText('PREV')
+            socket.emit('log', `PREV, ${getTaskTimerValue()}\n`)
             break;
 
         case 'WORKING_TEXT_NEXT':
             navigateWorkingText('NEXT')
+            socket.emit('log', `NEXT, ${getTaskTimerValue()}\n`)
             break;
 
         case 'QUICK_DISMISS':

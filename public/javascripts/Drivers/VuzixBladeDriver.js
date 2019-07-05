@@ -1,7 +1,8 @@
 import { getPushToBladeLockStatus, getFeedbackConfiguration } from "../main.js";
 import { getBladeURLObject, getWebSocketRef } from "./ConnectBlade.js";
+import { getSocket } from "../Services/socket.js";
 
-var socket = io.connect('http://localhost:3000');
+let socket = getSocket()
 let ws = getWebSocketRef()
 let dataObject = {}
 
