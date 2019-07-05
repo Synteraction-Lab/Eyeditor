@@ -13,17 +13,24 @@ const MAX_DISPLAY_ON_TIME = 5 // in seconds
 const CLEAR = 'signal:clear'
 const HOLD = 'signal:hold'
 const keywordsThatShouldNotTriggerDisplay = ['previous', 'next', 'read']
+const STATUS_DISPLAY_TIMEOUT = 5000 // 5s
 
+let currentStatus
 let currentText
 let lastUtterance
 let timer = new Timer()
 let displayON = false
 let workingTextSentenceIndex = 0
 let currentWorkingText
+let statusDisplayTimer
+let statusDisplaySwitch = false;
 
 export const isDisplayON = () => displayON
 export const getCurrentWorkingText = () => currentWorkingText
 export const getCurrentWorkingTextSentenceIndex = () => workingTextSentenceIndex || 0
+
+const getStatus = () => currentStatus
+const setStatus = (status) => { currentStatus = status }
 
 const getCurrentText = () => currentText
 const setCurrentText = (text) => { currentText = text }
@@ -70,7 +77,18 @@ export const clearUserUtterance = () => {
     feedbackOnUserUtterance(CLEAR) 
 }
 
-const renderBladeDisplay = (text, utterance) => {
+const clearStatus = () => {
+    clearTimeout(statusDisplayTimer);
+    statusDisplaySwitch = false;
+    renderBladeDisplay();
+}
+
+const renderBladeDisplay = (text, utterance, status) => {
+    if (status)
+        setStatus(status);
+    else
+        status = (statusDisplaySwitch) ? getStatus() : null;
+    
     if (!text || text === HOLD) 
         text =  getCurrentText()
         else    setCurrentText(text)
@@ -82,7 +100,7 @@ const renderBladeDisplay = (text, utterance) => {
     if (text === CLEAR)         text = null
     if (utterance === CLEAR)    utterance = null
 
-    pushTextToBlade(text, utterance)
+    pushTextToBlade(text, utterance, status)
 
     if ( getFeedbackConfiguration() === 'DISP_ON_DEMAND' ) {
         if (!displayON && text)
@@ -295,6 +313,12 @@ export const feedbackOnToggleReadState = () => {
 
 export const renderStatusOnBladeDisplay = (status) => {
     pushTextToBlade(null, null, status)
+}
+
+export const renderTimedStatusOnBladeDisplay = (status) => {
+    statusDisplaySwitch = true
+    renderBladeDisplay(null, null, status)
+    statusDisplayTimer = setTimeout(clearStatus, STATUS_DISPLAY_TIMEOUT)
 }
 
 export const feedbackOnTextSelection = (renderHTML) => {

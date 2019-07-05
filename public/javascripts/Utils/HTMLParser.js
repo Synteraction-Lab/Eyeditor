@@ -6,6 +6,7 @@ const colorMap = {
         'highlight': '#EFE02F',
         'insertLeft': '#6AC7F2',
         'insertRight': '#00FF7C',
+        'statusDefaultMode': '#FAE3E3',
     },
 
     'font': {
@@ -16,6 +17,7 @@ const colorMap = {
         'highlight': 'black',
         // 'insertEditMode': '#32FA0A',
         'insertEditMode': 'black',
+        'statusDefaultMode': 'black',
     }
 }
 
@@ -58,3 +60,10 @@ export const markupForInsertionInEditMode = (selection, dir) => {
     let insertMarkerColor = (dir === 'LEFT') ? colorMap.background.insertLeft : colorMap.background.insertRight
     return `<span style="background-color:${insertMarkerColor}; color:${colorMap.font.insertEditMode}">${selection}</span>`
 }
+
+
+export const markupForStatusInEditMode = (status) =>
+    `<b>${status}</b>`
+
+export const markupForStatusInDefaultMode = (status) =>
+    `<span style="background-color:${colorMap.background.statusDefaultMode}; color:${colorMap.font.statusDefaultMode}"><b>${status}</b></span>`

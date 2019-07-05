@@ -1,10 +1,12 @@
 import * as tts from '../Services/tts.js'
 import { handleCommand, getHistoryObject } from '../Engines/EditInstructionHandler/Commanding.js';
-import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode, fireDisplayOffRoutine, toggleReadToDisp, stopDisplayTimer, getCurrentWorkingTextSentenceIndex } from '../Engines/FeedbackHandler.js'
+import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext, feedbackOnToggleDisplayState, feedbackOnToggleReadState, feedbackOfWorkingTextAfterExitFromEditMode, feedbackOnUndoRedoInEditMode, fireDisplayOffRoutine, toggleReadToDisp, stopDisplayTimer, getCurrentWorkingTextSentenceIndex, renderTimedStatusOnBladeDisplay } from '../Engines/FeedbackHandler.js'
 import { readPrevSentence, readNextSentence, readFromStart, toggleReadEyesFree } from '../Engines/AudioFeedbackHandler.js';
 import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange, insertInEditMode, exitInsertMode } from '../Engines/WordEditHandler.js';
+import { markupForStatusInEditMode, markupForStatusInDefaultMode } from '../Utils/HTMLParser.js';
+import { getFileIOSocket } from '../Utils/createLog.js';
 
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
@@ -65,6 +67,8 @@ export const toggleControllerMode = () => {
 
     if (controllerMode === 'EDIT') {
         initEditMode();
+        renderTimedStatusOnBladeDisplay(markupForStatusInEditMode('EDIT'))
+
         if (rangeSelectionMode)
             rangeSelectionMode = !rangeSelectionMode
 
@@ -72,6 +76,7 @@ export const toggleControllerMode = () => {
             stopDisplayTimer();
     }
     else {
+        renderTimedStatusOnBladeDisplay(markupForStatusInDefaultMode('DEFAULT'))
         switch (feedbackConfig) {
             case 'ODD_FLEXI':
             case 'DISP_ON_DEMAND':

@@ -5,6 +5,7 @@ import * as editor from './Engines/TextEditor.js'
 import { generateFuzzySetForCommands } from './Utils/fuzzymatcher.js';
 import { quill } from './Services/quill.js'
 import { setFeedbackConfigVariable } from './Drivers/RingControllerDriver.js';
+import { startTaskTimer, pauseTaskTimer } from './Utils/createLog.js';
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;
@@ -55,10 +56,14 @@ btn_read.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWA
 btn_t1.addEventListener('click', (e) => { initMode(data.training[0], 'AOD_SCROLL') })
 
 mic.addEventListener('click', (e) => {
-    if (mic.checked)
-        recognition.start()
-    else
-        recognition.stop()
+    if (mic.checked) {
+        recognition.start();
+        startTaskTimer();
+    }
+    else {
+        recognition.stop();
+        pauseTaskTimer();
+    }
 })
 
 if (!pushToBladeLock)
