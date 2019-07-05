@@ -5,7 +5,7 @@ import * as editor from './Engines/TextEditor.js'
 import { generateFuzzySetForCommands } from './Utils/fuzzymatcher.js';
 import { quill } from './Services/quill.js'
 import { setFeedbackConfigVariable } from './Drivers/RingControllerDriver.js';
-import { startTaskTimer, pauseTaskTimer } from './Utils/createLog.js';
+import { startTaskTimer, pauseTaskTimer } from './Services/tasktimer.js';
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;

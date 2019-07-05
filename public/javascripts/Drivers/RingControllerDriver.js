@@ -7,7 +7,7 @@ import { sendScrollEvent } from './VuzixBladeDriver.js';
 import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange, insertInEditMode, exitInsertMode } from '../Engines/WordEditHandler.js';
 import { markupForStatusInEditMode, markupForStatusInDefaultMode } from '../Utils/HTMLParser.js';
 import { getSocket } from '../Services/socket.js';
-import { getTaskTimerValue } from '../Utils/createLog.js';
+import { getTaskTimerValue } from '../Services/tasktimer.js';
 
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
