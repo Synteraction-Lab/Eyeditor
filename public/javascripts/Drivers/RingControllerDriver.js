@@ -6,8 +6,8 @@ import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
 import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange, insertInEditMode, exitInsertMode } from '../Engines/WordEditHandler.js';
 import { markupForStatusInEditMode, markupForStatusInDefaultMode } from '../Utils/HTMLParser.js';
-import { getSocket } from '../Services/socket.js';
-import { getTaskTimerValue } from '../Services/tasktimer.js';
+import { logAlternation } from '../Utils/UserDataLogger.js';
+import { stringifyState } from '../Utils/enum.js';
 
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
@@ -37,7 +37,6 @@ const SWITCH = {
 }
 Object.freeze(SWITCH)
 
-let socket = getSocket()
 let longPressTimer = new Timer()
 let lastKeyPressCode
 let wasTTSReading
@@ -47,6 +46,7 @@ let lastSavedContext = 0;
 let feedbackConfig;
 let controllerMode = 'DEFAULT';
 let feedbackModality = 'DISP';     // 'DISP', 'AUDIO'
+let feedbackState = true;
 let rangeSelectionMode = false;
 let isInsertMode = false;
 
@@ -95,10 +95,13 @@ export const setFeedbackModality = (modality) => { feedbackModality = modality; 
 
 const toggleFeedbackModality = () => { 
     feedbackModality = (feedbackModality === 'DISP') ? 'AUDIO' : 'DISP' 
-    toggleFeedbackState();
+    toggleFeedbackState(true);
 }
 
-const toggleFeedbackState = () => {
+const toggleFeedbackState = (state) => {
+    feedbackState = (state) ? state : !feedbackState
+    logAlternation(feedbackModality, stringifyState(feedbackState), true)
+
     if (feedbackModality === 'DISP')
         feedbackOnToggleDisplayState();
     else if (feedbackModality === 'AUDIO')
@@ -531,12 +534,10 @@ export const handleControllerEvent = (event) => {
 
         case 'WORKING_TEXT_PREV':
             navigateWorkingText('PREV')
-            socket.emit('log', `PREV, ${getTaskTimerValue()}\n`)
             break;
 
         case 'WORKING_TEXT_NEXT':
             navigateWorkingText('NEXT')
-            socket.emit('log', `NEXT, ${getTaskTimerValue()}\n`)
             break;
 
         case 'QUICK_DISMISS':

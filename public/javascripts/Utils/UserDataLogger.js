@@ -1,3 +1,14 @@
+import { getTimeInSeconds, getTaskTimerValue, isTaskTimerRunning } from "../Services/tasktimer.js";
+import { getCurrentWorkingTextSentenceIndex, getCurrentWorkingText } from "../Engines/FeedbackHandler.js";
+import { getSocket } from "../Services/socket.js";
+
+let socket = getSocket();
+
+const pushlog = (log) => {
+    let logstring = Object.values(log).join(',')
+    socket.emit('log', `${logstring}\n`)
+}
+
 class Log {
     constructor(_eventType, _timeStamp) {
         this._eventType = _eventType;
@@ -10,7 +21,7 @@ class Log {
     get isEditMode()        { return this._isEditMode; }
     get input()             { return this._input; }
     get sentenceIndex()     { return this._sentenceIndex; }
-    get workingText()       { return this._workingText; }
+    get sentence()          { return this._sentence; }
     get hasTextChanged()    { return this._hasTextChanged; }
     get changedText()       { return this._changedText; }
 
@@ -20,15 +31,22 @@ class Log {
     set isEditMode(_isEditMode)             { this._isEditMode = _isEditMode; }
     set input(_input)                       { this._input = _input; }
     set sentenceIndex(_sentenceIndex)       { this._sentenceIndex = _sentenceIndex; }
-    set workingText(_workingText)           { this._workingText = _workingText; }
+    set sentence(_sentence)                 { this._sentence = _sentence; }
     set hasTextChanged(_hasTextChanged)     { this._hasTextChanged = _hasTextChanged; }
     set changedText(_changedText)           { this._changedText = _changedText; }
 }
 
-let log;
+export const logAlternation = (modality, state, isControllerInput) => {
+    if (!isTaskTimerRunning())
+        return;
 
-export const createlog = (eventType, timestamp) => {
-    log = new Log(eventType, timestamp);
+    let log = new Log('Alternation', getTimeInSeconds(getTaskTimerValue()))
+    
+    log.feedbackModality = modality
+    log.feedbackState = state
+    log.inputModality = (isControllerInput) ? 'CONTROLLER' : 'VOICE'
+    log.sentenceIndex = getCurrentWorkingTextSentenceIndex()
+    log.sentence = getCurrentWorkingText().text
+
+    pushlog(log);
 }
-
-export const getlog = () => log;

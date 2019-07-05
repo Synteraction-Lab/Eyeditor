@@ -8,7 +8,7 @@ export const getTaskTimerValue = () => taskTimer.getTimeValues().toString(['hour
 export const startTaskTimer = () => { taskTimer.start({ precision: 'secondTenths' }); }
 export const stopTaskTimer = () => { taskTimer.stop(); }
 export const pauseTaskTimer = () => { taskTimer.pause(); }
-export const isTaskTimerRunning = () => taskTimer.isRunning;
+export const isTaskTimerRunning = () => taskTimer.isRunning();
 
 export const getTimeInSeconds = (time) => {
     var split_ = time.split(':')
