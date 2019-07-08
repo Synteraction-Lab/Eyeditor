@@ -8,6 +8,7 @@ import { getSentenceIndexFromBargeinIndex } from './UtteranceParser.js';
 import { resumeReadAfterDisplayTimeout, readFromIndex } from './AudioFeedbackHandler.js';
 import { markupForPrioritizedSentence } from '../Utils/HTMLParser.js';
 import { renderTextPostUpdate, renderTextPostInsertion, renderTextOnUndoRedoInEditInsertMode } from './WordEditHandler.js';
+import { logInit } from '../Utils/UserDataLogger.js';
 
 const MAX_DISPLAY_ON_TIME = 5 // in seconds
 const CLEAR = 'signal:clear'
@@ -143,6 +144,7 @@ export const feedbackOnTextLoad = () => {
                 setCurrentWorkingTextFromSentenceIndex()
                 feedbackOfWorkingTextOnNavigation()
                 fireDisplayOnRoutine()
+                logInit()
             }, 50)
             break;
     }

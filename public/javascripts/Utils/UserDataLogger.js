@@ -37,6 +37,21 @@ class Log {
     set outputSentence(_outputSentence)     { this._outputSentence = stripCommaBeforeLogging(_outputSentence); }
 }
 
+export const logInit = () => {
+    let log = new Log('INIT', 0)
+
+    log.userInput = undefined
+    log.inputModality = undefined
+    log.isEditMode = 'NO'
+    log.feedbackModality = 'VISUAL'
+    log.feedbackState = 'ON'
+    log.sentenceIndex = 0
+    log.inputSentence = getCurrentWorkingText().text
+    log.outputSentence = undefined
+
+    pushlog(log);
+}
+
 export const logAlternation = (isControllerInput) => {
     if (!isTaskTimerRunning())
         return;
