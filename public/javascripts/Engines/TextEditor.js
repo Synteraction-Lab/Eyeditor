@@ -1,9 +1,10 @@
 import { quill, Delta } from '../Services/quill.js'
 import * as tts from '../Services/tts.js'
 import { formatText } from '../Utils/stringutils.js';
-import { feedbackOnTextLoad } from './FeedbackHandler.js';
+import { feedbackOnTextLoad, getCurrentWorkingText } from './FeedbackHandler.js';
+import { logTextChange } from '../Utils/UserDataLogger.js';
 
-var clickedAt;
+let clickedAt;
 
 editor.addEventListener('click', (e) => {
     tts.pause()
@@ -12,7 +13,7 @@ editor.addEventListener('click', (e) => {
     console.log('clicked on text editor at index', clickedAt)
 
     if (e.metaKey) {
-        var startOfWord = quill.getText().lastIndexOf(' ', clickedAt) +1
+        let startOfWord = quill.getText().lastIndexOf(' ', clickedAt) +1
         tts.read(startOfWord)
     }
 });
@@ -34,7 +35,11 @@ const updateCompleted = () => {
     })
 }
 
+let sentenceBeforeUpdate;
+export const getSentenceBeforeUpdate = () => sentenceBeforeUpdate;
+
 export const deleteText = (updateParam) => {
+    sentenceBeforeUpdate = getCurrentWorkingText().text
     quill.focus()
     return new Promise(function(resolve) {
         quill.updateContents(new Delta()
@@ -43,12 +48,14 @@ export const deleteText = (updateParam) => {
             .retain(quill.getSelection().index));
 
         Promise.all([updateCompleted()]).then(function() {
+            logTextChange();
             resolve();
         })
     })
 }
 
 export const replaceText = (updateParam) => {
+    sentenceBeforeUpdate = getCurrentWorkingText().text
     quill.focus()
     return new Promise(function(resolve) {
         quill.updateContents(new Delta()
@@ -58,12 +65,14 @@ export const replaceText = (updateParam) => {
             .retain(quill.getSelection().index));
 
         Promise.all([updateCompleted()]).then(function() {
+            logTextChange();
             resolve();
         })
     })
 }
 
 export const insertText = (updateParam) => {
+    sentenceBeforeUpdate = getCurrentWorkingText().text
     quill.focus()
     return new Promise(function(resolve) {
         quill.updateContents(new Delta()
@@ -72,14 +81,16 @@ export const insertText = (updateParam) => {
             .retain(quill.getSelection().index));
 
         Promise.all([updateCompleted()]).then(function() {
+            logTextChange();
             resolve();
         })
     })
 }
 
 export const undo = () => {
+    sentenceBeforeUpdate = getCurrentWorkingText().text
+
     let historyObject = { op: 'undo', index: undefined, length: undefined };
-    
     if ( quill.history.stack.undo.length > 1 ) {
         let lastUndoStackEntryDelta = quill.history.stack.undo[quill.history.stack.undo.length - 1].undo.ops
         if (lastUndoStackEntryDelta) {
@@ -96,8 +107,9 @@ export const undo = () => {
 }
 
 export const redo = () => {
-    let historyObject = { op: 'redo', index: undefined, length: undefined };
+    sentenceBeforeUpdate = getCurrentWorkingText().text
 
+    let historyObject = { op: 'redo', index: undefined, length: undefined };
     if ( quill.history.stack.redo.length > 0 ) {
         let lastRedoStackEntryDelta = quill.history.stack.redo[quill.history.stack.redo.length - 1].undo.ops
         if (lastRedoStackEntryDelta) {

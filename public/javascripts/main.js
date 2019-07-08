@@ -6,10 +6,14 @@ import { generateFuzzySetForCommands } from './Utils/fuzzymatcher.js';
 import { quill } from './Services/quill.js'
 import { setFeedbackConfigVariable } from './Drivers/RingControllerDriver.js';
 import { startTaskTimer, pauseTaskTimer } from './Services/tasktimer.js';
+import { getSocket } from './Services/socket.js';
+import uuid from './Services/uuid.js'
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;
 var pushToBladeLock = false;    // if true => locked => push to blade.
+
+let socket = getSocket();
 
 export const getFeedbackConfiguration = () => feedbackConfiguration
 export const getLoadedText = () => loadedText
@@ -26,6 +30,7 @@ const initLoad = (text) => {
     editor.refreshText(text, true)
     loadedText = quill.getText()
     tts.setTTSReadStartedFlag(false)
+    allocateLogFile();
 }
 
 const initMode = (data, config) => {
@@ -63,6 +68,7 @@ mic.addEventListener('click', (e) => {
     else {
         recognition.stop();
         pauseTaskTimer();
+        socket.emit('patch-file');
     }
 })
 
@@ -73,3 +79,8 @@ $(".lock").click(function () {
     $(this).toggleClass('unlocked');
     pushToBladeLock = !pushToBladeLock
 });
+
+const allocateLogFile = () => {
+    const logfileBase = `user_${uuid()}.csv`
+    socket.emit('createlog', logfileBase)
+}

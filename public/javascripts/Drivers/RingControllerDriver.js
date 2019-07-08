@@ -4,10 +4,10 @@ import { feedbackOnPushToTalk, isDisplayON, navigateWorkingText, navigateContext
 import { readPrevSentence, readNextSentence, readFromStart, toggleReadEyesFree } from '../Engines/AudioFeedbackHandler.js';
 import { handleUtteranceInEditMode } from '../Engines/UtteranceParser.js';
 import { sendScrollEvent } from './VuzixBladeDriver.js';
-import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange, insertInEditMode, exitInsertMode } from '../Engines/WordEditHandler.js';
+import { initEditMode, moveWordCursor, alterSelection, initRange, clearRange, insertInEditMode, exitInsertMode, getSelectionRangeAbsCharIndices } from '../Engines/WordEditHandler.js';
 import { markupForStatusInEditMode, markupForStatusInDefaultMode } from '../Utils/HTMLParser.js';
-import { logAlternation } from '../Utils/UserDataLogger.js';
-import { stringifyState } from '../Utils/enum.js';
+import { logAlternation, logUserInput } from '../Utils/UserDataLogger.js';
+import { quill } from '../Services/quill.js'
 
 const UP_KEY_CODE = 33
 const DOWN_KEY_CODE = 34
@@ -93,6 +93,9 @@ export const toggleControllerMode = () => {
 export const getFeedbackModality = () => feedbackModality;
 export const setFeedbackModality = (modality) => { feedbackModality = modality; }
 
+export const getFeedbackState = () => feedbackState;
+export const setFeedbackState = (state) => { feedbackState = state; }
+
 const toggleFeedbackModality = () => { 
     feedbackModality = (feedbackModality === 'DISP') ? 'AUDIO' : 'DISP' 
     toggleFeedbackState(true);
@@ -100,7 +103,7 @@ const toggleFeedbackModality = () => {
 
 const toggleFeedbackState = (state) => {
     feedbackState = (state) ? state : !feedbackState
-    logAlternation(feedbackModality, stringifyState(feedbackState), true)
+    logAlternation(true)
 
     if (feedbackModality === 'DISP')
         feedbackOnToggleDisplayState();
@@ -503,12 +506,14 @@ export const handleControllerEvent = (event) => {
             break;
         
         case 'UNDO':
+            logUserInput('UNDO', true)
             handleCommand('undo', null, null, true);
             if (controllerMode === 'EDIT')
                 feedbackOnUndoRedoInEditMode(isInsertMode, getHistoryObject())
             break;
 
         case 'REDO':
+            logUserInput('REDO', true)
             handleCommand('redo', null, null, true);
             if (controllerMode === 'EDIT')
                 feedbackOnUndoRedoInEditMode(isInsertMode, getHistoryObject())
@@ -618,6 +623,10 @@ export const handleControllerEvent = (event) => {
             break;
 
         case 'REMOVE_SELECTED_TEXT':
+            let selection = getSelectionRangeAbsCharIndices();
+            let selectedText = quill.getText().substring(selection.startIndex, selection.endIndex)
+            logUserInput(`DELETE ${selectedText}`, true)
+
             handleUtteranceInEditMode('delete')
             break;
 

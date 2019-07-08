@@ -12,6 +12,8 @@ import { getTTSReadStates, getTTSReadState, setTTSReadState } from '../Services/
 import { getControllerMode } from '../Drivers/RingControllerDriver.js';
 import { getSelectionRangeAbsCharIndices, getInsertionObject } from './WordEditHandler.js';
 import { insertText, deleteText, replaceText, refreshText } from './TextEditor.js';
+import { logUserInput } from '../Utils/UserDataLogger.js';
+import { getLogStringForKeyword } from '../Utils/loggerStringUtil.js';
 
 const MAX_REACTION_TEXT_WINDOW_SIZE = 20 // in chars
 const cropSelectionToBargeinIndex = false // either crop or full sentence.
@@ -30,6 +32,7 @@ export const getWasTTSReadingBeforeUtterance = () => ( TTSReadStateBeforeUtteran
 
 export const handleUtterance = (utterance) => {
     if (getControllerMode() === 'EDIT') {
+        logUserInput(utterance)
         handleUtteranceInEditMode(utterance)
         return;
     }
@@ -145,10 +148,13 @@ const parseUtterance = (utterance, workingText) => {
         let fuzzyArgument = fuzzy.matchFuzzyForArgument(restOfTheUtterance, workingText.text)
         let passArgument = fuzzyArgument || restOfTheUtterance
         feedbackOnUserUtterance(keyword + ' ' + passArgument)
+        logUserInput(`${getLogStringForKeyword(keyword)} ${passArgument}`)
         handleCommand(keyword, passArgument, workingText)
     } 
-    else
+    else {
+        logUserInput(utterance)
         handleRedictation(utterance, workingText)
+    }
 }
 
 const callManagerForAlwaysOnDisplay = (utterance) => {

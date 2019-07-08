@@ -8,7 +8,7 @@ var debug = require('debug')('areditalk:server');
 var http = require('http');
 var socket = require('socket.io');
 var fs = require('fs');
-const uuid = require('uuidv4');
+
 /**
  * Get port from environment and store in Express.
  */
@@ -86,8 +86,8 @@ function onListening() {
 
 /* socket setup */
 var io = socket(server)
-const logfile = `public/javascripts/Data/UserData/user_${uuid()}.csv`
-console.log('logfile created ::', logfile)
+
+let logfileBase, logfile;
 
 io.on('connection', (socket) => {
   console.log('Listening to sockets:', Object.keys(io.sockets.sockets));
@@ -101,6 +101,12 @@ io.on('connection', (socket) => {
     io.sockets.emit('bladeData', data);
   })
 
+  socket.on('createlog', (data) => {
+    logfileBase = data;
+    logfile = `public/javascripts/Data/UserData/Raw/${logfileBase}`
+    console.log('logfile allocated ::', logfile)
+  })
+
   socket.on('log', (data) => {
     fs.appendFile(logfile, data, function (err) {
       if (err) 
@@ -109,4 +115,83 @@ io.on('connection', (socket) => {
     });
   })
 
+  socket.on('patch-file', () => {
+    try {
+      let data = fs.readFileSync(logfile, 'utf8');
+      patchFile(data);
+    } catch (err) {
+      console.log('Error reading file.', err.stack);
+    };
+  })
+
 })
+
+function fetchHeader() {
+  return `Event Type,Timestamp (in s),User Input,Input Modality,Is Edit Mode?,Feedback Modality,Feedback State,Sentence Index,Input Sentence,Output Sentence`;
+}
+
+function patchFile(data) {
+  let lines = data.split('\n')
+  let i;
+  let skipline = false;
+  let newlines = [];
+  
+  const patchfileBase = logfileBase
+  const patchfile = `public/javascripts/Data/UserData/Patched/${patchfileBase}`
+  const patchfileStream = fs.createWriteStream(patchfile);
+
+  patchfileStream.write(`${fetchHeader()}\r\n`);
+
+  for (i = 0; i < lines.length; i++) {
+    if (!/^\w/.test(lines[i]))
+      break;
+
+    if (skipline) {
+      skipline = false;
+      continue;
+    }
+
+    let cellsCurr = lines[i].split(',');
+    let cellsNext = (i === lines.length - 1) ? undefined : lines[i+1].split(',');
+    
+    if ( cellsNext && (cellsCurr[0] === 'UserInput' && cellsNext[0] === 'TextChange') && (cellsCurr[1] === cellsNext[1]) ) {
+      if (cellsCurr[7] === cellsNext[7]) 
+        newlines.push(`${cellsNext[0]},${cellsNext[1]},${cellsCurr[2]},${cellsCurr[3]},${cellsCurr[4]},${cellsCurr[5]},${cellsCurr[6]},${cellsNext[7]},${cellsNext[8]},${cellsNext[9]}`)
+      else
+        newlines.push(`${cellsNext[0]},${cellsNext[1]},${cellsCurr[2]},${cellsCurr[3]},${cellsCurr[4]},${cellsCurr[5]},${cellsCurr[6]},${cellsCurr[7]}>${cellsNext[7]},${cellsNext[8]},${cellsNext[9]}`)
+
+      skipline = true;
+      console.log(`patching lines ${i} and ${i+1}`)
+    }
+
+    else if ( cellsNext && (cellsCurr[0] === 'UserInput' && cellsNext[0] === 'Alternation') && (cellsCurr[1] === cellsNext[1]) ) {
+      if (cellsCurr[7] === cellsNext[7])
+        newlines.push(`${cellsNext[0]},${cellsNext[1]},${cellsCurr[2]},${cellsNext[3]},${cellsNext[4]},${cellsNext[5]},${cellsNext[6]},${cellsNext[7]},${cellsNext[8]},${cellsNext[9]}`)
+      else
+        newlines.push(`${cellsNext[0]},${cellsNext[1]},${cellsCurr[2]},${cellsNext[3]},${cellsNext[4]},${cellsNext[5]},${cellsNext[6]},${cellsCurr[7]}>${cellsNext[7]},${cellsNext[8]},${cellsNext[9]}`)
+
+      skipline = true;
+      console.log(`patching lines ${i} and ${i+1}`)
+    }
+
+    else {
+        console.log(`patching line ${i}`)
+        newlines.push(lines[i])
+    }
+  }
+
+  // newlines.forEach((line,j) => { console.log(`line ${j} :: ${line}`); });
+
+  newlines.forEach(line => patchfileStream.write(`${line}\r\n`));
+
+  patchfileStream.on('finish', () => {
+    console.log(`patched data to file ${patchfile}`);
+  });
+
+  patchfileStream.on('error', (err) => {
+    console.error(`There is an error writing the file ${patchfile} => ${err}`)
+  });
+
+  patchfileStream.end();
+
+}

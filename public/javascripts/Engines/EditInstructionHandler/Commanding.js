@@ -6,8 +6,9 @@ import { provideSuccessFeedback, provideFailureFeedback } from './feedback.js'
 import { readNextSentence, readPrevSentence, repeatSentence, readFromIndex } from '../AudioFeedbackHandler.js';
 import { navigateContext, isDisplayON, navigateWorkingText, getCurrentWorkingText, feedbackOfWorkingTextOnNavigation, fireDisplayOffRoutine, fireDisplayOnRoutine, renderStatusOnBladeDisplay, setCurrentWorkingTextFromSentenceIndex } from '../FeedbackHandler.js';
 import { getFeedbackConfiguration } from '../../main.js';
-import { setFeedbackModality, getFeedbackModality } from '../../Drivers/RingControllerDriver.js';
+import { setFeedbackModality, getFeedbackModality, setFeedbackState } from '../../Drivers/RingControllerDriver.js';
 import { getSentenceIndexFromBargeinIndex } from '../UtteranceParser.js'
+import { logAlternation, logTextChange } from '../../Utils/UserDataLogger.js';
 
 let historyObject = { op: undefined, index: undefined, length: undefined };
 export const getHistoryObject = () => historyObject;
@@ -47,8 +48,10 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 historyObject = Object.assign( {}, editor.undo() )
                 updateParameter = { startIndex: historyObject.index }
                 
-                if ( historyObject.index >= 0 )
+                if ( historyObject.index >= 0 ) {
                     provideSuccessFeedback('Undone', updateParameter, quillSnapshotBeforeUpdate)
+                    logTextChange()
+                }
                 else                
                     provideFailureFeedback('There is nothing more to undo.')
                 break;
@@ -59,8 +62,10 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 historyObject = Object.assign( {}, editor.redo() )
                 updateParameter = { startIndex: historyObject.index }
                 
-                if ( historyObject.index >= 0 )
+                if ( historyObject.index >= 0 ) {
                     provideSuccessFeedback('Redone', updateParameter, quillSnapshotBeforeUpdate)
+                    logTextChange()
+                }
                 else                
                     provideFailureFeedback('There is nothing more to redo.')
                 break;
@@ -101,12 +106,14 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 else if ( feedbackConfig === 'ODD_FLEXI' ) {
                     if (getFeedbackModality() === 'DISP') {
                         setFeedbackModality('AUDIO')
+                        setFeedbackState('ON')
                         fireDisplayOffRoutine(true)
                     }
                     else
                         renderStatusOnBladeDisplay(null)
 
                     readFromIndex(getCurrentWorkingText().startIndex)
+                    logAlternation()
                 }
                 else if ( feedbackConfig === 'DISP_ON_DEMAND' ) {
                     if (isDisplayON())
@@ -117,19 +124,24 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 break;
 
             case 'stop':
-                if ( feedbackConfig === 'ODD_FLEXI' && getFeedbackModality() === 'AUDIO' )
+                if ( feedbackConfig === 'ODD_FLEXI' && getFeedbackModality() === 'AUDIO' ) {
                     renderStatusOnBladeDisplay('Reading Paused.')
+                    setFeedbackState('OFF')
+                    logAlternation()
+                }
                 break;
 
             case 'show':
                 if ( feedbackConfig === 'ODD_FLEXI' ) {
                     if (getFeedbackModality() === 'AUDIO') {
                         setFeedbackModality('DISP');
+                        setFeedbackState('ON')
                         setCurrentWorkingTextFromSentenceIndex( getSentenceIndexFromBargeinIndex() )
                     }
                     
                     feedbackOfWorkingTextOnNavigation()
                     fireDisplayOnRoutine()
+                    logAlternation()
                 }
                 break;
 
@@ -137,6 +149,8 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 if ( feedbackConfig === 'ODD_FLEXI' && getFeedbackModality() === 'DISP' ) {
                     fireDisplayOffRoutine(true)
                     renderStatusOnBladeDisplay('Display Paused.')
+                    setFeedbackState('OFF')
+                    logAlternation()
                 }
                 else if ( feedbackConfig === 'DISP_ON_DEMAND')
                     fireDisplayOffRoutine()
