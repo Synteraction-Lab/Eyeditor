@@ -135,12 +135,16 @@ function patchFile(data) {
   let i;
   let skipline = false;
   let newlines = [];
+  let lastModality = 'VISUAL'
+  let lastState = 'ON'
   
   const patchfileBase = logfileBase
   const patchfile = `public/javascripts/Data/UserData/Patched/${patchfileBase}`
   const patchfileStream = fs.createWriteStream(patchfile);
 
   patchfileStream.write(`${fetchHeader()}\r\n`);
+
+  lines = removeDuplicates(lines)
 
   for (i = 0; i < lines.length; i++) {
     if (!/^\w/.test(lines[i]))
@@ -161,7 +165,7 @@ function patchFile(data) {
         newlines.push(`${cellsNext[0]},${cellsNext[1]},${cellsCurr[2]},${cellsCurr[3]},${cellsCurr[4]},${cellsCurr[5]},${cellsCurr[6]},${cellsCurr[7]}>${cellsNext[7]},${cellsNext[8]},${cellsNext[9]}`)
 
       skipline = true;
-      console.log(`patching lines ${i} and ${i+1}`)
+      // console.log(`patching lines ${i} and ${i+1}`)
     }
 
     else if ( cellsNext && (cellsCurr[0] === 'UserInput' && cellsNext[0] === 'Alternation') && (cellsCurr[1] === cellsNext[1]) ) {
@@ -171,16 +175,33 @@ function patchFile(data) {
         newlines.push(`${cellsNext[0]},${cellsNext[1]},${cellsCurr[2]},${cellsNext[3]},${cellsNext[4]},${cellsNext[5]},${cellsNext[6]},${cellsCurr[7]}>${cellsNext[7]},${cellsNext[8]},${cellsNext[9]}`)
 
       skipline = true;
-      console.log(`patching lines ${i} and ${i+1}`)
+      // console.log(`patching lines ${i} and ${i+1}`)
     }
 
     else {
-        console.log(`patching line ${i}`)
+        // console.log(`patching line ${i}`)
         newlines.push(lines[i])
     }
   }
 
-  // newlines.forEach((line,j) => { console.log(`line ${j} :: ${line}`); });
+  newlines.forEach((line,i) => {
+    let cells = line.split(',')
+    if (cells[0] === 'Alternation') {
+      if (cells[5] === lastModality) {
+        if (cells[6] !== lastState) {
+          if (cells[6] === 'ON')
+            newlines[i] = line.replace(/^Alternation/gi, 'Resumption')
+          else
+            newlines[i] = line.replace(/^Alternation/gi, 'Suspension')
+          lastState = cells[6]
+        }
+      }
+      else {
+        lastModality = cells[5]
+        lastState = 'ON'
+      }
+    }
+  })
 
   newlines.forEach(line => patchfileStream.write(`${line}\r\n`));
 
@@ -195,3 +216,6 @@ function patchFile(data) {
   patchfileStream.end();
 
 }
+
+const removeDuplicates = (linesArray) =>
+  linesArray.filter((line, i) => linesArray.indexOf(line) === i);
