@@ -148,7 +148,10 @@ const parseUtterance = (utterance, workingText) => {
         let fuzzyArgument = fuzzy.matchFuzzyForArgument(restOfTheUtterance, workingText.text)
         let passArgument = fuzzyArgument || restOfTheUtterance
         feedbackOnUserUtterance(keyword + ' ' + passArgument)
-        logUserInput(`${getLogStringForKeyword(keyword)} ${passArgument}`)
+        if (passArgument)
+            logUserInput(`${getLogStringForKeyword(keyword)} ${passArgument}`)
+        else
+            logUserInput(`${getLogStringForKeyword(keyword)}`)
         handleCommand(keyword, passArgument, workingText)
     } 
     else {
@@ -267,7 +270,7 @@ const getListOfSupportedKeywords = () => {
         case 'ODD_FLEXI':
         case 'DISP_ON_DEMAND':
             if (isDisplayON())
-                return ['delete', 'previous', 'next', 'read', 'hide']
+                return ['delete', 'previous', 'next', 'read', 'stop']
             else
                 return ['delete', 'previous', 'next', 'repeat', 'show', 'stop', 'read']
         case 'AOD_SCROLL':

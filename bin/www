@@ -184,8 +184,10 @@ function patchFile(data) {
     }
   }
 
-  newlines.forEach((line,i) => {
+  for (i = 0; i < newlines.length; i++) {
+    let line = newlines[i];
     let cells = line.split(',')
+
     if (cells[0] === 'Alternation') {
       if (cells[5] === lastModality) {
         if (cells[6] !== lastState) {
@@ -195,14 +197,17 @@ function patchFile(data) {
             newlines[i] = line.replace(/^Alternation/gi, 'Suspension')
           lastState = cells[6]
         }
+        else
+          newlines[i] = null;
       }
       else {
         lastModality = cells[5]
         lastState = 'ON'
       }
     }
-  })
+  }
 
+  newlines = newlines.filter(line => line);
   newlines.forEach(line => patchfileStream.write(`${line}\r\n`));
 
   patchfileStream.on('finish', () => {

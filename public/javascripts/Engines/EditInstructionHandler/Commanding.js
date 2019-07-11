@@ -104,15 +104,12 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
                 if ( feedbackConfig === 'EYES_FREE' )
                     repeatSentence()
                 else if ( feedbackConfig === 'ODD_FLEXI' ) {
-                    if (getFeedbackModality() === 'DISP') {
+                    if (getFeedbackModality() === 'DISP')
                         setFeedbackModality('AUDIO')
-                        setFeedbackState('ON')
-                        fireDisplayOffRoutine(true)
-                    }
-                    else
-                        renderStatusOnBladeDisplay(null)
 
                     readFromIndex(getCurrentWorkingText().startIndex)
+                    fireDisplayOffRoutine(true)
+                    setFeedbackState(true)
                     logAlternation()
                 }
                 else if ( feedbackConfig === 'DISP_ON_DEMAND' ) {
@@ -126,34 +123,31 @@ export const handleCommand = (keyword, arg, workingText, isControllerRequest) =>
             case 'stop':
                 if ( feedbackConfig === 'ODD_FLEXI' && getFeedbackModality() === 'AUDIO' ) {
                     renderStatusOnBladeDisplay('Reading Paused.')
-                    setFeedbackState('OFF')
+                    setFeedbackState(false)
                     logAlternation()
                 }
+                if ( feedbackConfig === 'ODD_FLEXI' && getFeedbackModality() === 'DISP' ) {
+                    fireDisplayOffRoutine(true)
+                    renderStatusOnBladeDisplay('Display Paused.')
+                    setFeedbackState(false)
+                    logAlternation()
+                }
+                else if ( feedbackConfig === 'DISP_ON_DEMAND')
+                    fireDisplayOffRoutine()
                 break;
 
             case 'show':
                 if ( feedbackConfig === 'ODD_FLEXI' ) {
                     if (getFeedbackModality() === 'AUDIO') {
                         setFeedbackModality('DISP');
-                        setFeedbackState('ON')
                         setCurrentWorkingTextFromSentenceIndex( getSentenceIndexFromBargeinIndex() )
                     }
                     
                     feedbackOfWorkingTextOnNavigation()
                     fireDisplayOnRoutine()
+                    setFeedbackState(true)
                     logAlternation()
                 }
-                break;
-
-            case 'hide':
-                if ( feedbackConfig === 'ODD_FLEXI' && getFeedbackModality() === 'DISP' ) {
-                    fireDisplayOffRoutine(true)
-                    renderStatusOnBladeDisplay('Display Paused.')
-                    setFeedbackState('OFF')
-                    logAlternation()
-                }
-                else if ( feedbackConfig === 'DISP_ON_DEMAND')
-                    fireDisplayOffRoutine()
                 break;
         }
     }
