@@ -303,11 +303,9 @@ export const feedbackOnToggleDisplayState = () => {
 }
 
 export const feedbackOnToggleReadState = () => {
-    if ( displayON )
-        fireDisplayOffRoutine(true)
     if ( !getWasTTSReading() ) {
+        fireDisplayOffRoutine(true)
         readFromIndex(currentWorkingText.startIndex)
-        renderStatusOnBladeDisplay(null)
     }
     else
         renderStatusOnBladeDisplay('Reading Paused.')
