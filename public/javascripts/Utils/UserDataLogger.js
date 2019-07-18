@@ -4,6 +4,7 @@ import { getSocket } from "../Services/socket.js";
 import { getLogStringForFeedbackModality, stringifyState, stripCommaBeforeLogging } from "./loggerStringUtil.js";
 import { getFeedbackModality, getFeedbackState, getControllerMode } from "../Drivers/RingControllerDriver.js";
 import { getSentenceBeforeUpdate } from "../Engines/TextEditor.js";
+import { quill } from '../Services/quill.js';
 
 let socket = getSocket();
 
@@ -106,3 +107,20 @@ export const logTextChange = () => {
     pushlog(log);
 }
 
+export const logFinalText = () => {
+    if (!isTaskTimerRunning())
+        return;
+    
+    let log = new Log('FinalText', getTimeInSeconds(getTaskTimerValue()))
+
+    log.userInput = undefined
+    log.inputModality = undefined
+    log.isEditMode = undefined
+    log.feedbackModality = undefined
+    log.feedbackState = undefined
+    log.sentenceIndex = undefined
+    log.inputSentence = undefined
+    log.outputSentence = quill.getText().trim()
+
+    pushlog(log);
+}

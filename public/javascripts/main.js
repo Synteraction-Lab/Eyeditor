@@ -8,6 +8,7 @@ import { setFeedbackConfigVariable } from './Drivers/RingControllerDriver.js';
 import { startTaskTimer, pauseTaskTimer } from './Services/tasktimer.js';
 import { getSocket } from './Services/socket.js';
 import uuid from './Services/uuid.js'
+import { logFinalText } from './Utils/UserDataLogger.js';
 
 var feedbackConfiguration = 'DEFAULT';
 var loadedText;
@@ -67,6 +68,7 @@ mic.addEventListener('click', (e) => {
     }
     else {
         recognition.stop();
+        logFinalText();
         pauseTaskTimer();
         socket.emit('patch-file');
     }
