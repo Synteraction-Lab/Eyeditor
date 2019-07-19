@@ -2,8 +2,6 @@ import { toggleControllerMode, handleControllerEvent, classifyControllerEvent, i
 import { handleError } from "../Engines/ErrorHandler.js";
 import * as tts from '../Services/tts.js'
 
-const RADIUS = 10;
-
 function degToRad(degrees) {
     var result = Math.PI / 180 * degrees;
     return result;
@@ -12,13 +10,16 @@ function degToRad(degrees) {
 // setup of the canvas
 
 var canvas = document.querySelector('canvas');
+console.log('canvas', canvas)
 var ctx = canvas.getContext('2d');
 
 var x = canvas.width / 2;
 var y = canvas.height / 2;
 
+const RADIUS = x / 10;
+
 function canvasDraw() {
-    ctx.fillStyle = "black";
+    ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#f00";
     ctx.beginPath();
@@ -67,7 +68,8 @@ let callScrollCounter = 0;
 let isPointerMode = true;
 
 let COMBINE_EVENTS_TIME_WINDOW = 1;   // 100ms
-let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = canvas.width;
+// let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = canvas.width;
+let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = 200;
 
 groupEventTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('groupEventTimer ::', groupEventTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
