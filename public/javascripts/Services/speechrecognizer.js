@@ -41,7 +41,7 @@ recognition.onresult = function(event) {
     var last = event.results.length - 1;
     var hypothesis = event.results[last][0].transcript.trim();
 
-    currentTranscript.innerHTML = hypothesis
+    transcript.innerHTML = hypothesis
     feedbackOnUserUtterance(hypothesis)
 
     if (TTSReadState === TTSReadStates.NOT_SET)
@@ -69,8 +69,10 @@ recognition.onstart = function() {
 }
 
 recognition.onend = function() {
-    if (mic.checked)
+    if (mic.checked) {
+        // console.log('Audio recognition restarted.');
         recognition.start()
+    }
     else {
         recognition.stop()
         // console.log('Audio recognition stopped.');

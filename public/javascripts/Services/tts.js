@@ -16,30 +16,28 @@ var TTSReadFlag
 let lastSentenceIndexRead; 
 
 /* Speech synthesizer setup */
-export function setup() {
-    function setSpeech() {
-        return new Promise(
-            function (resolve, reject) {
-                let id;
-                id = setInterval(() => {
-                    if (synth.getVoices().length !== 0) {
-                        resolve(synth.getVoices());
-                        clearInterval(id);
-                    }
-                }, 10);
-            }
-        )
-    }
-
-    let s = setSpeech();
-    s.then((voices) => {
-        // voice = voices.filter(x => x.default)[0]
-        // voice = voices.filter(x => x.name === 'Google US English')[0]
-        // console.log(voices)
-        // voice = voices[7]
-        voice = voices[32]
-    });  
+function setSpeech() {
+    return new Promise(
+        function (resolve, reject) {
+            let id;
+            id = setInterval(() => {
+                if (synth.getVoices().length !== 0) {
+                    resolve(synth.getVoices());
+                    clearInterval(id);
+                }
+            }, 10);
+        }
+    )
 }
+
+let s = setSpeech();
+s.then((voices) => {
+    // voice = voices.filter(x => x.default)[0]
+    // voice = voices.filter(x => x.name === 'Google US English')[0]
+    // console.log(voices)
+    // voice = voices[7]
+    voice = voices[32]
+});
 
 export function speak(text, rate) { // speak() reads just passed argument at a given speaking rate. low-level method used by read().
     synthUtterance.voice = voice;

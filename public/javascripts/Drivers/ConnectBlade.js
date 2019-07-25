@@ -14,6 +14,7 @@ var ws = new WebSocket(bladeURL);
 
 ws.onopen = function () {
     console.log('Connection established!')
+    AppStatus.textContent = 'Vuzix Blade Connected!'
 };
 
 ws.onmessage = function (evt) {
@@ -23,6 +24,8 @@ ws.onmessage = function (evt) {
 
 ws.onclose = function () {
     console.log("Connection with Blade server closed.");
+    AppStatus.textContent = 'Connection with Vuzix Blade server closed.'
 };
 
 console.log('Trying to connect to the Blade server...')
+AppStatus.textContent = 'Trying to connect to the Vuzix Blade server...'

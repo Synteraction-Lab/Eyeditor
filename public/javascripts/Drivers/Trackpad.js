@@ -18,13 +18,15 @@ var y = canvas.height / 2;
 
 const RADIUS = x / 10;
 
+var elStatus = document.getElementById('AppStatus');
+
 function canvasDraw() {
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#f00";
+    // ctx.fillStyle = "rgba(102, 204, 255, 0.1)";
+    // ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // ctx.fillStyle = "rgba(204, 204, 255, 0.1)";
     ctx.beginPath();
     ctx.arc(x, y, RADIUS, 0, degToRad(360), true);
-    ctx.fill();
+    // ctx.fill();
 }
 canvasDraw();
 
@@ -47,18 +49,23 @@ document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
 function lockChangeAlert() {
     if (document.pointerLockElement === canvas ||
         document.mozPointerLockElement === canvas) {
-        console.log('The pointer lock status is now locked');
+        console.log('The pointer lock status is now locked.');
+        elStatus.textContent = 'Canvas Locked'
+        canvas.classList.add('canvas-locked')
         groupEventTimer.start({ precision: 'secondTenths', countdown: true, startValues: { secondTenths: COMBINE_EVENTS_TIME_WINDOW } });
         document.addEventListener("mousemove", updatePointerPosition, false);
         document.addEventListener("wheel", updateScroll, false);
     } else {
-        console.log('The pointer lock status is now unlocked');
+        console.log('The pointer lock status is now unlocked.');
+        elStatus.textContent = 'Canvas Unlocked'
+        canvas.classList.remove('canvas-locked')
         document.removeEventListener("mousemove", updatePointerPosition, false);
         document.removeEventListener("wheel", updateScroll, false);
     }
 }
 
-var tracker = document.getElementById('tracker');
+// var tracker = document.getElementById('tracker');
+
 var animation;
 
 let groupEventTimer = new Timer();
@@ -97,7 +104,8 @@ function updateCanvas() {
         y = canvas.height + RADIUS;
     }
 
-    tracker.textContent = "X position: " + x + ", Y position: " + y;
+    // tracker.textContent = "X position: " + x + ", Y position: " + y;
+    elStatus.textContent = `Canvas Pointer Coordinates: (${x},${y})`
 
     if (!animation) {
         animation = requestAnimationFrame(function () {

@@ -10,18 +10,15 @@ import { getSocket } from './Services/socket.js';
 import uuid from './Services/uuid.js'
 import { logFinalText } from './Utils/UserDataLogger.js';
 
-var feedbackConfiguration = 'DEFAULT';
-var loadedText;
-var pushToBladeLock = false;    // if true => locked => push to blade.
+let feedbackConfiguration = 'DEFAULT';
+let loadedText;
+let pushToBladeLock = false;    // if true => locked => push to blade.
 
 let socket = getSocket();
 
 export const getFeedbackConfiguration = () => feedbackConfiguration
 export const getLoadedText = () => loadedText
 export const getPushToBladeLockStatus = () => pushToBladeLock
-
-/* configure TTS */
-tts.setup()
 
 /* create the fuzzy set for command keywords */
 generateFuzzySetForCommands()
@@ -46,39 +43,50 @@ const initRead = (data, config) => {
 }
 
 /* Task Button Handlers */
-btn_c1.addEventListener('click', (e) => { initMode(data.task[0], 'DISP_ON_DEMAND') })
-btn_c2.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ON_DEMAND') })
-btn_c3.addEventListener('click', (e) => { initMode(data.task[2], 'DISP_ALWAYS_ON') })
-btn_c4.addEventListener('click', (e) => { initMode(data.task[2], 'AOD_SCROLL') })
-btn_c5.addEventListener('click', (e) => { initMode(data.task[2], 'EYES_FREE') })
-btn_c6.addEventListener('click', (e) => { initMode(data.training[0], 'ODD_FLEXI') })
+/* Iteration 1 */
+mode_EF.addEventListener('click', (e) => { initMode(data.task[0], 'EYES_FREE') })
+mode_AO.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ALWAYS_ON') })
+mode_AO_Audio.addEventListener('click', (e) => { initMode(data.task[2], 'DEFAULT') })
 
-btn_tr1.addEventListener('click', (e) => { initMode(data.training[0], 'DISP_ON_DEMAND') })
-btn_tr2.addEventListener('click', (e) => { initMode(data.training[1], 'DISP_ALWAYS_ON') })
+/* Iteration 2 */
+mode_OD.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ON_DEMAND') })
+mode_AOS.addEventListener('click', (e) => { initMode(data.task[2], 'AOD_SCROLL') })
 
-btn_test.addEventListener('click', (e) => { initMode(data.training[1], 'DEFAULT') })
-btn_read.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
+/* Iteration 3 */
+mode_Flexi.addEventListener('click', (e) => { initMode(data.task[2], 'ODD_FLEXI') })
 
-btn_t1.addEventListener('click', (e) => { initMode(data.training[0], 'AOD_SCROLL') })
+/* Training */
+train1.addEventListener('click', (e) => { initMode(data.training[0], 'ODD_FLEXI') })
+train2.addEventListener('click', (e) => { initMode(data.training[1], 'ODD_FLEXI') })
 
-mic.addEventListener('click', (e) => {
-    if (mic.checked) {
+/* Reading */
+read1.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
+read2.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
+
+$("#mic").click(function () {
+    if ($(this).hasClass('fa-microphone-slash')) {
+        $(this).removeClass('fa-microphone-slash')
+        $(this).addClass('fa-microphone')
+        console.log('Mic On.');
         recognition.start();
         startTaskTimer();
     }
     else {
+        $(this).removeClass('fa-microphone')
+        $(this).addClass('fa-microphone-slash')
+        console.log('Mic Off.');
         recognition.stop();
         logFinalText();
         pauseTaskTimer();
         socket.emit('patch-file');
     }
-})
+});
 
 if (!pushToBladeLock)
-    $(".lock").toggleClass('unlocked');
+    $("#lock").toggleClass('fa-unlock');
 
-$(".lock").click(function () {
-    $(this).toggleClass('unlocked');
+$("#lock").click(function () {
+    $(this).toggleClass('fa-unlock');
     pushToBladeLock = !pushToBladeLock
 });
 

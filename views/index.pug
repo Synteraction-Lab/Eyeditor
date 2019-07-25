@@ -1,41 +1,157 @@
 extends layout
 
 block content
-  a.buttonfile(id='btn_c1', style='background-color:#7E8BC6') ODD-General
-  a.buttonfile(id='btn_c2', style='background-color:#7E8BC6') ODD-PTT
-  a.buttonfile(id='btn_c3', style='background-color:#5D50DE') AOD
-  a.buttonfile(id='btn_c4', style='background-color:#5D50DE') AOD-Scroll
-  a.buttonfile(id='btn_c5', style='background-color:#705318') Eyes-free
-  a.buttonfile(id='btn_c6', style='background-color:#8311AA') ODD-Flexi
-  div#editor
-  br
-  a.buttonfile(id='btn_tr1', style='background-color:#D44009') Train-ODD
-  a.buttonfile(id='btn_tr2', style='background-color:#D44009') Train-AOD
-  a.buttonfile(id='btn_test', style='background-color:#6B6B6B') Test-Default
-  a.buttonfile(id='btn_read', style='background-color:#93B24B') Reading
-  
-  br
-  input#mic(type='checkbox')
-  label(for='mic')
+  //- Page Wrapper
+  #wrapper
+    //- Sidebar
+    ul#accordionSidebar.navbar-nav.bg-gradient-primary.sidebar.sidebar-dark.accordion
+      //- Sidebar - Brand
+      a.sidebar-brand.d-flex.align-items-center.justify-content-center(href='/')
+        .sidebar-brand-text.mx-3 AREDITalk
+      //- Divider
+      hr.sidebar-divider
+      //- Heading
+      .sidebar-heading
+        | Interface
+      //- Nav Item - Feedback Modes Collapse Menu
+      li.nav-item
+        a.nav-link.collapsed(href='#', data-toggle='collapse', data-target='#feedbackModes', aria-expanded='true', aria-controls='feedbackModes')
+          i.fas.fa-fw.fa-cog
+          span Feedback Modes
+        #feedbackModes.collapse(aria-labelledby='headingFeedbackModes', data-parent='#accordionSidebar')
+          .bg-white.py-2.collapse-inner.rounded
+            h6.collapse-header Iteration 1:
+            a.collapse-item(id='mode_EF', target='_blank') Eyes-free
+            a.collapse-item(id='mode_AO', target='_blank') Always-on
+            a.collapse-item(id='mode_AO_Audio', target='_blank') Always-on+Audio
+            .collapse-divider
+            h6.collapse-header Iteration 2:
+            a.collapse-item(id='mode_OD', target='_blank') On-demand
+            a.collapse-item(id='mode_AOS', target='_blank') Always-on (Scroll)
+            .collapse-divider
+            h6.collapse-header Iteration 3:
+            a.collapse-item(id='mode_Flexi', target='_blank') Flexi
+      //- Divider
+      hr.sidebar-divider
+      //- Heading
+      .sidebar-heading
+        | Datasets
+      //- Nav Item - Datasets Collapse Menu
+      li.nav-item
+        a.nav-link.collapsed(href='#', data-toggle='collapse', data-target='#training', aria-expanded='true', aria-controls='training')
+          i.fas.fa-fw.fa-folder
+          span For Training
+        #training.collapse(aria-labelledby='headingTraining', data-parent='#accordionSidebar')
+          .bg-white.py-2.collapse-inner.rounded
+            h6.collapse-header Training Sets:
+            a.collapse-item(id='train1', target='_blank') Set 1
+            a.collapse-item(id='train2', target='_blank') Set 2
+            .collapse-divider
+            //- h6.collapse-header Testing Sets:
+            //- a.collapse-item(target='_blank') Set 1
+            //- a.collapse-item(target='_blank') Set 2
+            //- .collapse-divider
+            h6.collapse-header Reading Sets:
+            a.collapse-item(id='read1', target='_blank') Set 1
+            a.collapse-item(id='read2', target='_blank') Set 2
+      //- Nav Item - Exp Technique 1 Collapse Menu
+      li.nav-item
+        a.nav-link.collapsed(href='#', data-toggle='collapse', data-target='#studyTechnique1', aria-expanded='true', aria-controls='studyTechnique1')
+          i.fas.fa-fw.fa-folder
+          span Study Technique 1
+        #studyTechnique1.collapse(aria-labelledby='headingStudyTechnique1', data-parent='#accordionSidebar')
+          .bg-white.py-2.collapse-inner.rounded
+            h6.collapse-header Path Easy:
+            a.collapse-item(id='T1P1C1', target='_blank') Task Easy
+            a.collapse-item(id='T1P1C2', target='_blank') Task Medium
+            a.collapse-item(id='T1P1C3', target='_blank') Task Hard
+            .collapse-divider
+            h6.collapse-header Path Medium:
+            a.collapse-item(id='T1P2C1', target='_blank') Task Easy
+            a.collapse-item(id='T1P2C2', target='_blank') Task Medium
+            a.collapse-item(id='T1P2C3', target='_blank') Task Hard
+            .collapse-divider
+            h6.collapse-header Path Hard:
+            a.collapse-item(id='T1P3C1', target='_blank') Task Easy
+            a.collapse-item(id='T1P3C2', target='_blank') Task Medium
+            a.collapse-item(id='T1P3C3', target='_blank') Task Hard
+      //- Nav Item - Exp Technique 2 Collapse Menu
+      li.nav-item
+        a.nav-link.collapsed(href='#', data-toggle='collapse', data-target='#studyTechnique2', aria-expanded='true', aria-controls='studyTechnique2')
+          i.fas.fa-fw.fa-folder
+          span Study Technique 2
+        #studyTechnique2.collapse(aria-labelledby='headingStudyTechnique2', data-parent='#accordionSidebar')
+          .bg-white.py-2.collapse-inner.rounded
+            h6.collapse-header Path Easy:
+            a.collapse-item(id='T2P1C1', target='_blank') Task Easy
+            a.collapse-item(id='T2P1C2', target='_blank') Task Medium
+            a.collapse-item(id='T2P1C3', target='_blank') Task Hard
+            .collapse-divider
+            h6.collapse-header Path Medium:
+            a.collapse-item(id='T2P2C1', target='_blank') Task Easy
+            a.collapse-item(id='T2P2C2', target='_blank') Task Medium
+            a.collapse-item(id='T2P2C3', target='_blank') Task Hard
+            .collapse-divider
+            h6.collapse-header Path Hard:
+            a.collapse-item(id='T2P3C1', target='_blank') Task Easy
+            a.collapse-item(id='T2P3C2', target='_blank') Task Medium
+            a.collapse-item(id='T2P3C3', target='_blank') Task Hard
+      //- Divider
+      hr.sidebar-divider.d-none.d-md-block
+      //- Sidebar Toggler (Sidebar)
+      .text-center.d-none.d-md-inline
+        button#sidebarToggle.rounded-circle.border-0
+    //- End of Sidebar
+    
+    //- Content Wrapper
+    #content-wrapper.d-flex.flex-column
+      //- Main Content
+      #content
+        //- Topbar
+        nav.navbar.navbar-expand.navbar-light.bg-white.topbar.mb-4.static-top.shadow
+          form.d-none.d-sm-inline-block.form-inline.mr-auto.ml-md-3.my-2.my-md-0.mw-100.navbar-search
+            .input-group
+              span.mr-2.d-none.d-lg-inline.text-gray-600.small(id='AppStatus') Hello There...
 
-  br
-  div.transcript#static Recognized:
-  div.transcript#currentTranscript
+          //- Topbar Navbar
+          ul.navbar-nav.ml-auto
+            //- Nav Item - Control Panel
+            li.nav-item.dropdown.no-arrow.mx-1
+              a#ControlPanel.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')
+                canvas(width='40', height='20')
+                .topbar-divider.d-none.d-sm-block
+                i#mic.fas.fa-microphone-slash.fa-fw
+                .topbar-divider.d-none.d-sm-block
+                i#lock.fas.fa-lock.fa-fw
+        //- End of Topbar
 
-  br
-  div.container
-    span.lock
-  
-  //- for testing
-  br
-  br
-  input#utteranceBox
+        //- Begin Page Content
+        .container-fluid
+          //- Content Row
+          .row
+            //- Area Chart
+            .col-xl-12.col-lg-12
+              .card.shadow.mb-4
+                //- Card Header - Dropdown
+                .card-header.py-3.d-flex.flex-row.align-items-center.justify-content-between
+                  h6.m-0.font-weight-bold.text-primary Text Showing
+                //- Card Body
+                .card-body
+                  div#editor
+          //- Content Row
+          .row
+            //- Content Column
+            .col-lg-12.mb-4
+              //- Project Card Example
+              .card.shadow.mb-4
+                .card-header.py-3
+                  h6.m-0.font-weight-bold.text-primary Speech Recognized
+                .card-body
+                  div#transcript
 
-  br
-  br
-  a.buttonfile(id='btn_t1', style='background-color:#6B6B6B') Test Data
-  
-  //- canvas(width='200', height='120')
-  canvas(width='50', height='20')
-  #tracker
+        //- /.container-fluid
+        //- End of Main Content
+        //- End of Content Wrapper
+  //- End of Page Wrapper
+
 

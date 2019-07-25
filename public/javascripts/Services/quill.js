@@ -10,9 +10,9 @@ var toolbarOptions = [
 ];
 
 var options = {
-    theme: 'snow',
+    // theme: 'snow',
     modules: {
-        toolbar: toolbarOptions,
+        // toolbar: toolbarOptions,
         history: {
             delay: 1500,
             maxStack: 100,
