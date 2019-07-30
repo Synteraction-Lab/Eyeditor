@@ -1,6 +1,6 @@
 const bladeURLObject = {
     // ip: '172.25.106.169',
-    ip: '192.168.43.62',
+    ip: '192.168.43.63',
     port: '9090',
     route: 'displays',
     endpoint: '10'
