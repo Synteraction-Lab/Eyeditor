@@ -42,3 +42,7 @@ $(document).on('click', 'a.scroll-to-top', function (e) {
     }, 1000, 'easeInOutExpo');
     e.preventDefault();
 });
+
+$('.collapse-item').on('click', function(e) {
+    $('.collapse').removeClass('show');
+})
