@@ -111,13 +111,15 @@ block content
         nav.navbar.navbar-expand.navbar-light.bg-white.topbar.mb-4.static-top.shadow
           form.d-none.d-sm-inline-block.form-inline.mr-auto.ml-md-3.my-2.my-md-0.mw-100.navbar-search
             .input-group
-              span.mr-2.d-none.d-lg-inline.text-gray-600.small(id='AppStatus') Hello There...
+              span.mr-2.d-none.d-lg-inline.text-gray-600.small(id='AppStatus')
 
           //- Topbar Navbar
           ul.navbar-nav.ml-auto
             //- Nav Item - Control Panel
             li.nav-item.dropdown.no-arrow.mx-1
               a#ControlPanel.nav-link.dropdown-toggle(href='#', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')
+                span.mr-2.d-none.d-lg-inline.text-gray-600.small(id='TaskConfig')
+                .topbar-divider.d-none.d-sm-block
                 canvas(width='40', height='20')
                 .topbar-divider.d-none.d-sm-block
                 i#mic.fas.fa-microphone-slash.fa-fw
