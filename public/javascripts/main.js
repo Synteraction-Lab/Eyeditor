@@ -36,10 +36,12 @@ const initLoad = (text) => {
     allocateLogFile();
 }
 
-const initMode = (data, config) => {
+const initMode = (data, config, studyTaskConfigLabel) => {
     feedbackConfiguration = config
     setFeedbackConfigVariable(config)
-    initLoad(data.textToCorrect)
+    initLoad(data)
+    studyTaskConfigLabel = studyTaskConfigLabel || ''
+    TaskConfig.textContent = studyTaskConfigLabel
 }
 
 const initRead = (data, config) => {
@@ -49,49 +51,49 @@ const initRead = (data, config) => {
 
 /* Task Button Handlers */
 /* Iteration 1 */
-mode_EF.addEventListener('click', (e) => { initMode(data.task[0], 'EYES_FREE') })
-mode_AO.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ALWAYS_ON') })
-mode_AO_Audio.addEventListener('click', (e) => { initMode(data.task[2], 'DEFAULT') })
+mode_EF.addEventListener('click', (e) => { initMode(data.task[0].textToCorrect, 'EYES_FREE') })
+mode_AO.addEventListener('click', (e) => { initMode(data.task[1].textToCorrect, 'DISP_ALWAYS_ON') })
+mode_AO_Audio.addEventListener('click', (e) => { initMode(data.task[2].textToCorrect, 'DEFAULT') })
 
 /* Iteration 2 */
-mode_OD.addEventListener('click', (e) => { initMode(data.task[1], 'DISP_ON_DEMAND') })
-mode_AOS.addEventListener('click', (e) => { initMode(data.task[2], 'AOD_SCROLL') })
+mode_OD.addEventListener('click', (e) => { initMode(data.task[1].textToCorrect, 'DISP_ON_DEMAND') })
+mode_AOS.addEventListener('click', (e) => { initMode(data.task[2].textToCorrect, 'AOD_SCROLL') })
 
 /* Iteration 3 */
-mode_Flexi.addEventListener('click', (e) => { initMode(data.task[2], 'ODD_FLEXI') })
+mode_Flexi.addEventListener('click', (e) => { initMode(data.task[2].textToCorrect, 'ODD_FLEXI') })
 
 /* Training */
-train1.addEventListener('click', (e) => { initMode(data.training[0], 'ODD_FLEXI') })
-train2.addEventListener('click', (e) => { initMode(data.training[1], 'ODD_FLEXI') })
+train1.addEventListener('click', (e) => { initMode(data.training[0].textToCorrect, 'ODD_FLEXI') })
+train2.addEventListener('click', (e) => { initMode(data.training[1].textToCorrect, 'ODD_FLEXI') })
 
 /* Reading */
 read1.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
 read2.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
 
 /* Final Study — AREDITalk vs Smartphone */
-T1P1C1.addEventListener('click', (e) => { initRead(data.study.t1.path_easy.task_easy, 'ODD_FLEXI') })
-T1P1C2.addEventListener('click', (e) => { initRead(data.study.t1.path_easy.task_medi, 'ODD_FLEXI') })
-T1P1C3.addEventListener('click', (e) => { initRead(data.study.t1.path_easy.task_hard, 'ODD_FLEXI') })
+T1P1C1.addEventListener('click', (e) => { initMode(data.study.t1.path_easy.task_easy, 'ODD_FLEXI', 'T1P1C1') })
+T1P1C2.addEventListener('click', (e) => { initMode(data.study.t1.path_easy.task_medi, 'ODD_FLEXI', 'T1P1C2') })
+T1P1C3.addEventListener('click', (e) => { initMode(data.study.t1.path_easy.task_hard, 'ODD_FLEXI', 'T1P1C3') })
 
-T1P2C1.addEventListener('click', (e) => { initRead(data.study.t1.path_medi.task_easy, 'ODD_FLEXI') })
-T1P2C2.addEventListener('click', (e) => { initRead(data.study.t1.path_medi.task_medi, 'ODD_FLEXI') })
-T1P2C3.addEventListener('click', (e) => { initRead(data.study.t1.path_medi.task_hard, 'ODD_FLEXI') })
+T1P2C1.addEventListener('click', (e) => { initMode(data.study.t1.path_medi.task_easy, 'ODD_FLEXI', 'T1P2C1') })
+T1P2C2.addEventListener('click', (e) => { initMode(data.study.t1.path_medi.task_medi, 'ODD_FLEXI', 'T1P2C2') })
+T1P2C3.addEventListener('click', (e) => { initMode(data.study.t1.path_medi.task_hard, 'ODD_FLEXI', 'T1P2C3') })
 
-T1P3C1.addEventListener('click', (e) => { initRead(data.study.t1.path_hard.task_easy, 'ODD_FLEXI') })
-T1P3C2.addEventListener('click', (e) => { initRead(data.study.t1.path_hard.task_medi, 'ODD_FLEXI') })
-T1P3C3.addEventListener('click', (e) => { initRead(data.study.t1.path_hard.task_hard, 'ODD_FLEXI') })
+T1P3C1.addEventListener('click', (e) => { initMode(data.study.t1.path_hard.task_easy, 'ODD_FLEXI', 'T1P3C1') })
+T1P3C2.addEventListener('click', (e) => { initMode(data.study.t1.path_hard.task_medi, 'ODD_FLEXI', 'T1P3C2') })
+T1P3C3.addEventListener('click', (e) => { initMode(data.study.t1.path_hard.task_hard, 'ODD_FLEXI', 'T1P3C3') })
 
-T2P1C1.addEventListener('click', (e) => { initRead(data.study.t2.path_easy.task_easy, 'ODD_FLEXI') })
-T2P1C2.addEventListener('click', (e) => { initRead(data.study.t2.path_easy.task_medi, 'ODD_FLEXI') })
-T2P1C3.addEventListener('click', (e) => { initRead(data.study.t2.path_easy.task_hard, 'ODD_FLEXI') })
+T2P1C1.addEventListener('click', (e) => { initMode(data.study.t2.path_easy.task_easy, 'ODD_FLEXI', 'T2P1C1') })
+T2P1C2.addEventListener('click', (e) => { initMode(data.study.t2.path_easy.task_medi, 'ODD_FLEXI', 'T2P1C2') })
+T2P1C3.addEventListener('click', (e) => { initMode(data.study.t2.path_easy.task_hard, 'ODD_FLEXI', 'T2P1C3') })
 
-T2P2C1.addEventListener('click', (e) => { initRead(data.study.t2.path_medi.task_easy, 'ODD_FLEXI') })
-T2P2C2.addEventListener('click', (e) => { initRead(data.study.t2.path_medi.task_medi, 'ODD_FLEXI') })
-T2P2C3.addEventListener('click', (e) => { initRead(data.study.t2.path_medi.task_hard, 'ODD_FLEXI') })
+T2P2C1.addEventListener('click', (e) => { initMode(data.study.t2.path_medi.task_easy, 'ODD_FLEXI', 'T2P2C1') })
+T2P2C2.addEventListener('click', (e) => { initMode(data.study.t2.path_medi.task_medi, 'ODD_FLEXI', 'T2P2C2') })
+T2P2C3.addEventListener('click', (e) => { initMode(data.study.t2.path_medi.task_hard, 'ODD_FLEXI', 'T2P2C3') })
 
-T2P3C1.addEventListener('click', (e) => { initRead(data.study.t2.path_hard.task_easy, 'ODD_FLEXI') })
-T2P3C2.addEventListener('click', (e) => { initRead(data.study.t2.path_hard.task_medi, 'ODD_FLEXI') })
-T2P3C3.addEventListener('click', (e) => { initRead(data.study.t2.path_hard.task_hard, 'ODD_FLEXI') })
+T2P3C1.addEventListener('click', (e) => { initMode(data.study.t2.path_hard.task_easy, 'ODD_FLEXI', 'T2P3C1') })
+T2P3C2.addEventListener('click', (e) => { initMode(data.study.t2.path_hard.task_medi, 'ODD_FLEXI', 'T2P3C2') })
+T2P3C3.addEventListener('click', (e) => { initMode(data.study.t2.path_hard.task_hard, 'ODD_FLEXI', 'T2P3C3') })
 
 /* interface button eventlisteners */
 $("#mic").click(function () {
