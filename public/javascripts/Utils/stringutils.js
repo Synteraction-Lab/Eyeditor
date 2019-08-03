@@ -5,6 +5,11 @@ const stripPunctuations = (text) => {
     return text
 }
 
+const stripUnderscore = (text) => {
+    text = text.replace(/_/g, '')
+    return text
+}
+
 const removeLeadingNonWordChars = (text) => {
     text = text.replace(/^\W+/g, '')
     return text
@@ -50,6 +55,7 @@ export const formatText = (text, isTextLoad) => {
     text = text.trim()
 
     if (isTextLoad) {
+        text = stripUnderscore(text)
         text = splitHyphenatedWords(text)
         text = expandContractions(text)
     }

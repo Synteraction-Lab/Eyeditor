@@ -23,6 +23,11 @@ export const getPushToBladeLockStatus = () => pushToBladeLock
 /* create the fuzzy set for command keywords */
 generateFuzzySetForCommands()
 
+const allocateLogFile = () => {
+    const logfileBase = `user_${uuid()}.csv`
+    socket.emit('createlog', logfileBase)
+}
+
 const initLoad = (text) => {
     mic.checked = false
     editor.refreshText(text, true)
@@ -63,6 +68,32 @@ train2.addEventListener('click', (e) => { initMode(data.training[1], 'ODD_FLEXI'
 read1.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
 read2.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_ON') })
 
+/* Final Study — AREDITalk vs Smartphone */
+T1P1C1.addEventListener('click', (e) => { initRead(data.study.t1.path_easy.task_easy, 'ODD_FLEXI') })
+T1P1C2.addEventListener('click', (e) => { initRead(data.study.t1.path_easy.task_medi, 'ODD_FLEXI') })
+T1P1C3.addEventListener('click', (e) => { initRead(data.study.t1.path_easy.task_hard, 'ODD_FLEXI') })
+
+T1P2C1.addEventListener('click', (e) => { initRead(data.study.t1.path_medi.task_easy, 'ODD_FLEXI') })
+T1P2C2.addEventListener('click', (e) => { initRead(data.study.t1.path_medi.task_medi, 'ODD_FLEXI') })
+T1P2C3.addEventListener('click', (e) => { initRead(data.study.t1.path_medi.task_hard, 'ODD_FLEXI') })
+
+T1P3C1.addEventListener('click', (e) => { initRead(data.study.t1.path_hard.task_easy, 'ODD_FLEXI') })
+T1P3C2.addEventListener('click', (e) => { initRead(data.study.t1.path_hard.task_medi, 'ODD_FLEXI') })
+T1P3C3.addEventListener('click', (e) => { initRead(data.study.t1.path_hard.task_hard, 'ODD_FLEXI') })
+
+T2P1C1.addEventListener('click', (e) => { initRead(data.study.t2.path_easy.task_easy, 'ODD_FLEXI') })
+T2P1C2.addEventListener('click', (e) => { initRead(data.study.t2.path_easy.task_medi, 'ODD_FLEXI') })
+T2P1C3.addEventListener('click', (e) => { initRead(data.study.t2.path_easy.task_hard, 'ODD_FLEXI') })
+
+T2P2C1.addEventListener('click', (e) => { initRead(data.study.t2.path_medi.task_easy, 'ODD_FLEXI') })
+T2P2C2.addEventListener('click', (e) => { initRead(data.study.t2.path_medi.task_medi, 'ODD_FLEXI') })
+T2P2C3.addEventListener('click', (e) => { initRead(data.study.t2.path_medi.task_hard, 'ODD_FLEXI') })
+
+T2P3C1.addEventListener('click', (e) => { initRead(data.study.t2.path_hard.task_easy, 'ODD_FLEXI') })
+T2P3C2.addEventListener('click', (e) => { initRead(data.study.t2.path_hard.task_medi, 'ODD_FLEXI') })
+T2P3C3.addEventListener('click', (e) => { initRead(data.study.t2.path_hard.task_hard, 'ODD_FLEXI') })
+
+/* interface button eventlisteners */
 $("#mic").click(function () {
     if ($(this).hasClass('fa-microphone-slash')) {
         $(this).removeClass('fa-microphone-slash')
@@ -89,8 +120,3 @@ $("#lock").click(function () {
     $(this).toggleClass('fa-unlock');
     pushToBladeLock = !pushToBladeLock
 });
-
-const allocateLogFile = () => {
-    const logfileBase = `user_${uuid()}.csv`
-    socket.emit('createlog', logfileBase)
-}
