@@ -65,16 +65,16 @@ recognition.onresult = function(event) {
 }
 
 recognition.onstart = function() {
-    // console.log('Audio recognition started.');
+    console.log('Speech recognition started.');
 }
 
 recognition.onend = function() {
-    if (mic.checked) {
-        // console.log('Audio recognition restarted.');
+    if ( $("#mic").hasClass('fa-microphone') ) {
+        console.log('Restarting Speech Recognizer...');
         recognition.start()
     }
     else {
         recognition.stop()
-        // console.log('Audio recognition stopped.');
+        console.log('Speech recognition stopped.');
     }
 }

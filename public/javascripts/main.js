@@ -12,7 +12,7 @@ import { logFinalText } from './Utils/UserDataLogger.js';
 
 let feedbackConfiguration = 'DEFAULT';
 let loadedText;
-let pushToBladeLock = false;    // if true => locked => push to blade.
+let pushToBladeLock = true;    // if true => locked => push to blade.
 
 let socket = getSocket();
 
