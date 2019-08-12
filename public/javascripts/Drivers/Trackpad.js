@@ -10,7 +10,7 @@ function degToRad(degrees) {
 // setup of the canvas
 
 var canvas = document.querySelector('canvas');
-console.log('canvas', canvas)
+// console.log('canvas', canvas)
 var ctx = canvas.getContext('2d');
 
 var x = canvas.width / 2;

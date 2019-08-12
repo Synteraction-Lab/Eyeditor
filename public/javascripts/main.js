@@ -16,6 +16,8 @@ let pushToBladeLock = true;    // if true => locked => push to blade.
 
 let socket = getSocket();
 
+const PARTICIPANT_ID = 'P1';
+
 export const getFeedbackConfiguration = () => feedbackConfiguration
 export const getLoadedText = () => loadedText
 export const getPushToBladeLockStatus = () => pushToBladeLock
@@ -23,25 +25,28 @@ export const getPushToBladeLockStatus = () => pushToBladeLock
 /* create the fuzzy set for command keywords */
 generateFuzzySetForCommands()
 
-const allocateLogFile = () => {
-    const logfileBase = `user_${uuid()}.csv`
+const allocateLogFile = (studyTaskConfigLabel) => {
+    // const logfileBase = `user_${uuid()}.csv`
+    const logfileBase = `${PARTICIPANT_ID}_${studyTaskConfigLabel}_${uuid()}.csv`
     socket.emit('createlog', logfileBase)
 }
 
-const initLoad = (text) => {
+const initLoad = (text, studyTaskConfigLabel) => {
     mic.checked = false
     editor.refreshText(text, true)
     loadedText = quill.getText()
     tts.setTTSReadStartedFlag(false)
-    allocateLogFile();
+
+    studyTaskConfigLabel = studyTaskConfigLabel || 'Training'
+    TaskConfig.textContent = studyTaskConfigLabel
+
+    allocateLogFile(studyTaskConfigLabel);
 }
 
 const initMode = (data, config, studyTaskConfigLabel) => {
     feedbackConfiguration = config
     setFeedbackConfigVariable(config)
-    initLoad(data)
-    studyTaskConfigLabel = studyTaskConfigLabel || ''
-    TaskConfig.textContent = studyTaskConfigLabel
+    initLoad(data, studyTaskConfigLabel)
 }
 
 const initRead = (data, config) => {
