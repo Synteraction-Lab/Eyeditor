@@ -21,7 +21,8 @@ const options =
             }
 
 const keywordsParameterized = ['delete']
-const keywordsNonParameterized = ['previous', 'next', 'repeat', 'show', 'stop', 'read']
+// const keywordsNonParameterized = ['previous', 'next', 'repeat', 'show', 'stop', 'read']
+const keywordsNonParameterized = ['previous', 'next']
 const keywords = [...keywordsParameterized, ...keywordsNonParameterized]
 
 var keywordsFuzzySet = [];

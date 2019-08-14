@@ -287,11 +287,11 @@ export const classifyControllerEvent = (trackPadEvent) => {
                                 controllerEvent = 'REDO'
                             break;
 
-                        case CENTER_KEY_CODE:
-                            if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
-                                controllerEvent = 'TOGGLE_FEEDBACK_STATE'
-                            else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
-                                controllerEvent = 'TOGGLE_FEEDBACK_MODALITY'
+                        // case CENTER_KEY_CODE:
+                        //     if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.short )
+                        //         controllerEvent = 'TOGGLE_FEEDBACK_STATE'
+                        //     else if ( keyPressEventStatus[CENTER_KEY_CODE] === KEY_PRESS_EVENT_TYPES.longPressed )
+                        //         controllerEvent = 'TOGGLE_FEEDBACK_MODALITY'
                     }
                     break;
 
