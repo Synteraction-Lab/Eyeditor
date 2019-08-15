@@ -12,12 +12,12 @@ export const data = {
 
         {
             'correctText': 'The dog is a domestic animal. It is very faithful and loyal to human beings. Wild dogs can be dangerous but pet ones are very friendly. They love to play with their masters and go on walks with them. They are generally flesh eaters but can eat plant based foods as well.',
-            'textToCorrect': 'The dogs is a domestic person. It is not at all faithful and loyal to inhuman beings. Wild hogs can be dangerous but pet ones are very friend. They love to be play with their masters and go walks with them. They are generally flesh eat but can drink plant based foods as well.'
+            'textToCorrect': 'The the dogs is a domestic person. It is not at all faithful and loyal to inhuman beings. Wild hogs can be dangerous but pet dogs are very friend. They love to be play with their masters and go walks with them. They are generally flesh eat but can drink plant based foods as well.'
         },
 
         {
             'correctText': 'The doctor is a person who looks after the sick people and prescribes medicines so that the patient recovers fast. In order to become a doctor, a person has to study medicine. Doctors get up early in the morning and go to the hospital. They are always polite so that the patients feel comfortable with them.',
-            'textToCorrect': 'The doctor is a person who looks before the sick people, and do not prescribes medicines so that the patient recovers slowly. In order for become a doctor, a person has, has study medicine. Doctors get early in the morning and go to school. They are never polite so that patients do not feel comfortable with them.'
+            'textToCorrect': 'The The doctor is a person who looks before the sick people, and do not prescribes medicines so that the patient recovers slowly. In order for become a doctor, a person has, has study medicine. Doctors get early in the morning and go to school. They are never polite so that patients do not feel comfortable with them.'
         },
     ],
 
