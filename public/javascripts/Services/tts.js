@@ -52,7 +52,7 @@ export function speak(text, rate) { // speak() reads just passed argument at a g
         TTSReadType = 'CONTENT_FEEDBACK'
     else
         TTSReadType = 'STATUS_FEEDBACK'
-    console.log('TTS Read Type', TTSReadType)
+    // console.log('TTS Read Type', TTSReadType)
 
     synth.speak(synthUtterance);
 }
