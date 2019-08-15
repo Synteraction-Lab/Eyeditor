@@ -60,7 +60,7 @@ export const getPTTStatus = () => {
 }
 
 export const setFeedbackConfigVariable = (config) => { feedbackConfig = config };
-export const getWasTTSReading = () => wasTTSReading;
+export const getWasTTSReading = () => wasTTSReading && !tts.isStatusFeedback();
 
 export const getControllerMode = () => controllerMode;
 export const toggleControllerMode = () => {

@@ -28,7 +28,7 @@ let validKeywords
 export const getBargeinIndex = () => ( tts.getTTSAbsoluteReadIndex() + tts.getTTSRelativeReadIndex() ) || 0;
 export const getQuillSnapshotBeforeUpdate = () => quillSnapshotBeforeUpdate;
 export const getWorkingTextFromReadIndex = () => extractWorkingText(getBargeinIndex());
-export const getWasTTSReadingBeforeUtterance = () => ( TTSReadStateBeforeUtterance === TTSReadStates.READING ) ? true : false;
+export const getWasTTSReadingBeforeUtterance = () => ( TTSReadStateBeforeUtterance === TTSReadStates.READING && !tts.isStatusFeedback() ) ? true : false;
 
 export const handleUtterance = (utterance) => {
     if (getControllerMode() === 'EDIT') {

@@ -321,7 +321,8 @@ const getDeltaAlignment = (alignmentConfig) => {
         case '∂LR∂':
         case '∂LR':
         case '∂L∂':
-            return 'INS';
+            // return 'INS';
+            return 'SUB';
         case 'LR∂':
         case 'L∂':
         case '∂L':

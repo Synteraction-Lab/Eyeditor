@@ -77,28 +77,28 @@ read2.addEventListener('click', (e) => { initRead(data.reading[0], 'DISP_ALWAYS_
 
 /* Final Study — AREDITalk vs Smartphone */
 T1P1C1.addEventListener('click', (e) => { initMode(data.study.t1.path_easy.task_easy, 'ODD_FLEXI', 'T1P1C1') })
-T1P1C2.addEventListener('click', (e) => { initMode(data.study.t1.path_easy.task_medi, 'ODD_FLEXI', 'T1P1C2') })
-T1P1C3.addEventListener('click', (e) => { initMode(data.study.t1.path_easy.task_hard, 'ODD_FLEXI', 'T1P1C3') })
+// T1P1C2.addEventListener('click', (e) => { initMode(data.study.t1.path_easy.task_medi, 'ODD_FLEXI', 'T1P1C2') })
+T1P1C3.addEventListener('click', (e) => { initMode(data.study.t1.path_easy.task_hard, 'ODD_FLEXI', 'T1P1C2') })
 
 T1P2C1.addEventListener('click', (e) => { initMode(data.study.t1.path_medi.task_easy, 'ODD_FLEXI', 'T1P2C1') })
-T1P2C2.addEventListener('click', (e) => { initMode(data.study.t1.path_medi.task_medi, 'ODD_FLEXI', 'T1P2C2') })
-T1P2C3.addEventListener('click', (e) => { initMode(data.study.t1.path_medi.task_hard, 'ODD_FLEXI', 'T1P2C3') })
+// T1P2C2.addEventListener('click', (e) => { initMode(data.study.t1.path_medi.task_medi, 'ODD_FLEXI', 'T1P2C2') })
+T1P2C3.addEventListener('click', (e) => { initMode(data.study.t1.path_medi.task_hard, 'ODD_FLEXI', 'T1P2C2') })
 
 T1P3C1.addEventListener('click', (e) => { initMode(data.study.t1.path_hard.task_easy, 'ODD_FLEXI', 'T1P3C1') })
-T1P3C2.addEventListener('click', (e) => { initMode(data.study.t1.path_hard.task_medi, 'ODD_FLEXI', 'T1P3C2') })
-T1P3C3.addEventListener('click', (e) => { initMode(data.study.t1.path_hard.task_hard, 'ODD_FLEXI', 'T1P3C3') })
+// T1P3C2.addEventListener('click', (e) => { initMode(data.study.t1.path_hard.task_medi, 'ODD_FLEXI', 'T1P3C2') })
+T1P3C3.addEventListener('click', (e) => { initMode(data.study.t1.path_hard.task_hard, 'ODD_FLEXI', 'T1P3C2') })
 
 T2P1C1.addEventListener('click', (e) => { initMode(data.study.t2.path_easy.task_easy, 'ODD_FLEXI', 'T2P1C1') })
-T2P1C2.addEventListener('click', (e) => { initMode(data.study.t2.path_easy.task_medi, 'ODD_FLEXI', 'T2P1C2') })
-T2P1C3.addEventListener('click', (e) => { initMode(data.study.t2.path_easy.task_hard, 'ODD_FLEXI', 'T2P1C3') })
+// T2P1C2.addEventListener('click', (e) => { initMode(data.study.t2.path_easy.task_medi, 'ODD_FLEXI', 'T2P1C2') })
+T2P1C3.addEventListener('click', (e) => { initMode(data.study.t2.path_easy.task_hard, 'ODD_FLEXI', 'T2P1C2') })
 
 T2P2C1.addEventListener('click', (e) => { initMode(data.study.t2.path_medi.task_easy, 'ODD_FLEXI', 'T2P2C1') })
-T2P2C2.addEventListener('click', (e) => { initMode(data.study.t2.path_medi.task_medi, 'ODD_FLEXI', 'T2P2C2') })
-T2P2C3.addEventListener('click', (e) => { initMode(data.study.t2.path_medi.task_hard, 'ODD_FLEXI', 'T2P2C3') })
+// T2P2C2.addEventListener('click', (e) => { initMode(data.study.t2.path_medi.task_medi, 'ODD_FLEXI', 'T2P2C2') })
+T2P2C3.addEventListener('click', (e) => { initMode(data.study.t2.path_medi.task_hard, 'ODD_FLEXI', 'T2P2C2') })
 
 T2P3C1.addEventListener('click', (e) => { initMode(data.study.t2.path_hard.task_easy, 'ODD_FLEXI', 'T2P3C1') })
-T2P3C2.addEventListener('click', (e) => { initMode(data.study.t2.path_hard.task_medi, 'ODD_FLEXI', 'T2P3C2') })
-T2P3C3.addEventListener('click', (e) => { initMode(data.study.t2.path_hard.task_hard, 'ODD_FLEXI', 'T2P3C3') })
+// T2P3C2.addEventListener('click', (e) => { initMode(data.study.t2.path_hard.task_medi, 'ODD_FLEXI', 'T2P3C2') })
+T2P3C3.addEventListener('click', (e) => { initMode(data.study.t2.path_hard.task_hard, 'ODD_FLEXI', 'T2P3C2') })
 
 /* interface button eventlisteners */
 $("#mic").click(function () {

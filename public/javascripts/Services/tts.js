@@ -13,7 +13,10 @@ var TTSAbsoluteReadIndex
 var TTSReadStartedFlag = false
 var TTSReadFlag
 
-let lastSentenceIndexRead; 
+let lastSentenceIndexRead;
+let TTSReadType = 'CONTENT_FEEDBACK';
+
+export const isStatusFeedback = () => ( TTSReadType === 'STATUS_FEEDBACK') ? true : false;
 
 /* Speech synthesizer setup */
 function setSpeech() {
@@ -44,6 +47,13 @@ export function speak(text, rate) { // speak() reads just passed argument at a g
     synthUtterance.rate = rate || TEXT_READ_RATE;
     synthUtterance.text = text;
     
+    // console.log('TTS read rate', synthUtterance.rate.toFixed(1))
+    if (synthUtterance.rate.toFixed(1) == TEXT_READ_RATE)
+        TTSReadType = 'CONTENT_FEEDBACK'
+    else
+        TTSReadType = 'STATUS_FEEDBACK'
+    console.log('TTS Read Type', TTSReadType)
+
     synth.speak(synthUtterance);
 }
 

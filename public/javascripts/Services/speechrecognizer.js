@@ -30,7 +30,7 @@ export const setTTSReadState = (readState) => { TTSReadState = readState }
 export const getTTSReadStates = () => TTSReadStates;
 
 const preprocessHypothesis = (hypo) => {
-    hypo = forceNumberToWords(hypo)
+    // hypo = forceNumberToWords(hypo)
     hypo = splitHyphenatedWords(hypo)
     hypo = expandContractions(hypo)
     return hypo;
