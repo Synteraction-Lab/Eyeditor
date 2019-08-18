@@ -76,7 +76,8 @@ let isPointerMode = true;
 
 let COMBINE_EVENTS_TIME_WINDOW = 1;   // 100ms
 // let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = canvas.width;
-let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = 200;
+// let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = 200;
+let THRESHOLD_FOR_POINTER_MOVEMENT_CLASSIFICATION = 50;
 
 groupEventTimer.addEventListener('secondTenthsUpdated', function (e) {
     // console.log('groupEventTimer ::', groupEventTimer.getTimeValues().toString(['hours', 'minutes', 'seconds', 'secondTenths']));
