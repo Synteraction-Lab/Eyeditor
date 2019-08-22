@@ -45,7 +45,7 @@ export const data = {
     'study': {
         't1': {
             'path_easy': {
-                'task_easy': 'Grin is a beauty color! Many objects _ nature is green. Must of the plants are grain! Frogs and grasshopper at also green! The green collar stands for peace _ prosperity. These color is also god for our eyes. Leaking at green objects comforts our ice.',
+                'task_easy': 'Grin is a beauty color! Many objects _ nature is green. Must of the plants are grain! Frogs and grasshopper at also green! Turtle are different shade of green. The green collar stands for peace _ prosperity. These color is also god for our eyes. Leaking at green objects comforts our ice.',
                 // 'task_medi': 'There are many bigger and small libraries on our country city. They they have million of book in different languages. The you can find both oldest and news books. Every each school _ a libraries. Student come to the library too taken books on different subjects. In a library, no one should maintain sigh lense. There are peepal sitting and reading inner the the library. Taking in loud voices would not would disturb others.',
                 'task_hard': 'The samurai was fear warrior who made up a class of people _ the Japan. The there carried two sword and a elaborate head-dress. They lived by asset of rules which commanding him to act with loyalty and courage. If a samurai samurai consider that he had lost honor, he killing herself. The the _ were originally guards of _ Japan emperor. In 1185, the empower loose power and Japan become an feudal city. The most powerless lord lord, the Shogun, ruled _ country city. Below him were the feudal lords know ass daimios, who were serve bye the samurai.',
             },

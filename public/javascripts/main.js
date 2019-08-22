@@ -16,7 +16,7 @@ let pushToBladeLock = true;    // if true => locked => push to blade.
 
 let socket = getSocket();
 
-const PARTICIPANT_ID = 'P10';
+const PARTICIPANT_ID = 'P12';
 
 export const getFeedbackConfiguration = () => feedbackConfiguration
 export const getLoadedText = () => loadedText
