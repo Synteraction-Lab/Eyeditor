@@ -12,7 +12,7 @@ export const data = {
 
         {
             'correctText': 'The dog is a domestic animal. It is very faithful and loyal to human beings. Wild dogs can be dangerous but pet ones are very friendly. They love to play with their masters and go on walks with them. They are generally flesh eaters but can eat plant based foods as well.',
-            'textToCorrect': 'The the dogs is a domestic person. It is not at all faithful and loyal to inhuman beings. Wild hogs can be dangerous but pet dogs are very friend. They love to be play with their masters and go walks with them. They are generally flesh eat but can drink plant based foods as well.'
+            'textToCorrect': 'The doggy is a domestic person. It is not at all faithful and loyal to inhuman beings. Wild hogs can be dangerous but pet dogs are very friend. They love to be play with with their masters and go walks with them. They are generally flesh eat but can drink plant based foods as well.'
         },
 
         {
