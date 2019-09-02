@@ -62,7 +62,8 @@ mode_AO_Audio.addEventListener('click', (e) => { initMode(data.task[2].textToCor
 
 /* Iteration 2 */
 mode_OD.addEventListener('click', (e) => { initMode(data.task[1].textToCorrect, 'DISP_ON_DEMAND') })
-mode_AOS.addEventListener('click', (e) => { initMode(data.task[2].textToCorrect, 'AOD_SCROLL') })
+mode_AOS.addEventListener('click', (e) => { initMode(data.task[1].textToCorrect, 'AOD_SCROLL') })
+// mode_AOS.addEventListener('click', (e) => { initMode(data.task[2].textToCorrect, 'AOD_SCROLL') })
 
 /* Iteration 3 */
 mode_Flexi.addEventListener('click', (e) => { initMode(data.task[2].textToCorrect, 'ODD_FLEXI') })

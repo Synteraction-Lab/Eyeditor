@@ -29,7 +29,7 @@ export const data = {
 
         {
             'correctText': 'The doctor is a person who looks after the sick people and prescribes medicines so that the patient recovers fast. In order to become a doctor, a person has to study medicine. Doctors get up early in the morning and go to the hospital. They are always polite so that the patients feel comfortable with them.',
-            'textToCorrect': 'The doctor is a person who looks before the sick people, and do not prescribes medicines so that the patient recovers slowly. In order for become a doctor, a person has, has study medicine. Doctors get early in the morning and go to school. They are never polite so that patients do not feel comfortable with them.'
+            'textToCorrect': 'The doctor is a person who looks before the sick people. They do not prescribes medicines so that the patient recovers slowly. In order for become a doctor, a person has, has study medicine. Doctors get early in the morning and go hospital. They are never polite so that patients do not feel comfortable with them.'
         },
 
         {
