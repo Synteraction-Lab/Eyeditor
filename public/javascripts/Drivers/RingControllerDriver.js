@@ -37,6 +37,11 @@ const SWITCH = {
 }
 Object.freeze(SWITCH)
 
+const EDIT_MODE_NAMES = {
+    default: 'Default',
+    precise: 'Select-to-Edit'
+}
+
 let longPressTimer = new Timer()
 let lastKeyPressCode
 let wasTTSReading
@@ -69,7 +74,7 @@ export const toggleControllerMode = () => {
 
     if (controllerMode === 'EDIT') {
         initEditMode();
-        renderTimedStatusOnBladeDisplay(markupForStatusInEditMode('EDIT'))
+        renderTimedStatusOnBladeDisplay(markupForStatusInEditMode(EDIT_MODE_NAMES.precise))
 
         if (rangeSelectionMode)
             rangeSelectionMode = !rangeSelectionMode
@@ -78,7 +83,7 @@ export const toggleControllerMode = () => {
             stopDisplayTimer();
     }
     else {
-        renderTimedStatusOnBladeDisplay(markupForStatusInDefaultMode('DEFAULT'))
+        renderTimedStatusOnBladeDisplay(markupForStatusInDefaultMode(EDIT_MODE_NAMES.default))
         switch (feedbackConfig) {
             case 'ODD_FLEXI':
             case 'DISP_ON_DEMAND':
