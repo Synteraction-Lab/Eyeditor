@@ -12,5 +12,7 @@ Need active internet connection for live transcription
 
 Install the Vuzix Blade with [NIPGlass -> eyeditor_1 branch](https://github.com/NUS-HCILab/NIPGlass/tree/feature/eyeditor_1).
 
+See the interactions at [YouTube](https://www.youtube.com/watch?v=b0n5h_ZILhA)
+
 See the ring mouse key-mapping at the ![attached image](https://github.com/NUS-HCILab/eyeditor/blob/dev/ring-mouse-mapping.jpeg)
 
