@@ -23,7 +23,7 @@ Heads-up Text Editing Tool using Voice and Manual Input (via ring mouse)
 ## Publications
 - [EYEditor: Towards On-the-Go Heads-Up Text Editing Using Voice and Manual Input](https://dl.acm.org/doi/abs/10.1145/3313831.3376173), CHI'20
 ```
-@inproceedings{10.1145/3313831.3376173,
+@inproceedings{ghosh_eyeditor_2020,
 	author = {Ghosh, Debjyoti and Foong, Pin Sym and Zhao, Shengdong and Liu, Can and Janaka, Nuwan and Erusu, Vinitha},
 	title = {EYEditor: Towards On-the-Go Heads-Up Text Editing Using Voice and Manual Input},
 	year = {2020},
