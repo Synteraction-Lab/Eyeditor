@@ -21,7 +21,6 @@ Heads-up Text Editing Tool using Voice and Manual Input (via ring mouse)
 	location = {Honolulu, HI, USA},
 	series = {CHI '20}
 }
-
 ```
 
 ## Contact person
@@ -39,7 +38,8 @@ Heads-up Text Editing Tool using Voice and Manual Input (via ring mouse)
 
 ## Requirements
 - Need active internet connection for live transcription
-- Install the Vuzix Blade with [HeadsUpGlass -> eyeditor_1 branch](https://github.com/NUS-HCILab/HeadsUpGlass) OR [NIPGlass -> eyeditor_1 branch](https://github.com/NUS-HCILab/NIPGlass/tree/feature/eyeditor_1). And set up the Blade's IP address at `public/javascripts/Drivers/ConnectBlade.js`
-- Configrue the ring mouse as ![attached image](https://github.com/NUS-HCILab/eyeditor/blob/dev/ring-mouse-mapping.jpeg)
+- Create a directory for user data, `public/javascripts/Data/UserData/`
+- Install the Vuzix Blade with [HeadsUpGlass -> eyeditor_1 branch](https://github.com/NUS-HCILab/HeadsUpGlass/tree/feature/eyeditor_1) OR [NIPGlass -> eyeditor_1 branch](https://github.com/NUS-HCILab/NIPGlass/tree/feature/eyeditor_1). And set up the Blade's IP address at `public/javascripts/Drivers/ConnectBlade.js` (or use the [SmartGlassesSimulator](https://github.com/NUS-HCILab/SmartGlassesSimulator))
+- Configure the ring mouse as bellow and connect it to computer (to change mapping edit `public/javascripts/Drivers/RingControllerDriver.js`) ![attached image](https://github.com/NUS-HCILab/eyeditor/blob/dev/ring-mouse-mapping.jpeg)
 
 
