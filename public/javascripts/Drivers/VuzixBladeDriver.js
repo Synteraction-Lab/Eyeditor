@@ -34,6 +34,7 @@ export const setDataObjectLayoutHeader = () => {
 export const pushTextToBlade = (text, utterance, status) => {
     dataObject.html = true;
     dataObject.status = status || null;
+    dataObject.config = status || null; // added to support new version of HeadsUpGlass
     dataObject.subheading = text || null;
     dataObject.content = utterance || null;
 
